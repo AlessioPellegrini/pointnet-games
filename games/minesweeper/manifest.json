@@ -1,0 +1,21 @@
+{
+	"name": "Campo Minato",
+	"slug": "minesweeper",
+	"version": "1.0.2",
+	"author": "PointNet Games",
+	"description": "Il classico campo minato con grafica moderna, effetti sonori procedurali e musica di sottofondo. Tre difficoltà, sistema punteggi basato su tempo e difficoltà.",
+	"type": "iframe",
+	"width": 600,
+	"height": 850,
+	"orientation": "landscape",
+	"controls": ["mouse", "touch", "keyboard"],
+	"categories": ["puzzle", "classic", "logic"],
+	"difficulties": {
+		"easy": "🐣 Facile",
+		"medium": "⚡ Medio",
+		"hard": "💀 Difficile"
+	},
+	"max_score": 999999,
+	"license": "GPL-2.0+",
+	"instructions": "Clicca su una cella per rivelarla. Clic destro per piazzare una bandierina. Evita le mine! Scorciatoie: R = riavvia, M = audio."
+}

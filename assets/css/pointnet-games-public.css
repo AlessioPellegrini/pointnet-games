@@ -1,0 +1,347 @@
+/**
+ * PointNet Games — Public styles.
+ */
+
+.pointnet-games-embed {
+	position: relative;
+	display: block;
+	margin: 1.5em 0;
+	background: #000;
+	border-radius: 8px;
+	overflow: visible;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pointnet-games-embed iframe {
+	display: block;
+	border: 0;
+	width: 100%;
+	max-width: 100%;
+	overflow: auto;
+}
+
+/* Fullscreen button */
+.pointnet-games-fullscreen-btn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 20;
+	width: 36px;
+	height: 36px;
+	border: none;
+	border-radius: 8px;
+	background: rgba(0, 0, 0, 0.55);
+	color: #fff;
+	font-size: 1.1rem;
+	line-height: 1;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+
+.pointnet-games-embed:hover .pointnet-games-fullscreen-btn,
+.pointnet-games-fullscreen-btn:focus {
+	opacity: 1;
+}
+
+.pointnet-games-fullscreen-btn:hover {
+	background: rgba(56, 189, 248, 0.85);
+	color: #0f172a;
+	transform: scale(1.08);
+}
+
+/* Fullscreen active state */
+.pointnet-games-embed:fullscreen {
+	background: #000;
+	border-radius: 0;
+	width: 100vw !important;
+	height: 100vh !important;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pointnet-games-embed:fullscreen iframe {
+	width: 100vw !important;
+	height: 100vh !important;
+	max-width: none !important;
+}
+
+.pointnet-games-embed:-webkit-full-screen {
+	width: 100vw !important;
+	height: 100vh !important;
+}
+
+.pointnet-games-embed.pointnet-games-fullscreen-active {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 999999;
+	width: 100vw !important;
+	height: 100vh !important;
+	margin: 0;
+	border-radius: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pointnet-games-embed.pointnet-games-fullscreen-active iframe {
+	width: 100% !important;
+	height: 100% !important;
+	max-width: none !important;
+}
+
+/* -------------------- Single Game Layout -------------------- */
+
+.pointnet-games-single-content {
+	width: 100%;
+	padding: 16px 0;
+}
+
+.pointnet-games-visually-hidden {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.pointnet-games-single-game {
+	margin-bottom: 32px;
+}
+
+.pointnet-games-single-leaderboard,
+.pointnet-games-single-instructions {
+	margin-bottom: 32px;
+}
+
+.pointnet-games-single-leaderboard h2,
+.pointnet-games-single-instructions h2 {
+	font-size: 1.3em;
+	margin-bottom: 12px;
+}
+
+.pointnet-games-single-content-text {
+	line-height: 1.6;
+}
+
+/* -------------------- Leaderboard Tabs -------------------- */
+
+.pointnet-games-leaderboard-tabs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 10px 0 16px;
+}
+
+.pointnet-games-leaderboard-tab {
+	padding: 6px 16px;
+	border-radius: 999px;
+	border: 1px solid #d0d0d0;
+	background: #fff;
+	color: #555;
+	font-size: 0.9em;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: inherit;
+}
+
+.pointnet-games-leaderboard-tab:hover {
+	background: #f5f5f5;
+	border-color: #999;
+}
+
+.pointnet-games-leaderboard-tab-active {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
+}
+
+.pointnet-games-leaderboard-panel {
+	display: none;
+}
+
+.pointnet-games-leaderboard-panel-active {
+	display: block;
+}
+
+/* -------------------- Leaderboard -------------------- */
+
+.pointnet-games-leaderboard {
+	margin: 1.5em 0;
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.pointnet-games-leaderboard-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.95em;
+}
+
+.pointnet-games-leaderboard-table thead th {
+	background: #f5f5f5;
+	padding: 10px 14px;
+	text-align: left;
+	font-weight: 600;
+	border-bottom: 2px solid #e0e0e0;
+}
+
+.pointnet-games-leaderboard-table tbody td {
+	padding: 8px 14px;
+	border-bottom: 1px solid #eee;
+}
+
+.pointnet-games-leaderboard-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+.pointnet-games-leaderboard-table tbody tr:hover {
+	background: #fafafa;
+}
+
+.pointnet-games-leaderboard-table tr.pointnet-games-first {
+	background: #fffbea;
+}
+
+.pointnet-games-leaderboard-table tr.pointnet-games-first td {
+	font-weight: 700;
+	color: #b8860b;
+}
+
+/* -------------------- Games Grid -------------------- */
+
+.pointnet-games-grid {
+	display: grid;
+	gap: 24px;
+	margin: 1.5em 0;
+}
+
+.pointnet-games-grid-1 { grid-template-columns: 1fr; }
+.pointnet-games-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.pointnet-games-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.pointnet-games-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.pointnet-games-grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+.pointnet-games-card {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 10px;
+	overflow: hidden;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pointnet-games-card:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.pointnet-games-card a {
+	text-decoration: none;
+	color: inherit;
+	display: block;
+}
+
+.pointnet-games-card-thumb {
+	width: 100%;
+	height: 140px;
+	object-fit: cover;
+	background: #f0f0f0;
+}
+
+.pointnet-games-card-body {
+	padding: 14px;
+}
+
+.pointnet-games-card-title {
+	margin: 0 0 6px;
+	font-size: 1.1em;
+	font-weight: 700;
+}
+
+.pointnet-games-card-excerpt {
+	margin: 0;
+	font-size: 0.9em;
+	color: #666;
+	line-height: 1.4;
+}
+
+.pointnet-games-error {
+	background: #f8d7da;
+	border: 1px solid #f5c6cb;
+	color: #721c24;
+	padding: 10px 14px;
+	border-radius: 6px;
+}
+
+.pointnet-games-empty {
+	color: #888;
+	font-style: italic;
+	padding: 10px 0;
+}
+
+/* -------------------- Admin Stats -------------------- */
+
+.pointnet-games-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 16px;
+	margin: 20px 0;
+}
+
+.pointnet-games-stat-card {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 20px;
+	text-align: center;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.pointnet-games-stat-value {
+	display: block;
+	font-size: 2em;
+	font-weight: 800;
+	color: #2271b1;
+}
+
+.pointnet-games-stat-label {
+	display: block;
+	margin-top: 6px;
+	color: #666;
+	font-size: 0.9em;
+}
+
+/* -------------------- Responsive -------------------- */
+
+@media (max-width: 900px) {
+	.pointnet-games-grid-3,
+	.pointnet-games-grid-4,
+	.pointnet-games-grid-5 {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 600px) {
+	.pointnet-games-grid-2,
+	.pointnet-games-grid-3,
+	.pointnet-games-grid-4,
+	.pointnet-games-grid-5 {
+		grid-template-columns: 1fr;
+	}
+}

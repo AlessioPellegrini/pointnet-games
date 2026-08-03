@@ -1,0 +1,28 @@
+# WordPress
+wp-config.php
+wp-content/uploads/
+*.sql
+*.log
+
+# Sistemi operativi
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.sublime-project
+*.sublime-workspace
+
+# Node / build (per eventuali sviluppi futuri)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# File temporanei
+*.tmp
+*.bak
+*~

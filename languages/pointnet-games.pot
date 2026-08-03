@@ -1,0 +1,318 @@
+# Copyright (C) 2026 PointNet Games
+# This file is distributed under the GPL-2.0-or-later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: PointNet Games 0.1.0\n"
+"Report-Msgid-Bugs-To: https://example.com/pointnet-games\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-08-02 22:00+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: PointNet Games\n"
+"X-Domain: pointnet-games\n"
+
+#. Plugin Name of the plugin
+msgid "PointNet Games"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://example.com/pointnet-games"
+msgstr ""
+
+#. Description of the plugin
+msgid "Piattaforma giochi arcade per WordPress con punteggi per utenti registrati e anonimi, classifiche e API standardizzata per sviluppatori di giochi."
+msgstr ""
+
+#: includes/class-post-types.php:36
+msgid "Giochi"
+msgstr ""
+
+#: includes/class-post-types.php:37
+msgid "Gioco"
+msgstr ""
+
+#: includes/class-post-types.php:38
+msgid "Aggiungi gioco"
+msgstr ""
+
+#: includes/class-post-types.php:39
+msgid "Aggiungi nuovo gioco"
+msgstr ""
+
+#: includes/class-post-types.php:40
+msgid "Modifica gioco"
+msgstr ""
+
+#: includes/class-post-types.php:41
+msgid "Nuovo gioco"
+msgstr ""
+
+#: includes/class-post-types.php:42
+msgid "Vedi gioco"
+msgstr ""
+
+#: includes/class-post-types.php:43
+msgid "Cerca giochi"
+msgstr ""
+
+#: includes/class-post-types.php:44
+msgid "Nessun gioco trovato"
+msgstr ""
+
+#: includes/class-post-types.php:45
+msgid "Nessun gioco nel cestino"
+msgstr ""
+
+#: includes/class-post-types.php:46
+msgid "Tutti i giochi"
+msgstr ""
+
+#: includes/class-post-types.php:69
+msgid "Categorie Giochi"
+msgstr ""
+
+#: includes/class-post-types.php:70
+msgid "Categoria Gioco"
+msgstr ""
+
+#: includes/class-post-types.php:71
+msgid "Cerca categorie"
+msgstr ""
+
+#: includes/class-post-types.php:72
+msgid "Tutte le categorie"
+msgstr ""
+
+#: includes/class-admin.php:32
+msgid "Punteggi"
+msgstr ""
+
+#: includes/class-admin.php:42
+msgid "Impostazioni"
+msgstr ""
+
+#: includes/class-admin.php:85
+msgid "PointNet Games Dashboard"
+msgstr ""
+
+#: includes/class-admin.php:90
+msgid "Giochi pubblicati"
+msgstr ""
+
+#: includes/class-admin.php:94
+msgid "Punteggi totali"
+msgstr ""
+
+#: includes/class-admin.php:98
+msgid "Giocatori unici"
+msgstr ""
+
+#: includes/class-admin.php:102
+msgid "Giochi installati"
+msgstr ""
+
+#: includes/class-admin.php:105
+msgid "Slug"
+msgstr ""
+
+#: includes/class-admin.php:106
+msgid "Shortcode"
+msgstr ""
+
+#: includes/class-admin.php:107
+msgid "Pagina di gioco"
+msgstr ""
+
+#: includes/class-admin.php:108
+msgid "URL gioco"
+msgstr ""
+
+#: includes/class-admin.php:113
+msgid "Giochi più giocati"
+msgstr ""
+
+#: includes/class-admin.php:124
+msgid "Non hai i permessi per accedere a questa pagina."
+msgstr ""
+
+#: includes/class-admin.php:127
+msgid "Punteggio eliminato."
+msgstr ""
+
+#: includes/class-admin.php:137
+msgid "ID"
+msgstr ""
+
+#: includes/class-admin.php:140
+msgid "Nickname"
+msgstr ""
+
+#: includes/class-admin.php:141
+msgid "Utente"
+msgstr ""
+
+#: includes/class-admin.php:142
+msgid "Punteggio"
+msgstr ""
+
+#: includes/class-admin.php:143
+msgid "Data"
+msgstr ""
+
+#: includes/class-admin.php:144
+msgid "Valido"
+msgstr ""
+
+#: includes/class-admin.php:145
+msgid "Azioni"
+msgstr ""
+
+#: includes/class-admin.php:154
+msgid "N/A"
+msgstr ""
+
+#: includes/class-admin.php:158
+msgid "Registrato"
+msgstr ""
+
+#: includes/class-admin.php:158
+msgid "Anonimo"
+msgstr ""
+
+#: includes/class-admin.php:161
+msgid "Sì"
+msgstr ""
+
+#: includes/class-admin.php:161
+msgid "No"
+msgstr ""
+
+#: includes/class-admin.php:163
+msgid "Eliminare questo punteggio?"
+msgstr ""
+
+#: includes/class-admin.php:166
+msgid "Elimina"
+msgstr ""
+
+#: includes/class-admin.php:184
+msgid "Impostazioni PointNet Games"
+msgstr ""
+
+#: includes/class-admin.php:190
+msgid "Consenti punteggi anonimi"
+msgstr ""
+
+#: includes/class-admin.php:194
+msgid "Gli utenti non registrati possono inviare punteggi con nickname."
+msgstr ""
+
+#: includes/class-admin.php:201
+msgid "Rate limit per minuto"
+msgstr ""
+
+#: includes/class-admin.php:204
+msgid "Numero massimo di invii punteggio consentiti per giocatore al minuto."
+msgstr ""
+
+#: includes/class-admin.php:210
+msgid "Richiedi validazione manuale"
+msgstr ""
+
+#: includes/class-admin.php:214
+msgid "I punteggi compaiono in classifica solo dopo approvazione admin."
+msgstr ""
+
+#: includes/class-admin.php:221
+msgid "Lunghezza minima nickname"
+msgstr ""
+
+#: includes/class-admin.php:229
+msgid "Lunghezza massima nickname"
+msgstr ""
+
+#: includes/class-shortcodes.php:57
+msgid "Gioco non specificato."
+msgstr ""
+
+#: includes/class-shortcodes.php:92
+msgid "Specifica game_id per la classifica."
+msgstr ""
+
+#: includes/class-shortcodes.php:98
+msgid "Nessun punteggio ancora."
+msgstr ""
+
+#: includes/class-shortcodes.php:103
+msgid "Pos."
+msgstr ""
+
+#: includes/class-shortcodes.php:103
+msgid "Giocatore"
+msgstr ""
+
+#: includes/class-shortcodes.php:107
+msgid "Gioco"
+msgstr ""
+
+#: includes/class-shortcodes.php:110
+msgid "Dettagli"
+msgstr ""
+
+#: includes/class-shortcodes.php:113
+msgid "Punteggio"
+msgstr ""
+
+#: includes/class-api.php:124
+msgid "Gioco non trovato."
+msgstr ""
+
+#: includes/class-api.php:151
+msgid "Punteggio non valido."
+msgstr ""
+
+#: includes/class-api.php:160
+msgid "Troppi invii, riprova tra un minuto."
+msgstr ""
+
+#: includes/class-api.php:182
+msgid "Impossibile salvare il punteggio."
+msgstr ""
+
+#: includes/class-leaderboard.php:47
+msgid "Anonimo"
+msgstr ""
+
+#: includes/class-game-registry.php:217
+msgid "Classifica"
+msgstr ""
+
+#: includes/class-game-loader.php:47
+msgid "Nessun gioco disponibile."
+msgstr ""
+
+#: includes/class-admin.php:265
+msgid "Nessun gioco installato. Aggiungi una cartella con manifest.json in games/."
+msgstr ""
+
+#: includes/class-admin.php:285
+msgid "Apri pagina"
+msgstr ""
+
+#: includes/class-admin.php:287
+msgid "Nessuna pagina"
+msgstr ""
+
+#: includes/class-admin.php:290
+msgid "Apri gioco"
+msgstr ""
+
+#: includes/class-admin.php:305
+msgid "Nessun dato disponibile."
+msgstr ""
+
+#: includes/class-admin.php:312
+msgid "Gioco eliminato"
+msgstr ""
