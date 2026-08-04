@@ -62,21 +62,27 @@ class PointNet_Games_Game_Loader {
 		$manifest     = get_post_meta( $game_id, '_pointnet_games_manifest', true );
 		$manifest     = is_array( $manifest ) ? $manifest : array();
 		$embed_height = isset( $manifest['height'] ) ? (int) $manifest['height'] . 'px' : '600px';
+		$embed_id     = 'pointnet-games-embed-' . $game_id;
 
-		$embed = $this->render_game_embed( $game_id, '100%', $embed_height );
+		// Mobile "Play" button: on small screens this appears above the
+		// iframe so users can start the game with a single tap without
+		// scrolling through the page layout.
+		$html .= '<button type="button" class="pointnet-games-mobile-play" data-target="#' . esc_attr( $embed_id ) . '">🎮 ' . esc_html__( 'PLAY', 'pointnet-games' ) . '</button>';
+
+		$embed = $this->render_game_embed( $game_id, '100%', $embed_height, $embed_id );
 		if ( $embed ) {
 			$html .= '<div class="pointnet-games-single-game">' . $embed . '</div>';
 		}
 
 		// 2. Leaderboard.
 		$html .= '<section class="pointnet-games-single-leaderboard">';
-		$html .= '<h2>' . esc_html__( 'Classifica', 'pointnet-games' ) . '</h2>';
+		$html .= '<h2>' . esc_html__( 'Leaderboard', 'pointnet-games' ) . '</h2>';
 
 		// If the game declares difficulty levels in its manifest, show tabs.
 		$difficulties = isset( $manifest['difficulties'] ) ? $manifest['difficulties'] : array();
 		if ( ! empty( $difficulties ) ) {
 			$html .= '<div class="pointnet-games-leaderboard-tabs" data-game-id="' . (int) $game_id . '">';
-			$html .= '<button class="pointnet-games-leaderboard-tab pointnet-games-leaderboard-tab-active" data-difficulty="">' . esc_html__( 'Tutti', 'pointnet-games' ) . '</button>';
+			$html .= '<button class="pointnet-games-leaderboard-tab pointnet-games-leaderboard-tab-active" data-difficulty="">' . esc_html__( 'All', 'pointnet-games' ) . '</button>';
 			foreach ( $difficulties as $diff_slug => $diff_label ) {
 				$html .= '<button class="pointnet-games-leaderboard-tab" data-difficulty="' . esc_attr( $diff_slug ) . '">' . esc_html( $diff_label ) . '</button>';
 			}
@@ -101,7 +107,7 @@ class PointNet_Games_Game_Loader {
 
 		// 3. Instructions (original post content).
 		$html .= '<section class="pointnet-games-single-instructions">';
-		$html .= '<h2>' . esc_html__( 'Come si gioca', 'pointnet-games' ) . '</h2>';
+		$html .= '<h2>' . esc_html__( 'How to play', 'pointnet-games' ) . '</h2>';
 		$html .= '<div class="pointnet-games-single-content-text">' . wp_kses_post( wpautop( $content ) ) . '</div>';
 		$html .= '</section>';
 
@@ -116,10 +122,11 @@ class PointNet_Games_Game_Loader {
 	 * @param int    $game_id Game post ID.
 	 * @param string $width   CSS width for the embed container.
 	 * @param string $height  CSS height for the embed container.
+	 * @param string $embed_id Optional HTML id attribute for the embed container.
 	 *
 	 * @return string Embed HTML.
 	 */
-	public function render_game_embed( $game_id, $width = '100%', $height = '600px' ) {
+	public function render_game_embed( $game_id, $width = '100%', $height = '600px', $embed_id = '' ) {
 		$game = get_post( $game_id );
 
 		if ( ! $game || PointNet_Games_Post_Types::GAME_CPT !== $game->post_type || 'publish' !== $game->post_status ) {
@@ -138,8 +145,10 @@ class PointNet_Games_Game_Loader {
 		$iframe_url = PointNet_Games_Game_Loader::get_game_iframe_url( $game_id, $game_slug );
 
 		// Build game wrapper.
+		$id_attr = $embed_id ? ' id="' . esc_attr( $embed_id ) . '"' : '';
 		$html = sprintf(
-			'<div class="pointnet-games-embed" data-game-id="%d" data-game-slug="%s" data-game-type="%s" style="width:%s; height:%s;">',
+			'<div class="pointnet-games-embed"%s data-game-id="%d" data-game-slug="%s" data-game-type="%s" style="width:%s; height:%s;">',
+			$id_attr,
 			esc_attr( $game_id ),
 			esc_attr( $game_slug ),
 			esc_attr( $game_type ),
@@ -169,6 +178,37 @@ class PointNet_Games_Game_Loader {
 	}
 
 	/**
+	 * Get the newest modification time of any file inside a game folder.
+	 * This ensures cache busting also works for games with separate
+	 * CSS, JS or asset files, not just index.html.
+	 *
+	 * @param string $dir_abs Absolute path to the game directory.
+	 *
+	 * @return int Latest filemtime, or 0 when the directory is missing/empty.
+	 */
+	private static function get_game_dir_mtime( $dir_abs ) {
+		if ( ! is_dir( $dir_abs ) ) {
+			return 0;
+		}
+
+		$iterator = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $dir_abs, FilesystemIterator::SKIP_DOTS )
+		);
+
+		$latest = 0;
+		foreach ( $iterator as $file ) {
+			if ( $file->isFile() ) {
+				$mtime = (int) $file->getMTime();
+				if ( $mtime > $latest ) {
+					$latest = $mtime;
+				}
+			}
+		}
+
+		return $latest;
+	}
+
+	/**
 	 * Build the iframe URL for a game, handling rewrite fallback.
 	 *
 	 * @param int    $game_id  Game post ID.
@@ -177,14 +217,12 @@ class PointNet_Games_Game_Loader {
 	 * @return string
 	 */
 	public static function get_game_iframe_url( $game_id, $game_slug ) {
-		$version = '';
-
 		// Prefer the registered relative dir from the registry.
 		$registered_dir = get_post_meta( $game_id, '_pointnet_games_dir', true );
 		if ( $registered_dir ) {
 			$direct_file = POINTNET_GAMES_PLUGIN_DIR . $registered_dir . 'index.html';
 			if ( file_exists( $direct_file ) ) {
-				$version = (string) filemtime( $direct_file );
+				$version = self::get_game_dir_mtime( POINTNET_GAMES_PLUGIN_DIR . $registered_dir );
 				return POINTNET_GAMES_PLUGIN_URL . $registered_dir . 'index.html?v=' . $version;
 			}
 		}
@@ -192,7 +230,7 @@ class PointNet_Games_Game_Loader {
 		// Try direct file first (games/{slug}/index.html).
 		$direct_file = POINTNET_GAMES_PLUGIN_DIR . 'games/' . $game_slug . '/index.html';
 		if ( file_exists( $direct_file ) ) {
-			$version = (string) filemtime( $direct_file );
+			$version = self::get_game_dir_mtime( POINTNET_GAMES_PLUGIN_DIR . 'games/' . $game_slug );
 			return POINTNET_GAMES_PLUGIN_URL . 'games/' . $game_slug . '/index.html?v=' . $version;
 		}
 

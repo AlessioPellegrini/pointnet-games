@@ -54,7 +54,7 @@ class PointNet_Games_Shortcodes {
 		}
 
 		if ( ! $game_id ) {
-			return '<p class="pointnet-games-error">' . esc_html__( 'Gioco non specificato.', 'pointnet-games' ) . '</p>';
+			return '<p class="pointnet-games-error">' . esc_html__( 'Game not specified.', 'pointnet-games' ) . '</p>';
 		}
 
 		$loader = new PointNet_Games_Game_Loader();
@@ -91,7 +91,7 @@ class PointNet_Games_Shortcodes {
 		} else {
 			$game_id = absint( $atts['game_id'] );
 			if ( ! $game_id ) {
-				return '<p class="pointnet-games-error">' . esc_html__( 'Specifica game_id per la classifica.', 'pointnet-games' ) . '</p>';
+				return '<p class="pointnet-games-error">' . esc_html__( 'Specify a game_id for the leaderboard.', 'pointnet-games' ) . '</p>';
 			}
 			$filters = array();
 			if ( $difficulty ) {
@@ -101,22 +101,22 @@ class PointNet_Games_Shortcodes {
 		}
 
 		if ( empty( $entries ) ) {
-			return '<p class="pointnet-games-empty">' . esc_html__( 'Nessun punteggio ancora.', 'pointnet-games' ) . '</p>';
+			return '<p class="pointnet-games-empty">' . esc_html__( 'No scores yet.', 'pointnet-games' ) . '</p>';
 		}
 
 		$html  = '<div class="pointnet-games-leaderboard">';
 		$html .= '<table class="pointnet-games-leaderboard-table">';
-		$html .= '<thead><tr><th>' . esc_html__( 'Pos.', 'pointnet-games' ) . '</th><th>' . esc_html__( 'Giocatore', 'pointnet-games' ) . '</th>';
+		$html .= '<thead><tr><th>' . esc_html__( 'Pos.', 'pointnet-games' ) . '</th><th>' . esc_html__( 'Player', 'pointnet-games' ) . '</th>';
 
 		if ( $is_global ) {
-			$html .= '<th>' . esc_html__( 'Gioco', 'pointnet-games' ) . '</th>';
+			$html .= '<th>' . esc_html__( 'Game', 'pointnet-games' ) . '</th>';
 		}
 
 		if ( $atts['show_meta'] ) {
-			$html .= '<th>' . esc_html__( 'Dettagli', 'pointnet-games' ) . '</th>';
+			$html .= '<th>' . esc_html__( 'Details', 'pointnet-games' ) . '</th>';
 		}
 
-		$html .= '<th>' . esc_html__( 'Punteggio', 'pointnet-games' ) . '</th>';
+		$html .= '<th>' . esc_html__( 'Score', 'pointnet-games' ) . '</th>';
 		$html .= '</tr></thead><tbody>';
 
 		foreach ( $entries as $entry ) {
@@ -184,7 +184,7 @@ class PointNet_Games_Shortcodes {
 		$games = get_posts( $query_args );
 
 		if ( empty( $games ) ) {
-			return '<p class="pointnet-games-empty">' . esc_html__( 'Nessun gioco disponibile.', 'pointnet-games' ) . '</p>';
+			return '<p class="pointnet-games-empty">' . esc_html__( 'No games available.', 'pointnet-games' ) . '</p>';
 		}
 
 		$columns = min( max( 1, absint( $atts['columns'] ) ), 5 );

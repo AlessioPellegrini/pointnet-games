@@ -2,15 +2,15 @@
 /**
  * Plugin Name:       PointNet Games
  * Plugin URI:        https://wpgames.pointnet.it/
- * Description:       Piattaforma giochi arcade per WordPress con punteggi per utenti registrati e anonimi, classifiche e API standardizzata per sviluppatori di giochi.
- * Version:           0.1.3
+ * Description:       Arcade games platform for WordPress with scores for registered and anonymous users, leaderboards and a standardized API for game developers.
+ * Version:           0.1.5
  * Author:            PointNet
  * Author URI:        https://www.pointnet.it/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       pointnet-games
  * Domain Path:       /languages
- * Requires at least: 6.0
+ * Requires at least: 6.2
  * Requires PHP:      7.4
  */
 
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version.
-define( 'POINTNET_GAMES_VERSION', '0.1.3' );
+define( 'POINTNET_GAMES_VERSION', '0.1.5' );
 
 // Plugin paths.
 define( 'POINTNET_GAMES_PLUGIN_FILE', __FILE__ );
@@ -51,8 +51,8 @@ register_deactivation_hook( __FILE__, array( 'PointNet_Games_Install', 'deactiva
  * Bootstrap the plugin on 'plugins_loaded'.
  */
 function pointnet_games_bootstrap() {
-	// Load translations.
-	load_plugin_textdomain( 'pointnet-games', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	// Translations are loaded automatically by WordPress (4.6+)
+	// using the "Text Domain" and "Domain Path" plugin headers.
 
 	// Register post types.
 	new PointNet_Games_Post_Types();
@@ -178,7 +178,7 @@ function pointnet_games_scores_table() {
 }
 
 /**
- * Add a "Impostazioni" link to the plugin's row on the Plugins admin page.
+ * Add a "Settings" link to the plugin's row on the Plugins admin page.
  *
  * @param array $links Existing action links.
  *
@@ -188,7 +188,7 @@ function pointnet_games_plugin_action_links( $links ) {
 	$settings_link = sprintf(
 		'<a href="%s">%s</a>',
 		esc_url( admin_url( 'admin.php?page=pointnet-games-settings' ) ),
-		esc_html__( 'Impostazioni', 'pointnet-games' )
+		esc_html__( 'Settings', 'pointnet-games' )
 	);
 
 	array_unshift( $links, $settings_link );

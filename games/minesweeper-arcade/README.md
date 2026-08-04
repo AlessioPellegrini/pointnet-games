@@ -1,22 +1,22 @@
-# 💣 Campo Minato Arcade
+# 💣 Minesweeper Arcade
 
-Variante arcade del classico campo minato con **livelli progressivi**: completa il campo e passa al livello successivo. Un errore e riparti dal Livello 1!
+Arcade variant of the classic minesweeper with **progressive levels**: clear the board and advance to the next level. One mistake and you're back to Level 1!
 
-## 🎮 Come si gioca
+## 🎮 How to Play
 
-- **Scopo**: rivelare tutte le celle sicure senza far esplodere le mine, livello dopo livello.
-- **Click sinistro / tap**: rivela una cella.
-- **Click destro / pressione lunga (mobile)**: piazza/rimuovi una bandierina.
-- **Scorciatoie**: `R` = riavvia livello, `M` = attiva/disattiva audio.
+- **Goal**: reveal all safe cells without detonating mines, level after level.
+- **Left click / tap**: reveal a cell.
+- **Right click / long press (mobile)**: place/remove a flag.
+- **Shortcuts**: `M` = toggle audio.
 
-## 🏆 Punteggio e progressione
+## 🏆 Scoring and Progression
 
 ```
-Punteggio livello = max(10, (celle_sicure × 10 − tempo_secondi × 5) × (1 + livello × 0.2))
-Punteggio totale = somma di tutti i livelli completati
+Level score = max(10, (safe_cells × 10 − time_seconds × 5) × (1 + level × 0.2))
+Total score = sum of all completed levels
 ```
 
-| Livello | Griglia | Celle | Bombe | % |
+| Level | Grid | Cells | Mines | % |
 |---------|---------|-------|-------|---|
 | 1 | 7 × 7 | 49 | 5 | 10% |
 | 2 | 7 × 7 | 49 | 6 | 12% |
@@ -34,26 +34,26 @@ Punteggio totale = somma di tutti i livelli completati
 | 14 | 14 × 14 | 196 | 42 | 21% |
 | 15 | 14 × 14 | 196 | 50 | 26% |
 
-- Se **esplodi**: il punteggio accumulato viene inviato alla classifica e si riparte dal Livello 1
-- Completa tutti e 15 i livelli: punteggio finale inviato come "Livello Massimo"
-- **Mobile friendly**: tutte le griglie hanno massimo 14 colonne — entrano in qualunque schermo
-- **Progressione graduale**: incremento di 1-3% per livello, con griglie che crescono lentamente
+- If you **explode**: the accumulated score is submitted to the leaderboard and you start over from Level 1
+- Complete all 15 levels: final score submitted as "Max Level"
+- **Mobile friendly**: all grids have at most 14 columns — they fit on any screen
+- **Gradual progression**: 1-3% increase per level, with slowly growing grids
 
-## 📦 Integrazione PointNet Games
+## 📦 PointNet Games Integration
 
-- `submitScore(score, meta)` — invia il punteggio totale con meta `{ difficulty: "arcade", label: "Arcade", level_reached, time_seconds }`
-- Classifica filtrata per `difficulty="arcade"` (tab "🎮 Arcade" nella pagina del gioco)
+- `submitScore(score, meta)` — submits the total score with meta `{ difficulty: "arcade", label: "Arcade", level_reached, time_seconds }`
+- Leaderboard filtered by `difficulty="arcade"` ("🎮 Arcade" tab on the game page)
 
 ## 📝 Changelog
 
-### 1.0.0 (attuale)
-- Rilascio iniziale con **15 livelli progressivi** e difficoltà graduale
-- Griglie mobile friendly (max 14 colonne)
-- Punteggio progressivo con moltiplicatore per livello
-- Audio procedurale (Web Audio API)
-- Splash screen + fullscreen immersivo
-- Integrazione completa PointNet Games (classifica, difficoltà arcade, shim postMessage)
+### 1.0.0 (current)
+- Initial release with **15 progressive levels** and gradual difficulty
+- Mobile friendly grids (max 14 columns)
+- Progressive scoring with per-level multiplier
+- Procedural audio (Web Audio API)
+- Splash screen + immersive fullscreen
+- Full PointNet Games integration (leaderboard, arcade difficulty, postMessage shim)
 
-## 📄 Licenza
+## 📄 License
 
-**GPL-2.0+** — licenza GNU General Public License v2 o successiva.
+**GPL-2.0+** — GNU General Public License v2 or later.

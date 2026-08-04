@@ -132,7 +132,7 @@ class PointNet_Games_API {
 		if ( ! $game || PointNet_Games_Post_Types::GAME_CPT !== $game->post_type || 'publish' !== $game->post_status ) {
 			return new WP_Error(
 				'pointnet_games_game_not_found',
-				__( 'Gioco non trovato.', 'pointnet-games' ),
+				__( 'Game not found.', 'pointnet-games' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -159,7 +159,7 @@ class PointNet_Games_API {
 		if ( $score <= 0 ) {
 			return new WP_Error(
 				'pointnet_games_invalid_score',
-				__( 'Punteggio non valido.', 'pointnet-games' ),
+				__( 'Invalid score.', 'pointnet-games' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -168,7 +168,7 @@ class PointNet_Games_API {
 		if ( ! PointNet_Games_Leaderboard::check_rate_limit( $game_id ) ) {
 			return new WP_Error(
 				'pointnet_games_rate_limited',
-				__( 'Troppi invii, riprova tra un minuto.', 'pointnet-games' ),
+				__( 'Too many submissions, try again in a minute.', 'pointnet-games' ),
 				array( 'status' => 429 )
 			);
 		}
@@ -190,7 +190,7 @@ class PointNet_Games_API {
 		if ( false === $result ) {
 			return new WP_Error(
 				'pointnet_games_insert_failed',
-				__( 'Impossibile salvare il punteggio.', 'pointnet-games' ),
+				__( 'Unable to save the score.', 'pointnet-games' ),
 				array( 'status' => 500 )
 			);
 		}

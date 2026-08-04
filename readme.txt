@@ -1,10 +1,10 @@
 === PointNet Games ===
 Contributors: pointnet
 Tags: games, arcade, leaderboard, highscore, puzzle
-Requires at least: 6.0
+Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.1.3
+Stable tag: 0.1.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -24,7 +24,7 @@ Arcade game platform for WordPress with scores, leaderboards and a standardized 
 * ✅ **Auto-registration** — games in the `games/` folder are registered automatically
 * ✅ **Anti-cheat** — nonces, rate limiting, optional validation, IP hashing
 * ✅ **Security** — output escaping, input sanitization, capability checks, prepared SQL statements
-* ✅ **Bundled games** — Minesweeper with procedural audio and 3 difficulties, plus Minesweeper Arcade with 15 progressive levels
+* ✅ **Bundled game** — Minesweeper Arcade with 15 progressive levels
 * ✅ **Splash screen** — intro screen with a PLAY button
 * ✅ **Immersive fullscreen CSS** — the game expands to fullscreen when pressing PLAY
 * ✅ **Mobile touch support** — tap to reveal, long-press to flag with vibration
@@ -42,9 +42,8 @@ PointNet Games follows official WordPress security recommendations:
 * **Rate limiting** — max N score submissions per minute per player/game
 * **Privacy** — IPs are stored as SHA-256 hashes, never in plain text
 
-= Included Games =
+= Included Game =
 
-* **Minesweeper** — classic modern minesweeper with dark graphics, procedural sound effects (Web Audio API), 3 difficulties and time/difficulty-based scoring
 * **Minesweeper Arcade** — progressive levels: clear the field and advance to the next level. One mistake and you restart from Level 1. Mobile friendly.
 
 == Installation ==
@@ -65,7 +64,7 @@ PointNet Games follows official WordPress security recommendations:
 
 1. Log into **WP Admin** — the plugin automatically registers games from the `games/` folder
 2. Go to **PointNet Games** in the admin menu to see installed games
-3. Use the auto-generated page (e.g. `/minesweeper/`) or create a page with the `[pointnet_games_list]` shortcode
+3. Use the auto-generated page (e.g. `/minesweeper-arcade/`) or create a page with the `[pointnet_games_list]` shortcode
 
 == Frequently Asked Questions ==
 
@@ -75,7 +74,7 @@ Copy the game folder (with `manifest.json` and `index.html`) into `wp-content/pl
 
 = How do I create a games page? =
 
-Create a WordPress page and insert the `[pointnet_games_list]` shortcode to show the grid, or `[pointnet_game slug="minesweeper"]` to embed a single game.
+Create a WordPress page and insert the `[pointnet_games_list]` shortcode to show the grid, or `[pointnet_game slug="minesweeper-arcade"]` to embed a single game.
 
 = Can anonymous users submit scores? =
 
@@ -89,17 +88,31 @@ The plugin uses WordPress nonces, IP rate limiting, IP hashing and optional manu
 
 Absolutely! Full developer documentation is in `docs/developer-guide.md`. Each game is a folder with `manifest.json` + `index.html` that uses the global `pointnetGamesAPI` object.
 
-= How does Minesweeper scoring work? =
+= How does Minesweeper Arcade scoring work? =
 
-Base score per difficulty (1000 easy, 2000 medium, 4000 hard) − time penalty (8×seconds) + mine bonus (2×mines). Saved meta includes difficulty, time, rows, columns and mines.
+The score is based on the game level reached at the moment of clearing the field. Saved meta includes the level, time and field size.
 
 == Screenshots ==
 
 1. PointNet Games dashboard with statistics and installed games
-2. Minesweeper page with leaderboard
+2. Minesweeper Arcade page with leaderboard
 3. Settings panel
 
 == Changelog ==
+
+= 0.1.5 =
+* Removed the classic Minesweeper game — only Minesweeper Arcade is bundled now
+* Orphaned game cleanup: when a game folder is removed from `games/`, its CPT post and leaderboard scores are automatically deleted during the registry sync
+* Admin dashboard: detailed shortcode documentation with per-attribute explanations and multiple examples
+* Minesweeper Arcade mobile optimization: responsive board that fills the screen, compact portrait and landscape layouts, dynamic cell sizing
+* Cache busting now covers the whole game folder: if any file (CSS, JS, assets) is modified, the iframe cache refreshes
+
+= 0.1.4 =
+* Plugin Check compliance: interpolated table names in SQL replaced with `%i` identifiers (requires WordPress 6.2+)
+* Uninstall script rewritten as a function wrapper (no more prefixed-global warnings)
+* PHPCS ignore annotations for legacy `rmdir()`/`unlink()` fallback — WP_Filesystem remains the primary path
+* Removed duplicate legacy cleanup entries left over from the plugin rename
+* Requires at least bumped to 6.2 for `$wpdb->prepare( '%i', ... )`
 
 = 0.1.3 =
 * Game uninstallation from the dashboard: "Actions" column with an "Uninstall" button for each game
@@ -151,6 +164,9 @@ Base score per difficulty (1000 easy, 2000 medium, 4000 hard) − time penalty (
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 0.1.4 =
+Now requires WordPress 6.2 or newer because SQL table identifiers are quoted with `$wpdb->prepare( '%i' )`.
 
 = 0.1.3 =
 The plugin has been renamed to PointNet Games with a new slug: deactivate and delete the old "WP Games" plugin, then install the new "pointnet-games" folder. The uninstall script removes all data and files (old and new names).

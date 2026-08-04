@@ -233,6 +233,70 @@
 	}
 
 	/**
+	 * Wire the mobile "GIOCA" button.
+	 *
+	 * The button is rendered above the iframe on small screens
+	 * (visible only <=600px via CSS). Clicking it:
+	 *   1. scrolls the embed into view
+	 *   2. enters fullscreen on the embed (when possible)
+	 *   3. sends a "start" message to the game iframe so it skips its splash
+	 */
+	function setupMobilePlayButtons() {
+		var buttons = document.querySelectorAll('.pointnet-games-mobile-play');
+		for (var i = 0; i < buttons.length; i++) {
+			var button = buttons[i];
+			if (button.getAttribute('data-pointnet-games-play-init') === '1') {
+				continue;
+			}
+			button.setAttribute('data-pointnet-games-play-init', '1');
+
+			button.addEventListener('click', function () {
+				var targetSelector = this.getAttribute('data-target');
+				if (!targetSelector) {
+					return;
+				}
+
+				var embedEl = document.querySelector(targetSelector);
+				if (!embedEl) {
+					return;
+				}
+
+				// 1. Scroll the embed into view.
+				embedEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+				// 2. Enter fullscreen on the embed container (when supported).
+				if (embedEl.requestFullscreen && !document.fullscreenElement) {
+					embedEl.requestFullscreen().then(function () {
+						embedEl.classList.add('pointnet-games-fullscreen-active');
+					}).catch(function () {});
+				} else if (!document.fullscreenElement) {
+					embedEl.classList.add('pointnet-games-fullscreen-active');
+				}
+
+				// 3. Tell the game to skip its splash and start playing.
+				var iframe = embedEl.querySelector('iframe');
+				if (iframe && iframe.contentWindow) {
+					iframe.contentWindow.postMessage({ type: 'pointnet-games:start' }, '*');
+				}
+			});
+		}
+	}
+
+	// Init on DOM ready and also after AJAX additions.
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', setupMobilePlayButtons);
+	} else {
+		setupMobilePlayButtons();
+	}
+
+	if (window.MutationObserver && document.body) {
+		var mobilePlayObserver = new MutationObserver(function () {
+			setupMobilePlayButtons();
+		});
+		mobilePlayObserver.observe(document.body, { childList: true, subtree: true });
+	}
+
+	/**
 	 * Wire leaderboard difficulty tabs.
 	 *
 	 * Each tab has data-difficulty (e.g. "easy"), each panel has

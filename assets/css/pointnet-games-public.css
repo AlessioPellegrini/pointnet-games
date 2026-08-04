@@ -106,6 +106,28 @@
 	padding: 16px 0;
 }
 
+/* Mobile play button: visible only on small screens, above the iframe */
+.pointnet-games-mobile-play {
+	display: none;
+	width: 100%;
+	padding: 14px 20px;
+	background: linear-gradient(135deg, #38bdf8, #f472b6);
+	color: #0f172a;
+	border: none;
+	border-radius: 12px;
+	font-size: 1.1rem;
+	font-weight: 800;
+	cursor: pointer;
+	box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+	transition: transform 0.15s ease, box-shadow 0.2s ease;
+	font-family: inherit;
+	text-align: center;
+}
+
+.pointnet-games-mobile-play:active {
+	transform: scale(0.97);
+}
+
 .pointnet-games-visually-hidden {
 	position: absolute !important;
 	width: 1px;
@@ -343,5 +365,42 @@
 	.pointnet-games-grid-4,
 	.pointnet-games-grid-5 {
 		grid-template-columns: 1fr;
+	}
+
+	/* Show the mobile play button above the iframe */
+	.pointnet-games-mobile-play {
+		display: block;
+		margin-bottom: 8px;
+	}
+
+	/* Compact single-game page: the game iframe should not be a fixed
+	   850px block, it should fit the viewport height. */
+	.pointnet-games-embed {
+		margin: 0.5em 0;
+	}
+
+	.pointnet-games-embed iframe {
+		height: auto !important;
+		min-height: 70vh;
+	}
+
+	.pointnet-games-single-content {
+		padding: 8px 0;
+	}
+
+	.pointnet-games-single-game,
+	.pointnet-games-single-leaderboard,
+	.pointnet-games-single-instructions {
+		margin-bottom: 16px;
+	}
+
+	.pointnet-games-single-leaderboard h2,
+	.pointnet-games-single-instructions h2 {
+		font-size: 1.1em;
+		margin-bottom: 8px;
+	}
+
+	.pointnet-games-single-content-text {
+		font-size: 0.95em;
 	}
 }

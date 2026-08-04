@@ -33,18 +33,18 @@ class PointNet_Games_Post_Types {
 	 */
 	public function register_game_cpt() {
 		$labels = array(
-			'name'               => __( 'Giochi', 'pointnet-games' ),
-			'singular_name'      => __( 'Gioco', 'pointnet-games' ),
-			'menu_name'          => __( 'Giochi', 'pointnet-games' ),
-			'add_new'            => __( 'Aggiungi gioco', 'pointnet-games' ),
-			'add_new_item'       => __( 'Aggiungi nuovo gioco', 'pointnet-games' ),
-			'edit_item'          => __( 'Modifica gioco', 'pointnet-games' ),
-			'new_item'           => __( 'Nuovo gioco', 'pointnet-games' ),
-			'view_item'          => __( 'Vedi gioco', 'pointnet-games' ),
-			'search_items'       => __( 'Cerca giochi', 'pointnet-games' ),
-			'not_found'          => __( 'Nessun gioco trovato', 'pointnet-games' ),
-			'not_found_in_trash' => __( 'Nessun gioco nel cestino', 'pointnet-games' ),
-			'all_items'          => __( 'Tutti i giochi', 'pointnet-games' ),
+			'name'               => __( 'Games', 'pointnet-games' ),
+			'singular_name'      => __( 'Game', 'pointnet-games' ),
+			'menu_name'          => __( 'Games', 'pointnet-games' ),
+			'add_new'            => __( 'Add Game', 'pointnet-games' ),
+			'add_new_item'       => __( 'Add New Game', 'pointnet-games' ),
+			'edit_item'          => __( 'Edit Game', 'pointnet-games' ),
+			'new_item'           => __( 'New Game', 'pointnet-games' ),
+			'view_item'          => __( 'View Game', 'pointnet-games' ),
+			'search_items'       => __( 'Search Games', 'pointnet-games' ),
+			'not_found'          => __( 'No games found', 'pointnet-games' ),
+			'not_found_in_trash' => __( 'No games found in trash', 'pointnet-games' ),
+			'all_items'          => __( 'All Games', 'pointnet-games' ),
 		);
 
 		$args = array(
@@ -67,17 +67,17 @@ class PointNet_Games_Post_Types {
 	 */
 	public function register_game_category_taxonomy() {
 		$labels = array(
-			'name'              => __( 'Categorie Giochi', 'pointnet-games' ),
-			'singular_name'     => __( 'Categoria Gioco', 'pointnet-games' ),
-			'search_items'      => __( 'Cerca categorie', 'pointnet-games' ),
-			'all_items'         => __( 'Tutte le categorie', 'pointnet-games' ),
-			'parent_item'       => __( 'Categoria padre', 'pointnet-games' ),
-			'parent_item_colon' => __( 'Categoria padre:', 'pointnet-games' ),
-			'edit_item'         => __( 'Modifica categoria', 'pointnet-games' ),
-			'update_item'       => __( 'Aggiorna categoria', 'pointnet-games' ),
-			'add_new_item'      => __( 'Aggiungi nuova categoria', 'pointnet-games' ),
-			'new_item_name'     => __( 'Nuovo nome categoria', 'pointnet-games' ),
-			'menu_name'         => __( 'Categorie', 'pointnet-games' ),
+			'name'              => __( 'Game Categories', 'pointnet-games' ),
+			'singular_name'     => __( 'Game Category', 'pointnet-games' ),
+			'search_items'      => __( 'Search Categories', 'pointnet-games' ),
+			'all_items'         => __( 'All Categories', 'pointnet-games' ),
+			'parent_item'       => __( 'Parent Category', 'pointnet-games' ),
+			'parent_item_colon' => __( 'Parent Category:', 'pointnet-games' ),
+			'edit_item'         => __( 'Edit Category', 'pointnet-games' ),
+			'update_item'       => __( 'Update Category', 'pointnet-games' ),
+			'add_new_item'      => __( 'Add New Category', 'pointnet-games' ),
+			'new_item_name'     => __( 'New Category Name', 'pointnet-games' ),
+			'menu_name'         => __( 'Categories', 'pointnet-games' ),
 		);
 
 		$args = array(

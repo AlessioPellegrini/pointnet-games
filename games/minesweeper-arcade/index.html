@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Campo Minato Arcade</title>
+	<title>Minesweeper Arcade</title>
 	<style>
 		:root {
 			--bg: #0f172a;
@@ -45,9 +45,10 @@
 			border-radius: 16px;
 			padding: 24px;
 			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-			width: fit-content;
+			width: 100%;
 			max-width: 100%;
 			margin: 0 auto;
+			box-sizing: border-box;
 			user-select: none;
 			-webkit-user-select: none;
 		}
@@ -131,8 +132,11 @@
 		.board-wrapper {
 			text-align: center;
 			overflow-x: auto;
+			overflow-y: hidden;
 			-webkit-overflow-scrolling: touch;
 			padding-bottom: 4px;
+			width: 100%;
+			box-sizing: border-box;
 		}
 
 		.board {
@@ -297,23 +301,23 @@
 		}
 
 		.sound-toggle {
-			position: absolute;
-			top: 20px;
-			right: 20px;
-			background: var(--bg-panel);
-			border: none;
-			border-radius: 50%;
-			width: 42px;
-			height: 42px;
-			cursor: pointer;
-			font-size: 1.2rem;
+			background: var(--bg-cell);
 			color: var(--text);
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+			cursor: pointer;
+			font-size: 0.95rem;
+			font-weight: 700;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 10px 18px;
 			transition: all 0.2s ease;
-			z-index: 50;
+			font-family: inherit;
+			border: none;
+			border-radius: 999px;
+			flex-shrink: 0;
 		}
 
-		.sound-toggle:hover { transform: scale(1.1); }
+		.sound-toggle:hover { background: #3b4c66; }
 
 		#splash {
 			position: fixed;
@@ -327,12 +331,25 @@
 			align-items: center;
 			justify-content: center;
 			transition: opacity 0.35s ease;
+			overflow: hidden;
 		}
 
 		#splash.hidden { opacity: 0; pointer-events: none; }
 
-		.splash-inner { text-align: center; padding: 32px; max-width: 360px; width: 90%; }
-		.splash-emoji { font-size: 4.5rem; margin-bottom: 12px; animation: bounce 1.2s ease infinite; }
+		.splash-inner {
+			text-align: center;
+			padding: 32px;
+			max-width: 360px;
+			width: 90%;
+			max-height: 100vh;
+			box-sizing: border-box;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.splash-emoji { font-size: 4.5rem; margin-bottom: 12px; animation: bounce 1.2s ease infinite; line-height: 1; }
 
 		.splash-title {
 			font-size: 2.2rem;
@@ -342,11 +359,13 @@
 			-webkit-text-fill-color: transparent;
 			background-clip: text;
 			margin-bottom: 10px;
+			line-height: 1.2;
 		}
 
-		.splash-subtitle { color: var(--text-dim); font-size: 1rem; margin-bottom: 20px; line-height: 1.5; }
-		.splash-play { font-size: 1.3rem; padding: 14px 40px; box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4); animation: pulse-glow 2s ease-in-out infinite; }
-		.splash-hint { margin-top: 14px; color: var(--text-dim); font-size: 0.8rem; }
+		.splash-subtitle { color: var(--text-dim); font-size: 1rem; margin-bottom: 20px; line-height: 1.4; }
+		.splash-play { font-size: 1.3rem; padding: 14px 40px; box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4); animation: pulse-glow 2s ease-in-out infinite; flex-shrink: 0; }
+		.splash-hint { margin-top: 10px; color: var(--text-dim); font-size: 0.8rem; }
+		.splash-author { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(148, 163, 184, 0.2); color: var(--text-dim); font-size: 0.8rem; letter-spacing: 0.3px; width: 100%; }
 
 		@keyframes pulse-glow {
 			0%, 100% { box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4); }
@@ -377,14 +396,58 @@
 		body.pointnet-games-fs .fs-close { display: flex; }
 
 		@media (max-width: 600px) {
-			body { padding: 4px; }
-			.game-container { padding: 8px; }
-			.status-bar { padding: 6px 10px; margin-bottom: 10px; }
-			.game-title { font-size: 1.2rem; }
-			.game-subtitle { font-size: 0.75rem; }
-			.level-chip { font-size: 0.75rem; padding: 3px 10px; }
-			.board { gap: 1px; padding: 2px; }
-			.splash-title { font-size: 1.8rem !important; }
+			body { padding: 2px; }
+			.game-container { padding: 4px; border-radius: 8px; }
+			.game-header { margin-bottom: 6px; }
+			.game-title { font-size: 1.1rem; }
+			.game-subtitle { font-size: 0.7rem; margin-top: 2px; }
+			.level-bar { margin-bottom: 6px; gap: 4px; }
+			.level-chip { font-size: 0.7rem; padding: 2px 8px; }
+			.level-progress { min-width: 60px; height: 6px; }
+			.status-bar { padding: 4px 8px; margin-bottom: 6px; border-radius: 8px; }
+			.status-item { font-size: 0.85rem; gap: 4px; }
+			.status-item .icon { font-size: 0.95rem; }
+			.status-value { min-width: 22px; }
+			.board { gap: 1px; padding: 2px; border-radius: 6px; }
+			.action-bar { margin-top: 6px; }
+			.btn { padding: 7px 14px; font-size: 0.85rem; }
+
+			/* Compact splash — no scrolling needed */
+			.splash-inner { padding: 16px; }
+			.splash-emoji { font-size: 3rem; margin-bottom: 6px; }
+			.splash-title { font-size: 1.5rem !important; margin-bottom: 6px; }
+			.splash-subtitle { font-size: 0.85rem; margin-bottom: 12px; }
+			.splash-play { font-size: 1rem; padding: 10px 28px; }
+			.splash-hint { margin-top: 6px; font-size: 0.7rem; }
+			.splash-author { margin-top: 10px; padding-top: 8px; font-size: 0.7rem; }
+		}
+
+		/* Landscape: compact layout so the board fills the screen height */
+		@media (orientation: landscape) and (max-height: 650px) {
+			body { padding: 2px; }
+			.game-container { padding: 4px; border-radius: 8px; }
+			.game-header { margin-bottom: 4px; }
+			.game-title { font-size: 1rem; }
+			.game-subtitle { display: none; }
+			.level-bar { margin-bottom: 4px; gap: 4px; }
+			.level-chip { font-size: 0.7rem; padding: 2px 8px; }
+			.level-progress { min-width: 50px; height: 5px; }
+			.status-bar { padding: 3px 8px; margin-bottom: 4px; border-radius: 6px; }
+			.status-item { font-size: 0.8rem; gap: 4px; }
+			.status-item .icon { font-size: 0.85rem; }
+			.status-value { min-width: 20px; }
+			.board { gap: 1px; padding: 2px; border-radius: 6px; }
+			.action-bar { margin-top: 4px; }
+			.btn { padding: 5px 12px; font-size: 0.8rem; }
+
+			/* Ultra-compact splash for landscape — everything on one screen */
+			.splash-inner { padding: 8px; flex-direction: row; flex-wrap: wrap; gap: 4px 12px; max-width: 100%; }
+			.splash-emoji { font-size: 2rem; margin-bottom: 0; }
+			.splash-title { font-size: 1.3rem !important; margin-bottom: 0; }
+			.splash-subtitle { font-size: 0.75rem; margin-bottom: 0; }
+			.splash-play { font-size: 0.9rem; padding: 8px 20px; }
+			.splash-hint { display: none; }
+			.splash-author { margin-top: 0; padding-top: 0; border-top: none; font-size: 0.65rem; }
 		}
 	</style>
 </head>
@@ -393,24 +456,25 @@
 	<div id="splash">
 		<div class="splash-inner">
 			<div class="splash-emoji">💣</div>
-			<h1 class="splash-title">Campo Minato Arcade</h1>
-			<p class="splash-subtitle">Supera i livelli progressivi: completa il campo, passa al livello successivo. Un errore e riparti dal Livello 1!</p>
-			<button id="splash-play" class="btn btn-primary splash-play">🎮 GIOCA</button>
-			<p class="splash-hint">Desktop: click = rivela · click destro = bandierina</p>
-			<p class="splash-hint">Mobile: tap = rivela · pressione lunga = bandierina</p>
+			<h1 class="splash-title">Minesweeper Arcade</h1>
+			<p class="splash-subtitle">Beat progressive levels: clear the board, advance to the next level. One mistake and you're back to Level 1!</p>
+			<button id="splash-play" class="btn btn-primary splash-play">🎮 PLAY</button>
+			<p class="splash-hint">Desktop: click = reveal · right-click = flag</p>
+			<p class="splash-hint">Mobile: tap = reveal · long press = flag</p>
+			<p class="splash-author">by Alessio Pellegrini · PointNet</p>
 		</div>
 	</div>
 
-	<button id="fs-close" class="fs-close" title="Esci dallo schermo intero">✕</button>
+	<button id="fs-close" class="fs-close" title="Exit fullscreen">✕</button>
 
 	<div class="game-container" id="game" data-game-id="" data-game-slug="minesweeper-arcade">
 		<div class="game-header">
-			<h1 class="game-title">💣 Campo Minato Arcade</h1>
-			<p class="game-subtitle">Livelli progressivi · Mobile friendly</p>
+			<h1 class="game-title">💣 Minesweeper Arcade</h1>
+			<p class="game-subtitle">Progressive levels · Mobile friendly</p>
 		</div>
 
 		<div class="level-bar">
-			<span class="level-chip" id="level-label">Livello 1</span>
+			<span class="level-chip" id="level-label">Level 1</span>
 			<div class="level-progress"><div class="level-progress-fill" id="level-progress"></div></div>
 		</div>
 
@@ -434,31 +498,30 @@
 		</div>
 
 		<div class="action-bar">
-			<button class="btn btn-secondary" id="restart-level">🔄 Riavvia Livello</button>
+			<button class="sound-toggle" id="sound-toggle" title="Toggle audio">🔊</button>
 		</div>
 	</div>
 
 	<div class="overlay" id="overlay">
 		<div class="modal">
 			<div class="modal-emoji" id="modal-emoji">🏆</div>
-			<h2 class="modal-title" id="modal-title">Livello Completato!</h2>
+			<h2 class="modal-title" id="modal-title">Level Complete!</h2>
 			<p class="modal-score" id="modal-score"></p>
 			<p class="modal-position" id="modal-position"></p>
 			<div class="modal-actions">
-				<button class="btn btn-primary" id="modal-next">▶ Prossimo Livello</button>
-				<button class="btn btn-secondary" id="modal-close">Annulla</button>
+				<button class="btn btn-primary" id="modal-next">▶ Next Level</button>
+				<button class="btn btn-secondary" id="modal-replay" style="display:none">🔁 Replay Same Level</button>
+				<button class="btn btn-secondary" id="modal-close">Cancel</button>
 			</div>
 		</div>
 	</div>
-
-	<button class="sound-toggle" id="sound-toggle" title="Attiva/disattiva audio">🔊</button>
 
 	<script>
 	(function () {
 		'use strict';
 
 		/* ============================================================
-		   CONFIGURAZIONE LIVELLI
+		   LEVEL CONFIGURATION
 		   ============================================================ */
 		var LEVELS = [
 			{ rows: 7,  cols: 7,  mines: 5,  label: '1' },
@@ -479,7 +542,7 @@
 		];
 
 		/* ============================================================
-		   STATO DEL GIOCO
+		   GAME STATE
 		   ============================================================ */
 		var state = {
 			levelIndex: 0,
@@ -492,7 +555,10 @@
 			scoreSubmitted: false,
 			timerInterval: null,
 			elapsed: 0,
-			firstClick: true
+			firstClick: true,
+			snapshot: null,
+			preExplosion: null,
+			isReplay: false
 		};
 
 		var soundEnabled = true;
@@ -501,9 +567,10 @@
 		} catch (e) {}
 
 		/* ============================================================
-		   DOM REFERENZE
+		   DOM REFERENCES
 		   ============================================================ */
 		var boardEl = document.getElementById('board');
+		var boardWrapperEl = document.querySelector('.board-wrapper');
 		var mineCountEl = document.getElementById('mine-count');
 		var timerEl = document.getElementById('timer');
 		var scoreTotalEl = document.getElementById('score-total');
@@ -519,7 +586,7 @@
 		var totalScore = 0;
 
 		/* ============================================================
-		   AUDIO PROCEDURALE
+		   PROCEDURAL AUDIO
 		   ============================================================ */
 		var AudioFX = (function () {
 			var ctx = null;
@@ -619,7 +686,7 @@
 		})();
 
 		/* ============================================================
-		   UTILITY
+		   UTILITIES
 		   ============================================================ */
 		function shuffle(array) {
 			for (var i = array.length - 1; i > 0; i--) {
@@ -677,7 +744,7 @@
 		}
 
 		/* ============================================================
-		   LOGICA DEL GIOCO
+		   GAME LOGIC
 		   ============================================================ */
 		function getLevel() {
 			return LEVELS[Math.min(state.levelIndex, LEVELS.length - 1)];
@@ -725,14 +792,38 @@
 			}
 		}
 
+		function getCellSize(level) {
+			// Read the actual available width from the board wrapper,
+			// falling back to the window width minus body/container padding.
+			var available = boardWrapperEl ? boardWrapperEl.clientWidth : window.innerWidth - 8;
+
+			// Read actual padding/gap from the computed board style
+			// (media queries change these between mobile and desktop).
+			var boardStyle = window.getComputedStyle(boardEl);
+			var padLeft = parseFloat(boardStyle.paddingLeft) || 0;
+			var padRight = parseFloat(boardStyle.paddingRight) || 0;
+			var gap = parseFloat(boardStyle.columnGap) || 2;
+
+			var totalGaps = (level.cols - 1) * gap;
+			var maxBoardWidth = Math.max(50, available - padLeft - padRight - totalGaps);
+
+			// Orientation-aware size limits:
+			// portrait → up to 52px, landscape → up to 64px.
+			var isLandscape = window.matchMedia('(orientation: landscape)').matches;
+			var maxCell = isLandscape ? 64 : 52;
+
+			var cellSize = Math.floor(maxBoardWidth / level.cols);
+			cellSize = Math.max(26, Math.min(maxCell, cellSize));
+
+			return cellSize;
+		}
+
 		function renderBoard() {
 			var level = getLevel();
 			boardEl.innerHTML = '';
 
-			// Dynamic cell size: mobile friendly, min 24px, max 32px.
-			var maxBoardWidth = window.innerWidth - 16 - 16 - 4 - 4 - 2;
-			var cellSize = Math.floor(maxBoardWidth / level.cols);
-			cellSize = Math.max(24, Math.min(32, cellSize));
+			// Dynamic cell size: fills available width, orientation-aware.
+			var cellSize = getCellSize(level);
 
 			boardEl.style.gridTemplateColumns = 'repeat(' + level.cols + ', ' + cellSize + 'px)';
 
@@ -837,11 +928,23 @@
 				var level = getLevel();
 				placeMines(level.rows, level.cols, level.mines, r, c);
 				state.safeCells = level.rows * level.cols - level.mines;
+				// Save the board so "Replay Same Level" can restore
+				// the exact same mine layout after a game over.
+				state.snapshot = JSON.stringify(state.board);
 				startTimer();
 			}
 
+			// Save the pre-move state so "Replay Same Level" can restore
+			// the board exactly as it was just before the fatal move.
+			var preMove = {
+				board: JSON.stringify(state.board),
+				revealed: state.revealed,
+				flags: state.flags,
+				elapsed: state.elapsed
+			};
+
 			if (cell.mine) {
-				revealMine(r, c);
+				revealMine(r, c, preMove);
 				return;
 			}
 
@@ -915,12 +1018,17 @@
 			updateBoardDisplay();
 		}
 
-		function revealMine(r, c) {
+		function revealMine(r, c, preMove) {
 			state.gameOver = true;
 			state.started = false;
 			stopTimer();
 			AudioFX.explosion();
 			AudioFX.lose();
+
+			// Store the pre-move snapshot for practice replay.
+			if (preMove) {
+				state.preExplosion = preMove;
+			}
 
 			var level = getLevel();
 
@@ -1006,14 +1114,38 @@
 		}
 
 		function showLevelComplete(levelScore, levelNum, isLastLevel) {
+			// Practice/replay mode: completing the level in a replay does not
+			// award points and does not unlock the next level — the arcade
+			// progression is only approved from a regular game run.
+			if (state.isReplay) {
+				modalEmoji.textContent = '🏆';
+				modalTitle.textContent = 'Practice Complete!';
+				modalScore.textContent = 'No points awarded (practice mode).';
+				modalPosition.textContent = '';
+				document.getElementById('modal-replay').style.display = 'none';
+
+				var replayNextBtn = document.getElementById('modal-next');
+				replayNextBtn.textContent = '🔄 Back to Game';
+				replayNextBtn.onclick = function () {
+					overlayEl.classList.remove('show');
+					totalScore = 0;
+					scoreTotalEl.textContent = '0';
+					startAtLevel(0);
+				};
+
+				overlayEl.classList.add('show');
+				return;
+			}
+
 			modalEmoji.textContent = '🏆';
-			modalTitle.textContent = isLastLevel ? '🎉 Livello Massimo!' : 'Livello ' + levelNum + ' Completato!';
-			modalScore.textContent = 'Livello: +' + levelScore + ' · Totale: ' + totalScore;
+			modalTitle.textContent = isLastLevel ? '🎉 Max Level!' : 'Level ' + levelNum + ' Complete!';
+			modalScore.textContent = 'Level: +' + levelScore + ' · Total: ' + totalScore;
 			modalPosition.textContent = '';
+			document.getElementById('modal-replay').style.display = 'none';
 
 			var nextBtn = document.getElementById('modal-next');
 			if (isLastLevel) {
-				nextBtn.textContent = '🔁 Ricomincia';
+				nextBtn.textContent = '🔁 Restart';
 				nextBtn.onclick = function () {
 					// Full run completed: submit final score and reset.
 					submitFinalScore(levelNum);
@@ -1023,7 +1155,7 @@
 					startAtLevel(0);
 				};
 			} else {
-				nextBtn.textContent = '▶ Prossimo Livello';
+				nextBtn.textContent = '▶ Next Level';
 				nextBtn.onclick = function () {
 					overlayEl.classList.remove('show');
 					startAtLevel(state.levelIndex + 1);
@@ -1036,18 +1168,26 @@
 		function showGameOver() {
 			modalEmoji.textContent = '💥';
 			modalTitle.textContent = 'BOOM!';
-			modalScore.textContent = 'Punteggio totale: ' + totalScore;
+			modalScore.textContent = 'Total score: ' + totalScore;
 			modalPosition.textContent = '';
 
 			submitFinalScore(Math.min(state.levelIndex + 1, LEVELS.length));
 
 			var nextBtn = document.getElementById('modal-next');
-			nextBtn.textContent = '🔄 Ricomincia da Livello 1';
+			nextBtn.textContent = '🔄 Restart Game';
 			nextBtn.onclick = function () {
 				overlayEl.classList.remove('show');
 				totalScore = 0;
 				scoreTotalEl.textContent = '0';
 				startAtLevel(0);
+			};
+
+			// Practice replay: same board and mine layout, no score and no leaderboard.
+			var replayBtn = document.getElementById('modal-replay');
+			replayBtn.style.display = '';
+			replayBtn.onclick = function () {
+				overlayEl.classList.remove('show');
+				replaySameBoard();
 			};
 
 			var closeBtn = document.getElementById('modal-close');
@@ -1075,7 +1215,7 @@
 				if (result && typeof result.then === 'function') {
 					result.then(function (response) {
 						if (response && response.position) {
-							modalPosition.textContent = '🏅 Posizione ' + response.position + ' in classifica!';
+							modalPosition.textContent = '🏅 Position ' + response.position + ' on the leaderboard!';
 						}
 					}).catch(function () {});
 				}
@@ -1110,7 +1250,7 @@
 		}
 
 		/* ============================================================
-		   CONTROLLI
+		   CONTROLS
 		   ============================================================ */
 		function startAtLevel(index) {
 			state.levelIndex = index;
@@ -1120,13 +1260,16 @@
 			state.gameOver = false;
 			state.scoreSubmitted = false;
 			state.started = false;
+			state.snapshot = null;
+			state.preExplosion = null;
+			state.isReplay = false;
 			stopTimer();
 			state.elapsed = 0;
 			timerEl.textContent = '0';
 
 			var level = getLevel();
 
-			levelLabelEl.textContent = 'Livello ' + level.label;
+			levelLabelEl.textContent = 'Level ' + level.label;
 			var pctPerLevel = 100 / LEVELS.length;
 			levelProgressEl.style.width = Math.min(100, (state.levelIndex + 1) * pctPerLevel) + '%';
 
@@ -1140,6 +1283,13 @@
 			}, 300);
 
 			overlayEl.classList.remove('show');
+
+			// Restore fullscreen after a restart when the game was already
+			// started (splash hidden), so restarts and level-ups
+			// return to the immersive mode instead of staying inline.
+			if (splashEl.classList.contains('hidden')) {
+				requestGameFullscreen();
+			}
 		}
 
 		function startNewRun() {
@@ -1148,16 +1298,57 @@
 			startAtLevel(0);
 		}
 
+		function replaySameBoard() {
+			var level = getLevel();
+			var saved = state.preExplosion;
+
+			// Safety fallback: no saved state (e.g. fresh run) → normal restart.
+			if (!saved) {
+				startAtLevel(state.levelIndex);
+				return;
+			}
+
+			totalScore = 0;
+			scoreTotalEl.textContent = '0';
+
+			state.firstClick = false; // Mines are already placed from the saved board.
+			state.gameOver = false;
+			state.scoreSubmitted = false;
+			state.started = true;
+			state.isReplay = true;
+
+			// Restore the exact pre-move state: same mines, same counts,
+			// same revealed cells, same flags, same elapsed time.
+			state.board = JSON.parse(saved.board);
+			state.revealed = saved.revealed;
+			state.flags = saved.flags;
+			state.elapsed = saved.elapsed;
+			state.safeCells = level.rows * level.cols - level.mines;
+
+			// Resume the timer from the saved elapsed value.
+			stopTimer();
+			startTimer();
+			state.elapsed = saved.elapsed;
+			timerEl.textContent = state.elapsed;
+
+			renderBoard();
+			mineCountEl.textContent = Math.max(0, level.mines - state.flags);
+
+			boardEl.classList.add('flipping');
+			setTimeout(function () {
+				boardEl.classList.remove('flipping');
+			}, 300);
+
+			overlayEl.classList.remove('show');
+
+			if (splashEl.classList.contains('hidden')) {
+				requestGameFullscreen();
+			}
+		}
+
 		/* ============================================================
 		   EVENT LISTENERS
 		   ============================================================ */
-		document.getElementById('restart-level').addEventListener('click', function () {
-			if (state.timerInterval && !state.gameOver) {
-				if (!confirm('Riavviare il livello corrente?')) return;
-			}
-			startAtLevel(state.levelIndex);
-		});
-
 		document.getElementById('modal-close').addEventListener('click', function () {
 			overlayEl.classList.remove('show');
 		});
@@ -1171,7 +1362,6 @@
 		});
 
 		document.addEventListener('keydown', function (e) {
-			if (e.key === 'r' || e.key === 'R') startAtLevel(state.levelIndex);
 			if (e.key === 'm' || e.key === 'M') {
 				soundEnabled = !soundEnabled;
 				soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
@@ -1206,6 +1396,17 @@
 		}
 
 		splashPlayBtn.addEventListener('click', function () {
+			splashEl.classList.add('hidden');
+			startNewRun();
+			requestGameFullscreen();
+		});
+
+		// External start message from the parent page "PLAY" button.
+		window.addEventListener('message', function (event) {
+			var msg = event.data;
+			if (!msg || typeof msg !== 'object' || msg.type !== 'pointnet-games:start') {
+				return;
+			}
 			splashEl.classList.add('hidden');
 			startNewRun();
 			requestGameFullscreen();
@@ -1300,6 +1501,42 @@
 					return !!(window.__wpGamesState && window.__wpGamesState.loggedIn);
 				}
 			};
+		}
+
+		/* ============================================================
+		   RESIZE / ORIENTATION HANDLING
+		   ============================================================ */
+		var resizeTimer = null;
+		window.addEventListener('resize', function () {
+			clearTimeout(resizeTimer);
+			resizeTimer = setTimeout(function () {
+				// Re-render only if the cell size would change.
+				var level = getLevel();
+				var newSize = getCellSize(level);
+				var currentCells = boardEl.querySelectorAll('.cell');
+				if (currentCells.length && currentCells[0].offsetWidth !== newSize) {
+					renderBoard();
+					updateBoardDisplay();
+				}
+			}, 150);
+		});
+
+		if (window.matchMedia) {
+			var mql = window.matchMedia('(orientation: landscape)');
+			var handleOrientationChange = function () {
+				var level = getLevel();
+				var newSize = getCellSize(level);
+				var currentCells = boardEl.querySelectorAll('.cell');
+				if (currentCells.length && currentCells[0].offsetWidth !== newSize) {
+					renderBoard();
+					updateBoardDisplay();
+				}
+			};
+			if (mql.addEventListener) {
+				mql.addEventListener('change', handleOrientationChange);
+			} else if (mql.addListener) {
+				mql.addListener(handleOrientationChange);
+			}
 		}
 
 		/* ============================================================

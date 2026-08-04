@@ -13,54 +13,57 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-global $wpdb;
+/**
+ * Perform all uninstall cleanup.
+ */
+function pointnet_games_uninstall() {
+	global $wpdb;
 
-// 1. Drop the custom scores table.
-$table_name = $wpdb->prefix . 'pointnet_game_scores';
-// Also drop the legacy pointnet_game_scores table from previous versions.
-$legacy_table = $wpdb->prefix . 'pointnet_game_scores';
+	// 1. Drop the custom scores table.
+	$table_name = $wpdb->prefix . 'pointnet_game_scores';
+	$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $table_name ) );
 
-$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
-$wpdb->query( "DROP TABLE IF EXISTS {$legacy_table}" );
+	// 2. Delete plugin options.
+	delete_option( 'pointnet_games_settings' );
+	delete_option( 'pointnet_games_sync_fingerprint' );
 
-// 2. Delete plugin options.
-delete_option( 'pointnet_games_settings' );
-delete_option( 'pointnet_games_sync_fingerprint' );
-delete_option( 'pointnet_games_settings' );
-delete_option( 'pointnet_games_sync_fingerprint' );
+	// 3. Delete all game posts and their meta.
+	$post_types = array( 'pointnet_game' );
 
-// 3. Delete all game posts and their meta (both legacy and new CPT slugs).
-$post_types = array( 'pointnet_game', 'pointnet_game' );
+	foreach ( $post_types as $post_type ) {
+		$games = get_posts(
+			array(
+				'post_type'      => $post_type,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'numberposts'    => -1,
+				'fields'         => 'ids',
+			)
+		);
 
-foreach ( $post_types as $post_type ) {
-	$games = get_posts(
-		array(
-			'post_type'      => $post_type,
-			'post_status'    => 'any',
-			'posts_per_page' => -1,
-			'numberposts'    => -1,
-			'fields'         => 'ids',
-		)
-	);
-
-	if ( ! empty( $games ) ) {
-		foreach ( $games as $game_id ) {
-			wp_delete_post( $game_id, true );
+		if ( ! empty( $games ) ) {
+			foreach ( $games as $game_id ) {
+				wp_delete_post( $game_id, true );
+			}
 		}
 	}
-}
 
-// 4. Delete auto-generated game pages (marked with legacy or new meta).
-$game_page_meta_keys = array( '_pointnet_games_game_id', '_pointnet_games_game_id' );
+	// 4. Delete auto-generated game pages (marked with plugin meta).
+	$game_page_meta_key = '_pointnet_games_game_id';
 
-foreach ( $game_page_meta_keys as $meta_key ) {
 	$pages = get_posts(
 		array(
 			'post_type'      => 'page',
 			'post_status'    => 'any',
 			'posts_per_page' => -1,
 			'numberposts'    => -1,
-			'meta_key'       => $meta_key,
+			'meta_query'     => array(
+				array(
+					'key'   => $game_page_meta_key,
+					'value' => '',
+					'compare' => '!=',
+				),
+			),
 			'fields'         => 'ids',
 		)
 	);
@@ -70,29 +73,24 @@ foreach ( $game_page_meta_keys as $meta_key ) {
 			wp_delete_post( $page_id, true );
 		}
 	}
-}
 
-// 5. Delete the physical games/ directories (all bundled games).
-$plugin_dir = WP_PLUGIN_DIR . '/pointnet-games';
-if ( ! is_dir( $plugin_dir ) ) {
+	// 5. Delete the physical games/ directory (all bundled games).
 	$plugin_dir = WP_PLUGIN_DIR . '/pointnet-games';
-}
+	$games_root = trailingslashit( $plugin_dir ) . 'games';
 
-$games_root = trailingslashit( $plugin_dir ) . 'games';
+	if ( is_dir( $games_root ) ) {
+		// WP Filesystem is available during uninstall (WordPress admin context).
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 
-if ( is_dir( $games_root ) ) {
-	$iterator = new RecursiveIteratorIterator(
-		new RecursiveDirectoryIterator( $games_root, FilesystemIterator::SKIP_DOTS ),
-		RecursiveIteratorIterator::CHILD_FIRST
-	);
+		if ( function_exists( 'WP_Filesystem' ) ) {
+			WP_Filesystem();
+			global $wp_filesystem;
 
-	foreach ( $iterator as $fileinfo ) {
-		if ( $fileinfo->isDir() ) {
-			@rmdir( $fileinfo->getRealPath() );
-		} else {
-			@unlink( $fileinfo->getRealPath() );
+			if ( $wp_filesystem ) {
+				$wp_filesystem->delete( $games_root, true, 'd' );
+			}
 		}
 	}
-
-	@rmdir( $games_root );
 }
+
+pointnet_games_uninstall();

@@ -1,9 +1,9 @@
 {
-	"name": "Campo Minato Arcade",
+	"name": "Minesweeper Arcade",
 	"slug": "minesweeper-arcade",
 	"version": "1.0.0",
 	"author": "PointNet Games",
-	"description": "Campo Minato con livelli progressivi: completa il campo e passa al livello successivo. Un errore e riparti dal Livello 1. Mobile friendly.",
+	"description": "Minesweeper with progressive levels: clear the board and move to the next level. One mistake and you're back to Level 1. Mobile friendly.",
 	"type": "iframe",
 	"width": 600,
 	"height": 850,
@@ -15,5 +15,5 @@
 	},
 	"max_score": 999999,
 	"license": "GPL-2.0+",
-	"instructions": "Clicca su una cella per rivelarla. Clic destro per piazzare una bandierina. Completa il livello per passare al successivo. Evita le mine! Scorciatoie: R = riavvia livello, M = audio."
+	"instructions": "Click a cell to reveal it. Right-click to place a flag. Clear the level to advance to the next one. Avoid the mines! Shortcuts: M = audio."
 }

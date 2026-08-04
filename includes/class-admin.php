@@ -40,8 +40,8 @@ class PointNet_Games_Admin {
 
 		add_submenu_page(
 			'pointnet-games',
-			__( 'Punteggi', 'pointnet-games' ),
-			__( 'Punteggi', 'pointnet-games' ),
+			__( 'Scores', 'pointnet-games' ),
+			__( 'Scores', 'pointnet-games' ),
 			'manage_options',
 			'pointnet-games-scores',
 			array( $this, 'render_scores_page' )
@@ -49,8 +49,8 @@ class PointNet_Games_Admin {
 
 		add_submenu_page(
 			'pointnet-games',
-			__( 'Impostazioni', 'pointnet-games' ),
-			__( 'Impostazioni', 'pointnet-games' ),
+			__( 'Settings', 'pointnet-games' ),
+			__( 'Settings', 'pointnet-games' ),
 			'manage_options',
 			'pointnet-games-settings',
 			array( $this, 'render_settings_page' )
@@ -80,17 +80,22 @@ class PointNet_Games_Admin {
 		$published_games = isset( $games_count->publish ) ? $games_count->publish : 0;
 		$total_players   = $this->count_unique_nicknames();
 
-		if ( isset( $_GET['pointnet_games_uninstalled'] ) ) {
-			$uninstall_ok   = '1' === $_GET['pointnet_games_uninstalled'];
-			$scores_deleted = isset( $_GET['pointnet_games_scores'] ) && '1' === $_GET['pointnet_games_scores'];
+		// Read the uninstall notice from a transient (set by handle_uninstall_game()).
+		$uninstall_notice = get_transient( 'pointnet_games_uninstall_notice' );
+
+		if ( is_array( $uninstall_notice ) ) {
+			$uninstall_ok   = ! empty( $uninstall_notice['ok'] );
+			$scores_deleted = ! empty( $uninstall_notice['scores'] );
+
+			delete_transient( 'pointnet_games_uninstall_notice' );
 
 			$game_message = $uninstall_ok
-				? __( 'Gioco disinstallato con successo.', 'pointnet-games' )
-				: __( 'Gioco rimosso dal database, ma la cartella dei file non è stata trovata o non è rimovibile. Controlla games/ manualmente.', 'pointnet-games' );
+				? __( 'Game successfully uninstalled.', 'pointnet-games' )
+				: __( 'Game removed from the database, but the files folder was not found or is not removable. Check games/ manually.', 'pointnet-games' );
 
 			$scores_message = $scores_deleted
-				? __( ' Punteggi eliminati.', 'pointnet-games' )
-				: __( ' Punteggi conservati nel database.', 'pointnet-games' );
+				? __( ' Scores deleted.', 'pointnet-games' )
+				: __( ' Scores kept in the database.', 'pointnet-games' );
 
 			echo '<div class="notice notice-' . ( $uninstall_ok ? 'success' : 'warning' ) . ' is-dismissible"><p>' . esc_html( $game_message . $scores_message ) . '</p></div>';
 		}
@@ -102,28 +107,28 @@ class PointNet_Games_Admin {
 			<div class="pointnet-games-stats-grid">
 				<div class="pointnet-games-stat-card">
 					<span class="pointnet-games-stat-value"><?php echo esc_html( number_format_i18n( $published_games ) ); ?></span>
-					<span class="pointnet-games-stat-label"><?php esc_html_e( 'Giochi pubblicati', 'pointnet-games' ); ?></span>
+					<span class="pointnet-games-stat-label"><?php esc_html_e( 'Published Games', 'pointnet-games' ); ?></span>
 				</div>
 				<div class="pointnet-games-stat-card">
 					<span class="pointnet-games-stat-value"><?php echo esc_html( number_format_i18n( $total_scores ) ); ?></span>
-					<span class="pointnet-games-stat-label"><?php esc_html_e( 'Punteggi totali', 'pointnet-games' ); ?></span>
+					<span class="pointnet-games-stat-label"><?php esc_html_e( 'Total Scores', 'pointnet-games' ); ?></span>
 				</div>
 				<div class="pointnet-games-stat-card">
 					<span class="pointnet-games-stat-value"><?php echo esc_html( number_format_i18n( $total_players ) ); ?></span>
-					<span class="pointnet-games-stat-label"><?php esc_html_e( 'Giocatori unici', 'pointnet-games' ); ?></span>
+					<span class="pointnet-games-stat-label"><?php esc_html_e( 'Unique Players', 'pointnet-games' ); ?></span>
 				</div>
 			</div>
 
-			<h2><?php esc_html_e( 'Giochi installati', 'pointnet-games' ); ?></h2>
+			<h2><?php esc_html_e( 'Installed Games', 'pointnet-games' ); ?></h2>
 			<table class="widefat striped pointnet-games-installed-table">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'ID', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Gioco', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Game', 'pointnet-games' ); ?></th>
 						<th><?php esc_html_e( 'Slug', 'pointnet-games' ); ?></th>
 						<th><?php esc_html_e( 'Shortcode', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Pagina del gioco', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Azioni', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Game Page', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Actions', 'pointnet-games' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -131,14 +136,14 @@ class PointNet_Games_Admin {
 				</tbody>
 			</table>
 
-			<h2><?php esc_html_e( 'Shortcode disponibili', 'pointnet-games' ); ?></h2>
+			<h2><?php esc_html_e( 'Available Shortcodes', 'pointnet-games' ); ?></h2>
 			<table class="widefat striped pointnet-games-shortcodes-table">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'Shortcode', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Descrizione', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Attributi', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Esempio', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Description', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Attributes', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Example', 'pointnet-games' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -146,12 +151,12 @@ class PointNet_Games_Admin {
 				</tbody>
 			</table>
 
-			<h2><?php esc_html_e( 'Giochi più giocati', 'pointnet-games' ); ?></h2>
+			<h2><?php esc_html_e( 'Top Games', 'pointnet-games' ); ?></h2>
 			<table class="widefat striped">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Gioco', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Punteggi', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Game', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Scores', 'pointnet-games' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -168,13 +173,13 @@ class PointNet_Games_Admin {
 	public function render_scores_page() {
 		// Capability check.
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Non hai i permessi per accedere a questa pagina.', 'pointnet-games' ) );
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'pointnet-games' ) );
 		}
 
 		if ( isset( $_POST['pointnet_games_delete_score'] ) && check_admin_referer( 'pointnet_games_delete_score' ) ) {
 			$score_id = absint( $_POST['pointnet_games_delete_score'] );
 			$this->delete_score( $score_id );
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Punteggio eliminato.', 'pointnet-games' ) . '</p></div>';
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Score deleted.', 'pointnet-games' ) . '</p></div>';
 		}
 
 		$limit  = isset( $_GET['pointnet_games_limit'] ) ? absint( $_GET['pointnet_games_limit'] ) : 50;
@@ -182,18 +187,18 @@ class PointNet_Games_Admin {
 
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Punteggi', 'pointnet-games' ); ?></h1>
+			<h1><?php esc_html_e( 'Scores', 'pointnet-games' ); ?></h1>
 			<table class="widefat striped">
 				<thead>
 					<tr>
 						<th><?php esc_html_e( 'ID', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Gioco', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Game', 'pointnet-games' ); ?></th>
 						<th><?php esc_html_e( 'Nickname', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Utente', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Punteggio', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Data', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Valido', 'pointnet-games' ); ?></th>
-						<th><?php esc_html_e( 'Azioni', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'User', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Score', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Date', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Valid', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Actions', 'pointnet-games' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -207,15 +212,15 @@ class PointNet_Games_Admin {
 								?>
 							</td>
 							<td><?php echo esc_html( $score->nickname ); ?></td>
-							<td><?php echo $score->user_id ? esc_html__( 'Registrato', 'pointnet-games' ) : esc_html__( 'Anonimo', 'pointnet-games' ); ?></td>
+							<td><?php echo $score->user_id ? esc_html__( 'Registered', 'pointnet-games' ) : esc_html__( 'Anonymous', 'pointnet-games' ); ?></td>
 							<td><?php echo esc_html( number_format_i18n( $score->score ) ); ?></td>
 							<td><?php echo esc_html( $score->played_at ); ?></td>
-							<td><?php echo $score->validated ? esc_html__( 'Sì', 'pointnet-games' ) : esc_html__( 'No', 'pointnet-games' ); ?></td>
+							<td><?php echo $score->validated ? esc_html__( 'Yes', 'pointnet-games' ) : esc_html__( 'No', 'pointnet-games' ); ?></td>
 							<td>
-								<form method="post" style="display:inline" onsubmit="return confirm('<?php esc_attr_e( 'Eliminare questo punteggio?', 'pointnet-games' ); ?>')">
+								<form method="post" style="display:inline" onsubmit="return confirm('<?php esc_attr_e( 'Delete this score?', 'pointnet-games' ); ?>')">
 									<?php wp_nonce_field( 'pointnet_games_delete_score' ); ?>
 									<input type="hidden" name="pointnet_games_delete_score" value="<?php echo esc_attr( $score->id ); ?>">
-									<button type="submit" class="button button-link-delete"><?php esc_html_e( 'Elimina', 'pointnet-games' ); ?></button>
+									<button type="submit" class="button button-link-delete"><?php esc_html_e( 'Delete', 'pointnet-games' ); ?></button>
 								</form>
 							</td>
 						</tr>
@@ -232,50 +237,50 @@ class PointNet_Games_Admin {
 	public function render_settings_page() {
 		// Capability check.
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Non hai i permessi per accedere a questa pagina.', 'pointnet-games' ) );
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'pointnet-games' ) );
 		}
 
 		$settings = get_option( 'pointnet_games_settings', array() );
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Impostazioni PointNet Games', 'pointnet-games' ); ?></h1>
+			<h1><?php esc_html_e( 'PointNet Games Settings', 'pointnet-games' ); ?></h1>
 			<form method="post" action="options.php">
 				<?php settings_fields( 'pointnet_games_settings_group' ); ?>
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row">
-							<label for="pointnet_games_allow_anonymous"><?php esc_html_e( 'Consenti punteggi anonimi', 'pointnet-games' ); ?></label>
+							<label for="pointnet_games_allow_anonymous"><?php esc_html_e( 'Allow anonymous scores', 'pointnet-games' ); ?></label>
 						</th>
 						<td>
 							<label>
 								<input type="checkbox" name="pointnet_games_settings[allow_anonymous]" id="pointnet_games_allow_anonymous" value="1" <?php checked( (int) $settings['allow_anonymous'] ?? 1, 1 ); ?>>
-								<?php esc_html_e( 'Gli utenti non registrati possono inviare punteggi con nickname.', 'pointnet-games' ); ?>
+								<?php esc_html_e( 'Unregistered users can submit scores with a nickname.', 'pointnet-games' ); ?>
 							</label>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="pointnet_games_rate_limit"><?php esc_html_e( 'Rate limit per minuto', 'pointnet-games' ); ?></label>
+							<label for="pointnet_games_rate_limit"><?php esc_html_e( 'Rate limit per minute', 'pointnet-games' ); ?></label>
 						</th>
 						<td>
 							<input type="number" name="pointnet_games_settings[rate_limit]" id="pointnet_games_rate_limit" value="<?php echo esc_attr( (int) $settings['rate_limit'] ?? 5 ); ?>" min="1" max="60">
-							<p class="description"><?php esc_html_e( 'Numero massimo di invii punteggio consentiti per giocatore al minuto.', 'pointnet-games' ); ?></p>
+							<p class="description"><?php esc_html_e( 'Maximum number of score submissions allowed per player per minute.', 'pointnet-games' ); ?></p>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="pointnet_games_require_validation"><?php esc_html_e( 'Richiedi validazione manuale', 'pointnet-games' ); ?></label>
+							<label for="pointnet_games_require_validation"><?php esc_html_e( 'Require manual validation', 'pointnet-games' ); ?></label>
 						</th>
 						<td>
 							<label>
 								<input type="checkbox" name="pointnet_games_settings[require_validation]" id="pointnet_games_require_validation" value="1" <?php checked( (int) $settings['require_validation'] ?? 0, 1 ); ?>>
-								<?php esc_html_e( 'I punteggi compaiono in classifica solo dopo approvazione admin.', 'pointnet-games' ); ?>
+								<?php esc_html_e( 'Scores appear in the leaderboard only after admin approval.', 'pointnet-games' ); ?>
 							</label>
 						</td>
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="pointnet_games_nickname_min"><?php esc_html_e( 'Lunghezza minima nickname', 'pointnet-games' ); ?></label>
+							<label for="pointnet_games_nickname_min"><?php esc_html_e( 'Minimum nickname length', 'pointnet-games' ); ?></label>
 						</th>
 						<td>
 							<input type="number" name="pointnet_games_settings[nickname_min_length]" id="pointnet_games_nickname_min" value="<?php echo esc_attr( (int) $settings['nickname_min_length'] ?? 3 ); ?>" min="1" max="20">
@@ -283,7 +288,7 @@ class PointNet_Games_Admin {
 					</tr>
 					<tr>
 						<th scope="row">
-							<label for="pointnet_games_nickname_max"><?php esc_html_e( 'Lunghezza massima nickname', 'pointnet-games' ); ?></label>
+							<label for="pointnet_games_nickname_max"><?php esc_html_e( 'Maximum nickname length', 'pointnet-games' ); ?></label>
 						</th>
 						<td>
 							<input type="number" name="pointnet_games_settings[nickname_max_length]" id="pointnet_games_nickname_max" value="<?php echo esc_attr( (int) $settings['nickname_max_length'] ?? 20 ); ?>" min="1" max="50">
@@ -334,7 +339,7 @@ class PointNet_Games_Admin {
 		$table = pointnet_games_scores_table();
 
 		return (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM {$table}" )
+			$wpdb->prepare( "SELECT COUNT(*) FROM %i", $table )
 		);
 	}
 
@@ -349,7 +354,7 @@ class PointNet_Games_Admin {
 		$table = pointnet_games_scores_table();
 
 		return (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(DISTINCT nickname) FROM {$table}" )
+			$wpdb->prepare( "SELECT COUNT(DISTINCT nickname) FROM %i", $table )
 		);
 	}
 
@@ -368,7 +373,7 @@ class PointNet_Games_Admin {
 		);
 
 		if ( empty( $games ) ) {
-			echo '<tr><td colspan="6">' . esc_html__( 'Nessun gioco installato. Aggiungi una cartella con manifest.json in games/.', 'pointnet-games' ) . '</td></tr>';
+			echo '<tr><td colspan="6">' . esc_html__( 'No games installed. Add a folder with manifest.json in games/.', 'pointnet-games' ) . '</td></tr>';
 			return;
 		}
 
@@ -376,7 +381,7 @@ class PointNet_Games_Admin {
 			$slug = get_post_meta( $game->ID, '_pointnet_games_slug', true );
 			$slug = $slug ? $slug : $game->post_name;
 
-			// Canonical URL: the CPT permalink (e.g. /games/minesweeper/).
+			// Canonical URL: the CPT permalink (e.g. /games/minesweeper-arcade/).
 			$game_url = get_permalink( $game->ID );
 
 			echo '<tr>';
@@ -388,7 +393,7 @@ class PointNet_Games_Admin {
 			echo '</td>';
 			echo '<td><code>' . esc_html( $slug ) . '</code></td>';
 			echo '<td><code>[pointnet_game slug="' . esc_html( $slug ) . '"]</code></td>';
-			echo '<td><a href="' . esc_url( $game_url ) . '" target="_blank">' . esc_html__( 'Apri il gioco', 'pointnet-games' ) . '</a></td>';
+			echo '<td><a href="' . esc_url( $game_url ) . '" target="_blank">' . esc_html__( 'Open game', 'pointnet-games' ) . '</a></td>';
 
 			// Uninstall action column.
 			echo '<td>';
@@ -397,7 +402,7 @@ class PointNet_Games_Admin {
 
 			$confirm_text = sprintf(
 				/* translators: 1: game title, 2: game slug */
-				__( 'Disinstallare il gioco "%1$s"? I file di games/%2$s/ verranno rimossi. Procedere?', 'pointnet-games' ),
+				__( 'Uninstall the game "%1$s"? The files in games/%2$s/ will be removed. Proceed?', 'pointnet-games' ),
 				$game->post_title,
 				$slug
 			);
@@ -409,12 +414,12 @@ class PointNet_Games_Admin {
 			echo '<input type="checkbox" name="pointnet_games_delete_scores" value="1" checked> ';
 			if ( $score_count > 0 ) {
 				/* translators: %d: number of scores for this game */
-				printf( esc_html__( 'Elimina anche i %d punteggi', 'pointnet-games' ), esc_html( $score_count ) );
+				printf( esc_html__( 'Also delete the %d scores', 'pointnet-games' ), esc_html( $score_count ) );
 			} else {
-				esc_html_e( 'Elimina punteggi (nessuno presente)', 'pointnet-games' );
+				esc_html_e( 'Delete scores (none present)', 'pointnet-games' );
 			}
 			echo '</label>';
-			echo '<button type="submit" class="button button-link-delete">' . esc_html__( 'Disinstalla', 'pointnet-games' ) . '</button>';
+			echo '<button type="submit" class="button button-link-delete">' . esc_html__( 'Uninstall', 'pointnet-games' ) . '</button>';
 			echo '</form>';
 
 			echo '</td>';
@@ -428,31 +433,69 @@ class PointNet_Games_Admin {
 	private function render_shortcodes_list() {
 		$shortcodes = array(
 			array(
-				'shortcode'    => '[pointnet_game id="123" slug="minesweeper" width="800px" height="600px"]',
-				'description'  => __( 'Incorpora un singolo gioco nella pagina.', 'pointnet-games' ),
-				'attrs'        => __( 'id (int), slug (string), width (string, default 100%), height (string, default 600px)', 'pointnet-games' ),
-				'example'      => '[pointnet_game slug="minesweeper"]',
+				'shortcode'   => '[pointnet_game id="123" slug="minesweeper-arcade" width="800px" height="600px"]',
+				'description' => __( 'Embeds a single game in the page via an iframe. You can identify the game either by its ID or by its slug (the short name used in the URL).', 'pointnet-games' ),
+				'attrs'       => '<ul>' .
+					'<li><strong>id</strong> <em>(int)</em> — Game ID (post ID). You can find it in the <strong>ID</strong> column of the "Installed Games" table.</li>' .
+					'<li><strong>slug</strong> <em>(string)</em> — Game slug, alternative to the ID (e.g. <code>minesweeper-arcade</code>). If you specify both, <code>id</code> takes precedence.</li>' .
+					'<li><strong>width</strong> <em>(string, default <code>100%</code>)</em> — iframe width. Accepts any CSS value (e.g. <code>800px</code>, <code>50%</code>).</li>' .
+					'<li><strong>height</strong> <em>(string, default <code>600px</code>)</em> — iframe height. Accepts any CSS value (e.g. <code>500px</code>, <code>80vh</code>).</li>' .
+					'</ul>',
+				'example'     => array(
+					array( '[pointnet_game id="123"]', __( 'Game with ID 123.', 'pointnet-games' ) ),
+					array( '[pointnet_game slug="minesweeper-arcade"]', __( '"minesweeper-arcade" game (default size).', 'pointnet-games' ) ),
+					array( '[pointnet_game slug="minesweeper-arcade" width="800px" height="600px"]', __( 'Game with custom size.', 'pointnet-games' ) ),
+				),
 			),
 			array(
-				'shortcode'    => '[pointnet_game_leaderboard game_id="123" limit="10" global="0" show_meta="0"]',
-				'description'  => __( 'Mostra la classifica dei punteggi per un gioco o globale.', 'pointnet-games' ),
-				'attrs'        => __( 'game_id (int), limit (int 1-100, default 10), global (0|1), show_meta (0|1)', 'pointnet-games' ),
-				'example'      => '[pointnet_game_leaderboard game_id="123" limit="10"]' . "\n" . '[pointnet_game_leaderboard global="1" limit="25"]',
+				'shortcode'   => '[pointnet_game_leaderboard game_id="123" limit="10" global="0" show_meta="0"]',
+				'description' => __( 'Shows the scores leaderboard. With <code>global="0"</code> (default) it shows the leaderboard of the single game specified with <code>game_id</code>. With <code>global="1"</code> it shows the global leaderboard: the best score of each player on any game, with an additional "Game" column (in this case <code>game_id</code> is ignored).', 'pointnet-games' ),
+				'attrs'       => '<ul>' .
+					'<li><strong>game_id</strong> <em>(int)</em> — ID of the game whose leaderboard should be shown. <strong>Required</strong> if <code>global="0"</code>. Ignored if <code>global="1"</code>.</li>' .
+					'<li><strong>limit</strong> <em>(int, default <code>10</code>)</em> — Maximum number of results shown. Allowed values: 1–100.</li>' .
+					'<li><strong>global</strong> <em>(0|1, default <code>0</code>)</em> — <code>0</code>: single game leaderboard; <code>1</code>: global leaderboard across all games.</li>' .
+					'<li><strong>show_meta</strong> <em>(0|1, default <code>0</code>)</em> — <code>1</code>: also shows score metadata (e.g. level, time, difficulty) in a "Details" column.</li>' .
+					'<li><strong>difficulty</strong> <em>(string, default empty)</em> — Filters the leaderboard by difficulty (e.g. <code>easy</code>, <code>medium</code>, <code>hard</code>). Works only if the game saves the difficulty in the score metadata.</li>' .
+					'</ul>',
+				'example'     => array(
+					array( '[pointnet_game_leaderboard game_id="123"]', __( 'Top 10 of game 123.', 'pointnet-games' ) ),
+					array( '[pointnet_game_leaderboard game_id="123" limit="25" show_meta="1"]', __( 'Top 25 with details.', 'pointnet-games' ) ),
+					array( '[pointnet_game_leaderboard global="1" limit="25"]', __( 'Global leaderboard across all games.', 'pointnet-games' ) ),
+					array( '[pointnet_game_leaderboard game_id="123" difficulty="hard"]', __( 'Only "hard" difficulty scores.', 'pointnet-games' ) ),
+				),
 			),
 			array(
-				'shortcode'    => '[pointnet_games_list limit="12" category="puzzle" columns="3"]',
-				'description'  => __( 'Mostra una griglia dei giochi disponibili.', 'pointnet-games' ),
-				'attrs'        => __( 'limit (int 1-60, default 12), category (slug), columns (int 1-5, default 3)', 'pointnet-games' ),
-				'example'      => '[pointnet_games_list limit="8" category="puzzle" columns="4"]',
+				'shortcode'   => '[pointnet_games_list limit="12" category="puzzle" columns="3"]',
+				'description' => __( 'Shows a grid of cards with the published games. Each card includes the featured image (if any), the title and the excerpt, and is clickable towards the game page.', 'pointnet-games' ),
+				'attrs'       => '<ul>' .
+					'<li><strong>limit</strong> <em>(int, default <code>12</code>)</em> — Maximum number of games shown. Allowed values: 1–60.</li>' .
+					'<li><strong>category</strong> <em>(string, default empty)</em> — Category slug to filter games (e.g. <code>puzzle</code>, <code>action</code>). Empty = all games.</li>' .
+					'<li><strong>columns</strong> <em>(int, default <code>3</code>)</em> — Number of grid columns. Allowed values: 1–5.</li>' .
+					'</ul>',
+				'example'     => array(
+					array( '[pointnet_games_list]', __( '12 games, 3 columns.', 'pointnet-games' ) ),
+					array( '[pointnet_games_list limit="8" category="puzzle" columns="4"]', __( '8 puzzle games on 4 columns.', 'pointnet-games' ) ),
+				),
 			),
 		);
 
 		foreach ( $shortcodes as $shortcode ) {
 			echo '<tr>';
 			echo '<td><code>' . esc_html( $shortcode['shortcode'] ) . '</code></td>';
-			echo '<td>' . esc_html( $shortcode['description'] ) . '</td>';
-			echo '<td>' . esc_html( $shortcode['attrs'] ) . '</td>';
-			echo '<td><code>' . nl2br( esc_html( $shortcode['example'] ) ) . '</code></td>';
+			echo '<td>' . wp_kses_post( $shortcode['description'] ) . '</td>';
+			echo '<td>' . wp_kses_post( $shortcode['attrs'] ) . '</td>';
+			echo '<td>';
+			foreach ( $shortcode['example'] as $example ) {
+				$code    = $example[0];
+				$comment = ! empty( $example[1] ) ? $example[1] : '';
+				echo '<div style="margin-bottom:6px;">';
+				echo '<code>' . esc_html( $code ) . '</code>';
+				if ( $comment ) {
+					echo '<br><span class="description">' . esc_html( $comment ) . '</span>';
+				}
+				echo '</div>';
+			}
+			echo '</td>';
 			echo '</tr>';
 		}
 	}
@@ -467,23 +510,24 @@ class PointNet_Games_Admin {
 		$rows  = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT game_id, COUNT(*) as total
-				 FROM {$table}
+				 FROM %i
 				 GROUP BY game_id
 				 ORDER BY total DESC
 				 LIMIT %d",
+				$table,
 				10
 			)
 		);
 
 		if ( empty( $rows ) ) {
-			echo '<tr><td colspan="2">' . esc_html__( 'Nessun dato disponibile.', 'pointnet-games' ) . '</td></tr>';
+			echo '<tr><td colspan="2">' . esc_html__( 'No data available.', 'pointnet-games' ) . '</td></tr>';
 			return;
 		}
 
 		foreach ( $rows as $row ) {
 			$game = get_post( $row->game_id );
 			echo '<tr>';
-			echo '<td>' . ( $game ? esc_html( $game->post_title ) : esc_html__( 'Gioco eliminato', 'pointnet-games' ) ) . '</td>';
+			echo '<td>' . ( $game ? esc_html( $game->post_title ) : esc_html__( 'Game deleted', 'pointnet-games' ) ) . '</td>';
 			echo '<td>' . esc_html( number_format_i18n( (int) $row->total ) ) . '</td>';
 			echo '</tr>';
 		}
@@ -504,7 +548,8 @@ class PointNet_Games_Admin {
 
 		return $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM {$table} ORDER BY played_at DESC LIMIT %d",
+				"SELECT * FROM %i ORDER BY played_at DESC LIMIT %d",
+				$table,
 				$limit
 			)
 		);
@@ -537,7 +582,7 @@ class PointNet_Games_Admin {
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Non hai i permessi per effettuare questa operazione.', 'pointnet-games' ) );
+			wp_die( esc_html__( 'You do not have permission to perform this operation.', 'pointnet-games' ) );
 		}
 
 		check_admin_referer( 'pointnet_games_uninstall_game' );
@@ -548,7 +593,7 @@ class PointNet_Games_Admin {
 		$game = get_post( $game_id );
 
 		if ( ! $game || PointNet_Games_Post_Types::GAME_CPT !== $game->post_type ) {
-			wp_die( esc_html__( 'Gioco non trovato.', 'pointnet-games' ) );
+			wp_die( esc_html__( 'Game not found.', 'pointnet-games' ) );
 		}
 
 		$slug = get_post_meta( $game_id, '_pointnet_games_slug', true );
@@ -571,16 +616,19 @@ class PointNet_Games_Admin {
 		// Force the registry to re-scan on next request.
 		delete_option( 'pointnet_games_sync_fingerprint' );
 
-		// Redirect to avoid form re-submission on refresh.
-		wp_safe_redirect(
-			add_query_arg(
-				array(
-					'pointnet_games_uninstalled' => $dir_deleted ? '1' : '2',
-					'pointnet_games_scores'      => $delete_scores ? '1' : '0',
-				),
-				admin_url( 'admin.php?page=pointnet-games' )
-			)
+		// Store the notice in a transient so the dashboard can show it
+		// without relying on user-controlled query parameters.
+		set_transient(
+			'pointnet_games_uninstall_notice',
+			array(
+				'ok'     => (bool) $dir_deleted,
+				'scores' => (bool) $delete_scores,
+			),
+			60
 		);
+
+		// Redirect to avoid form re-submission on refresh.
+		wp_safe_redirect( admin_url( 'admin.php?page=pointnet-games' ) );
 		exit;
 	}
 
@@ -598,7 +646,8 @@ class PointNet_Games_Admin {
 
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$table} WHERE game_id = %d",
+				"SELECT COUNT(*) FROM %i WHERE game_id = %d",
+				$table,
 				$game_id
 			)
 		);
@@ -634,42 +683,29 @@ class PointNet_Games_Admin {
 	}
 
 	/**
-	 * Recursively delete a directory using the WordPress Filesystem API
-	 * when available, with a PHP fallback for compatibility.
+	 * Recursively delete a directory using the WordPress Filesystem API.
 	 *
 	 * @param string $target Absolute path to the directory to delete.
 	 *
 	 * @return bool True on success, false otherwise.
 	 */
 	private function filesystem_delete( $target ) {
-		// Try WP_Filesystem first (recommended by WordPress.org Plugin Check).
+		// Ensure the Filesystem API is available.
 		if ( ! function_exists( 'WP_Filesystem' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
-		if ( function_exists( 'WP_Filesystem' ) ) {
-			WP_Filesystem();
-			global $wp_filesystem;
-
-			if ( $wp_filesystem && $wp_filesystem->delete( $target, true, 'd' ) ) {
-				return true;
-			}
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			return false;
 		}
 
-		// Fallback: PHP recursive deletion.
-		$iterator = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $target, FilesystemIterator::SKIP_DOTS ),
-			RecursiveIteratorIterator::CHILD_FIRST
-		);
+		WP_Filesystem();
+		global $wp_filesystem;
 
-		foreach ( $iterator as $fileinfo ) {
-			if ( $fileinfo->isDir() ) {
-				@rmdir( $fileinfo->getRealPath() );
-			} else {
-				@unlink( $fileinfo->getRealPath() );
-			}
+		if ( ! $wp_filesystem ) {
+			return false;
 		}
 
-		return @rmdir( $target );
+		return (bool) $wp_filesystem->delete( $target, true, 'd' );
 	}
 }

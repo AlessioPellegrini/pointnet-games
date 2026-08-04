@@ -44,7 +44,7 @@ class PointNet_Games_Leaderboard {
 				return false;
 			}
 			if ( empty( $nickname ) ) {
-				$nickname = __( 'Anonimo', 'pointnet-games' );
+				$nickname = __( 'Anonymous', 'pointnet-games' );
 			}
 		} else {
 			// Registered users: nickname is resolved dynamically at display time
@@ -98,51 +98,43 @@ class PointNet_Games_Leaderboard {
 		$limit = min( max( 1, absint( $limit ) ), 100 );
 		$offset = max( 0, absint( $offset ) );
 
-		// Optional validation filter, defaults to validated scores only.
-		$validated_sql = '';
-		$settings      = get_option( 'pointnet_games_settings', array() );
+		$settings           = get_option( 'pointnet_games_settings', array() );
 		$require_validation = (int) $settings['require_validation'] ?? 0;
-		if ( $require_validation ) {
-			$validated_sql = " AND s1.validated = 1 AND s2.validated = 1";
-		}
 
-		// Optional difficulty filter (from JSON score_meta, e.g. {"difficulty": "easy"}).
-		// The filter must apply to BOTH sides of the join so the "best score per
-		// player" comparison happens within the same difficulty only.
-		$difficulty_sql = '';
-		$difficulty_join_sql = '';
-		if ( ! empty( $filters['difficulty'] ) ) {
-			$difficulty = sanitize_text_field( $filters['difficulty'] );
-			$difficulty_sql = $wpdb->prepare(
-				" AND JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')) = %s",
-				$difficulty
-			);
-			$difficulty_join_sql = $wpdb->prepare(
-				" AND JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')) = %s",
-				$difficulty
-			);
-		}
+		// Difficulty filter value (empty string = filter disabled).
+		$difficulty = ! empty( $filters['difficulty'] ) ? sanitize_text_field( $filters['difficulty'] ) : '';
 
 		// Only the best score per player (registered user_id or anonymous ip_hash).
-		$sql = $wpdb->prepare(
-			"SELECT s1.id, s1.game_id, s1.user_id, s1.nickname, s1.score, s1.score_meta, s1.played_at
-			 FROM {$table} s1
-			 LEFT JOIN {$table} s2 ON s1.game_id = s2.game_id
-			     AND s1.score < s2.score
-			     {$difficulty_join_sql}
-			     AND COALESCE(CONCAT('u', s1.user_id), CONCAT('ip_', s1.ip_hash)) = COALESCE(CONCAT('u', s2.user_id), CONCAT('ip_', s2.ip_hash))
-			 WHERE s1.game_id = %d
-			   AND s2.id IS NULL
-			 {$difficulty_sql}
-			 {$validated_sql}
-			 ORDER BY s1.score DESC, s1.played_at ASC
-			 LIMIT %d OFFSET %d",
-			$game_id,
-			$limit,
-			$offset
+		// Optional filters use the ( %d = 0 OR ... ) / ( %s = '' OR ... ) pattern:
+		// passing 0/'' disables the condition while keeping every placeholder
+		// statically inside the SQL string passed to $wpdb->prepare().
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT s1.id, s1.game_id, s1.user_id, s1.nickname, s1.score, s1.score_meta, s1.played_at
+				 FROM %i s1
+				 LEFT JOIN %i s2 ON s1.game_id = s2.game_id
+				     AND s1.score < s2.score
+				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
+				     AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')) = %s )
+				     AND COALESCE(CONCAT('u', s1.user_id), CONCAT('ip_', s1.ip_hash)) = COALESCE(CONCAT('u', s2.user_id), CONCAT('ip_', s2.ip_hash))
+				 WHERE s1.game_id = %d
+				   AND s2.id IS NULL
+				   AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')) = %s )
+				 ORDER BY s1.score DESC, s1.played_at ASC
+				 LIMIT %d OFFSET %d",
+				$table,
+				$table,
+				$require_validation,
+				$difficulty,
+				$difficulty,
+				$game_id,
+				$difficulty,
+				$difficulty,
+				$limit,
+				$offset
+			),
+			ARRAY_A
 		);
-
-		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		if ( empty( $rows ) ) {
 			return array();
@@ -174,26 +166,32 @@ class PointNet_Games_Leaderboard {
 		$table = pointnet_games_scores_table();
 		$limit = min( max( 1, absint( $limit ) ), 100 );
 
-		$settings      = get_option( 'pointnet_games_settings', array() );
+		$settings           = get_option( 'pointnet_games_settings', array() );
 		$require_validation = (int) $settings['require_validation'] ?? 0;
-		$validated_sql = $require_validation ? ' AND s1.validated = 1 AND s2.validated = 1' : '';
 
 		// Only the best score per player across all games.
-		$sql = $wpdb->prepare(
-			"SELECT s1.id, s1.game_id, s1.user_id, s1.nickname, s1.score, s1.score_meta, s1.played_at,
-			        p.post_title as game_title
-			 FROM {$table} s1
-			 LEFT JOIN {$table} s2 ON s1.score < s2.score
-			     AND COALESCE(CONCAT('u', s1.user_id), CONCAT('ip_', s1.ip_hash)) = COALESCE(CONCAT('u', s2.user_id), CONCAT('ip_', s2.ip_hash))
-			 LEFT JOIN {$wpdb->posts} p ON p.ID = s1.game_id
-			 WHERE s2.id IS NULL
-			 {$validated_sql}
-			 ORDER BY s1.score DESC, s1.played_at ASC
-			 LIMIT %d",
-			$limit
+		// The ( %d = 0 OR ... ) pattern keeps the validation filter optional
+		// with static placeholders and no dynamic SQL construction.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT s1.id, s1.game_id, s1.user_id, s1.nickname, s1.score, s1.score_meta, s1.played_at,
+				        p.post_title as game_title
+				 FROM %i s1
+				 LEFT JOIN %i s2 ON s1.score < s2.score
+				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
+				     AND COALESCE(CONCAT('u', s1.user_id), CONCAT('ip_', s1.ip_hash)) = COALESCE(CONCAT('u', s2.user_id), CONCAT('ip_', s2.ip_hash))
+				 LEFT JOIN %i p ON p.ID = s1.game_id
+				 WHERE s2.id IS NULL
+				 ORDER BY s1.score DESC, s1.played_at ASC
+				 LIMIT %d",
+				$table,
+				$table,
+				$require_validation,
+				$wpdb->posts,
+				$limit
+			),
+			ARRAY_A
 		);
-
-		$rows = $wpdb->get_results( $sql, ARRAY_A );
 
 		foreach ( $rows as $index => $row ) {
 			$rows[ $index ]['position'] = $index + 1;
@@ -222,23 +220,32 @@ class PointNet_Games_Leaderboard {
 		$table  = pointnet_games_scores_table();
 		$game_id = absint( $game_id );
 
-		$settings      = get_option( 'pointnet_games_settings', array() );
+		$settings           = get_option( 'pointnet_games_settings', array() );
 		$require_validation = (int) $settings['require_validation'] ?? 0;
-		$validated_sql = $require_validation ? ' AND validated = 1' : '';
 
-		// Build the player lookup clause.
+		// The ( %d = 0 OR validated = 1 ) pattern keeps the validation filter
+		// optional with static placeholders — no dynamic SQL fragments.
 		if ( $user_id ) {
-			$where = $wpdb->prepare( "user_id = %d", $user_id );
+			$best_score = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT MAX(score) FROM %i WHERE ( %d = 0 OR validated = 1 ) AND user_id = %d AND game_id = %d',
+					$table,
+					$require_validation,
+					$user_id,
+					$game_id
+				)
+			);
 		} else {
-			$where = $wpdb->prepare( "nickname = %s", $nickname );
+			$best_score = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT MAX(score) FROM %i WHERE ( %d = 0 OR validated = 1 ) AND nickname = %s AND game_id = %d',
+					$table,
+					$require_validation,
+					$nickname,
+					$game_id
+				)
+			);
 		}
-
-		$best_score = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT MAX(score) FROM {$table} WHERE game_id = %d AND {$where} {$validated_sql}",
-				$game_id
-			)
-		);
 
 		if ( null === $best_score ) {
 			return null;
@@ -246,8 +253,9 @@ class PointNet_Games_Leaderboard {
 
 		$position = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) + 1 FROM {$table}
-				 WHERE game_id = %d AND score > %d {$validated_sql}",
+				'SELECT COUNT(*) + 1 FROM %i WHERE ( %d = 0 OR validated = 1 ) AND game_id = %d AND score > %d',
+				$table,
+				$require_validation,
 				$game_id,
 				(int) $best_score
 			)
@@ -259,7 +267,7 @@ class PointNet_Games_Leaderboard {
 	/**
 	 * Replace the stored nickname with the current WordPress user_login
 	 * for registered users (guaranteed unique by WordPress).
-	 * Anonymous entries keep their stored nickname ("Anonimo").
+	 * Anonymous entries keep their stored nickname ("Anonymous").
 	 *
 	 * @param array $rows Leaderboard rows (ARRAY_A).
 	 *
@@ -324,8 +332,9 @@ class PointNet_Games_Leaderboard {
 
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$table}
+				"SELECT COUNT(*) FROM %i
 				 WHERE game_id = %d AND ip_hash = %s AND played_at >= %s",
+				$table,
 				$game_id,
 				$ip_hash,
 				$time
@@ -354,7 +363,7 @@ class PointNet_Games_Leaderboard {
 		// Apply length limits (with fallback if mbstring is not installed).
 		$len = function_exists( 'mb_strlen' ) ? mb_strlen( $nickname ) : strlen( $nickname );
 		if ( $len < $min ) {
-			$nickname = __( 'Anonimo', 'pointnet-games' );
+			$nickname = __( 'Anonymous', 'pointnet-games' );
 		} elseif ( $len > $max ) {
 			$nickname = function_exists( 'mb_substr' ) ? mb_substr( $nickname, 0, $max ) : substr( $nickname, 0, $max );
 		}

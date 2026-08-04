@@ -43,6 +43,8 @@ class PointNet_Games_Game_Registry {
 		$manifests = (array) glob( $games_dir );
 
 		if ( empty( $manifests ) ) {
+			// All games removed — clean up orphaned posts too.
+			self::cleanup_removed_games();
 			update_option( 'pointnet_games_sync_fingerprint', $fingerprint );
 			return 0;
 		}
@@ -79,10 +81,61 @@ class PointNet_Games_Game_Registry {
 			$processed++;
 		}
 
+		// Remove any game posts whose games/ folder no longer exists
+		// (e.g. a bundled game deleted from the plugin).
+		self::cleanup_removed_games();
+
 		// Remember that we synced — avoids running again until a manifest changes.
 		update_option( 'pointnet_games_sync_fingerprint', $fingerprint );
 
 		return $processed;
+	}
+
+	/**
+	 * Delete game CPT posts whose games/{slug}/ directory is no longer present.
+	 * Also removes their scores from the leaderboard table.
+	 *
+	 * @return int Number of posts removed.
+	 */
+	private static function cleanup_removed_games() {
+		$posts = get_posts(
+			array(
+				'post_type'      => PointNet_Games_Post_Types::GAME_CPT,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'numberposts'    => -1,
+			)
+		);
+
+		if ( empty( $posts ) ) {
+			return 0;
+		}
+
+		$removed    = 0;
+		$games_root = trailingslashit( POINTNET_GAMES_PLUGIN_DIR ) . 'games';
+
+		foreach ( $posts as $post ) {
+			$relative_dir = get_post_meta( $post->ID, '_pointnet_games_dir', true );
+
+			// Build the absolute path to the game directory.
+			if ( ! empty( $relative_dir ) ) {
+				$game_dir_abs = realpath( POINTNET_GAMES_PLUGIN_DIR . $relative_dir );
+			} else {
+				// Fallback: use the slug meta.
+				$slug         = get_post_meta( $post->ID, '_pointnet_games_slug', true );
+				$game_dir_abs = $slug ? realpath( $games_root . '/' . $slug ) : false;
+			}
+
+			// If the folder is missing, remove the post and its scores.
+			if ( false === $game_dir_abs || ! is_dir( $game_dir_abs ) ) {
+				global $wpdb;
+				$wpdb->delete( pointnet_games_scores_table(), array( 'game_id' => $post->ID ), array( '%d' ) );
+				wp_delete_post( $post->ID, true );
+				$removed++;
+			}
+		}
+
+		return $removed;
 	}
 
 	/**
@@ -192,7 +245,7 @@ class PointNet_Games_Game_Registry {
 	/**
 	 * Delete any legacy auto-generated "page" posts that were created by
 	 * PointNet Games v0.1.0-beta (ensure_game_page). These pages were the source
-	 * of duplicate URLs like /minesweeper/ vs /games/minesweeper/.
+	 * of duplicate URLs like /minesweeper-arcade/ vs /games/minesweeper-arcade/.
 	 *
 	 * @param int $game_id The pointnet_game post ID.
 	 */
