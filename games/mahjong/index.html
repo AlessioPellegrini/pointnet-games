@@ -105,7 +105,13 @@
 		}
 
 		.tile.free { filter: brightness(1.05); pointer-events: auto; }
-		.tile.blocked { filter: brightness(0.62) saturate(0.7); cursor: default; pointer-events: none; }
+		.tile.blocked {
+			filter: brightness(0.4) saturate(0.4) blur(0.3px);
+			opacity: 0.55;
+			cursor: default;
+			pointer-events: none;
+			box-shadow: none;
+		}
 		.tile.selected {
 			transform: translateY(-6px) scale(1.08);
 			box-shadow: 0 8px 16px rgba(56, 189, 248, 0.5), 0 0 0 3px var(--accent);
@@ -278,10 +284,10 @@
 		}
 
 		/* A tile is free (playable) when:
-		   - nothing directly above it at (z+1, x, y) — first levels.
-		     The full 3x3 "above" rule is introduced in Phase 3 with the
-		     arcade difficulty progression, so early gameplay feels fair
-		     and matches what is visually stacked.
+		   - nothing above it in the 3x3 area (z+1) — the classic rule.
+		     The rendering aligns with this exact area (layers stack
+		     almost vertically), so a tile visually covered is always
+		     logically blocked — impossible to misread.
 		   - NOT (blocked on left AND blocked on right)
 		   Blocked left  = any tile at (z, x-2, y±1)
 		   Blocked right = any tile at (z, x+2, y±1)
@@ -289,8 +295,12 @@
 		function isFree(board, tile) {
 			if (tile.removed) return false;
 
-			// Early levels: only the exact cell above counts.
-			if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
+			var zUp = tile.z + 1;
+			for (var dx = -1; dx <= 1; dx++) {
+				for (var dy = -1; dy <= 1; dy++) {
+					if (hasTile(board, zUp, tile.x + dx, tile.y + dy)) return false;
+				}
+			}
 
 			var hasLeft = false;
 			for (var dy = -1; dy <= 1; dy++) {
@@ -614,10 +624,10 @@
 		//   distance = 2 * STEP_X = 44px ≈ TILE_W (42px) -> small 2px gap.
 		// - two tiles at y and y+1 are vertically adjacent one above the other:
 		//   STEP_Y = 50 >= TILE_H so rows never overlap.
-		// - each higher layer shifts tiles diagonally up-right:
-		//   RISE = 20 makes the covering tile clearly overlap the one below,
-		//   so a covered tile is obviously not playable.
-		var STEP_X = 22, STEP_Y = 50, RISE = 20;
+		// - layers stack almost vertically (no horizontal offset): a tile at
+		//   z+1 sits directly above the tile at z, so whatever is visually
+		//   covering a tile is exactly what logic says blocks it (3x3 above).
+		var STEP_X = 22, STEP_Y = 50, RISE = 12;
 
 		function computeBoardMetrics(layout) {
 			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
@@ -691,7 +701,7 @@
 					el.classList.add('removed');
 					el.style.display = 'none';
 				}
-				el.style.left = ((t.x - metrics.minX) * STEP_X - t.z * 4) + 'px';
+				el.style.left = ((t.x - metrics.minX) * STEP_X) + 'px';
 				el.style.top = ((t.y - metrics.minY) * STEP_Y - t.z * RISE) + 'px';
 				el.style.zIndex = 10 + t.z * 10;
 				el.textContent = t.symbol;

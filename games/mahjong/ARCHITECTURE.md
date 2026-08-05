@@ -53,13 +53,13 @@ No grid array: only a `Map` of placed tiles. Adjacency queries use neighbor look
 A tile is **free** (playable) when:
 
 ```
-NOT ( ∃ tile at (z+1, x, y) )        // nothing exactly above
+NOT ( ∃ tile at (z+1, x±1, y±1) )    // nothing above (3×3 area — classic rule)
 AND NOT ( blocker on BOTH left AND right )
    where  blocker(left)  = ∃ tile at (z, x-2, y±1)
      and  blocker(right) = ∃ tile at (z, x+2, y±1)
 ```
 
-**Design decision**: for early levels (Phase 1) only the exact cell above counts. The full 3×3 "above" rule of the classic mahjong is introduced in Phase 3 as a difficulty lever. The solver still uses the stricter 3×3 rule internally so generated boards remain solvable under both rules (if solvable with 3×3, it is solvable with 1×1 too).
+**Rendering aligns with the logic**: layers stack almost vertically (no horizontal offset, small RISE), so a tile visually covered by a tile above is always logically blocked. Blocked tiles are dimmed (brightness 0.4, opacity 0.55, no shadow) — impossible to misread as playable.
 
 ## Layout Generator
 
