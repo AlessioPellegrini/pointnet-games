@@ -1,7 +1,7 @@
 {
 	"name": "Mahjong Arcade",
 	"slug": "mahjong",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"author": "PointNet Games",
 	"description": "Classic Mahjong Solitaire tile-matching with a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards via DFS solver. Mobile-first, no pan/zoom.",
 	"type": "iframe",

@@ -181,6 +181,22 @@
 			color: rgba(226, 232, 240, 0.45);
 			pointer-events: none;
 		}
+
+		/* Blocked face-down tiles: cannot be dimmed (would reveal the
+		   underlay through transparency), so use a red "lock" cue instead. */
+		.tile.face-down.blocked {
+			box-shadow:
+				1px 0 0 0 rgba(71, 85, 105, 0.30),
+				0 3px 0 0 rgba(71, 85, 105, 0.25),
+				1px 3px 0 0 rgba(71, 85, 105, 0.25),
+				0 0 0 2px rgba(239, 68, 68, 0.65) inset;
+		}
+		.tile.face-down.blocked::after {
+			content: '🔒';
+			font-size: 14px;
+			color: rgba(239, 68, 68, 0.85);
+		}
+		.tile.face-down.blocked:hover .tile-overlay { opacity: 0; }
 		.tile.face-down.blocked:hover { opacity: 1; }
 
 		.tile:hover { transform: translate(var(--tx), var(--ty)) scale(1.05); }
@@ -197,7 +213,16 @@
 		}
 		.tile:hover .tile-overlay { opacity: 1; }
 
-		.tile.blocked:not(.face-down) { opacity: 0.5; cursor: default; }
+		/* Blocked tiles: NO opacity — dimmed via darker face color
+		   instead. Fully opaque, never shows tiles beneath. */
+		.tile.blocked:not(.face-down) {
+			opacity: 1;
+			cursor: default;
+			background: linear-gradient(180deg, #c9cfd7 0%, #aeb6bf 100%);
+		}
+		.tile.z1.blocked:not(.face-down) {
+			background: linear-gradient(180deg, #e0e3e7 0%, #cdd1d6 100%);
+		}
 		.tile.blocked:hover { transform: translate(var(--tx), var(--ty)); }
 		.tile.blocked:hover .tile-overlay { opacity: 0; }
 
@@ -234,6 +259,7 @@
 			background: #475569;
 		}
 		.plane-badge.p2 { background: #2563eb; }
+		.plane-badge.half-badge { background: #9333ea; }
 
 		.num-badge {
 			position: absolute;
@@ -356,7 +382,7 @@
 		/* ============================================================
 		   SYMBOLS + RNG
 		   ============================================================ */
-		var SYMBOLS = ['🀄', '🍀', '🌸', '🔥', '❄️', '💎', '⭐', '🌙', '☀️', '🍃', '💜', '🔷'];
+		var SYMBOLS = ['🀄', '🍀', '🌸', '🔥', '❄️', '💎', '⭐', '🌙', '☀️', '🍃', '💜', '🔷', '🍄', '🎈', '🌈', '🍕', '⚽', '🎲'];
 
 		function createRng(seed) {
 			var s = seed >>> 0;
@@ -379,40 +405,44 @@
 		/* ============================================================
 		   STATIC TEST LAYOUT — 2 aligned planes
 		   ============================================================ */
-		var BASE_COORDS = [
-			[0, 0], [2, 0], [4, 0], [6, 0],
-			[0, 1], [2, 1], [4, 1], [6, 1],
-			[0, 2], [2, 2], [4, 2], [6, 2],
-			[0, 3], [2, 3], [4, 3], [6, 3]
-		];
-
-		var UPPER_COORDS = [
-			[2, 1], [4, 1],
-			[2, 2], [4, 2],
-			[2, 3], [4, 3],
-			[2, 0], [4, 0]
+		var STATIC_LAYOUT = [
+			/* z=0 — base layer: 4×4 grid (16 tiles) */
+			{ z: 0, x: 0, y: 0 }, { z: 0, x: 2, y: 0 }, { z: 0, x: 4, y: 0 }, { z: 0, x: 6, y: 0 },
+			{ z: 0, x: 0, y: 1 }, { z: 0, x: 2, y: 1 }, { z: 0, x: 4, y: 1 }, { z: 0, x: 6, y: 1 },
+			{ z: 0, x: 0, y: 2 }, { z: 0, x: 2, y: 2 }, { z: 0, x: 4, y: 2 }, { z: 0, x: 6, y: 2 },
+			{ z: 0, x: 0, y: 3 }, { z: 0, x: 2, y: 3 }, { z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 3 },
+			/* z=1 — upper layer: 3×3 half-cover tiles.
+			   Each sits exactly on the CROSSING of 4 base tiles below:
+			   (x±1, y±1) — perfect half-cover in BOTH axes. */
+			{ z: 1, x: 1, y: 1, isHalf: true }, { z: 1, x: 3, y: 1, isHalf: true }, { z: 1, x: 5, y: 1, isHalf: true },
+			{ z: 1, x: 1, y: 2, isHalf: true }, { z: 1, x: 3, y: 2, isHalf: true }, { z: 1, x: 5, y: 2, isHalf: true },
+			{ z: 1, x: 1, y: 3, isHalf: true }, { z: 1, x: 3, y: 3, isHalf: true }, { z: 1, x: 5, y: 3, isHalf: true },
+			/* z=0 — detached single tile, far below the grid,
+			   to make the total tile count even (26 = 13 pairs). */
+			{ z: 0, x: 2, y: 5 }
 		];
 
 		function buildStaticLayout() {
-			var allCoords = BASE_COORDS.concat(UPPER_COORDS);
 			var lastBest = null;
+			var symbolsNeeded = STATIC_LAYOUT.length / 2;
 
 			for (var attempt = 0; attempt < 100; attempt++) {
 				var rng = createRng(42 + attempt);
 				var deck = [];
-				for (var i = 0; i < SYMBOLS.length; i++) {
+				for (var i = 0; i < symbolsNeeded; i++) {
 					deck.push(SYMBOLS[i]);
 					deck.push(SYMBOLS[i]);
 				}
 				shuffle(deck, rng);
 
 				var tiles = [];
-				for (var c = 0; c < allCoords.length; c++) {
-					var z = c < BASE_COORDS.length ? 0 : 1;
+				for (var c = 0; c < STATIC_LAYOUT.length; c++) {
+					var co = STATIC_LAYOUT[c];
 					tiles.push({
-						z: z,
-						x: allCoords[c][0],
-						y: allCoords[c][1],
+						z: co.z,
+						x: co.x,
+						y: co.y,
+						isHalf: !!co.isHalf,
 						symbol: deck[c],
 						label: c + 1,
 						removed: false,
@@ -479,9 +509,28 @@
 			return !!t && !t.removed && !t.staging;
 		}
 
+		/* Half-cover: a tile at odd x AND odd-spaced y in the layer above
+		   sits exactly on the CROSSING of FOUR tiles below (x±1, y±1)
+		   and blocks all four. */
+		function hasHalfCoverAbove(board, tile) {
+			function halfAt(z, x, y) {
+				var t = board.get(makeKey(z, x, y));
+				return !!t && !t.removed && !t.staging && t.isHalf;
+			}
+			/* The half tile's grid row (y) coincides with the lower of the
+			   two base rows it straddles. Base row y is covered by a half
+			   on the SAME row (above it) or on the row ABOVE (y+1). */
+			var aboveY = tile.z + 1;
+			return halfAt(aboveY, tile.x - 1, tile.y) ||
+			       halfAt(aboveY, tile.x + 1, tile.y) ||
+			       halfAt(aboveY, tile.x - 1, tile.y + 1) ||
+			       halfAt(aboveY, tile.x + 1, tile.y + 1);
+		}
+
 		function isFree(board, tile) {
 			if (tile.removed || tile.staging) return false;
 			if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
+			if (hasHalfCoverAbove(board, tile)) return false;
 			var hasLeft = hasTile(board, tile.z, tile.x - 2, tile.y);
 			var hasRight = hasTile(board, tile.z, tile.x + 2, tile.y);
 			return !(hasLeft && hasRight);
@@ -498,9 +547,21 @@
 				return !!t && !t.removed && !t.staging && !removed.has(t.key);
 			}
 
+			/* Half-cover in solver: same logic but respects the solver's
+			   temporary "removed" set. A half tile blocks all 4 tiles
+			   below at (x±1, y) and (x±1, y+1). */
+			function hasLiveHalf(z, x, y) {
+				var t = board.get(makeKey(z, x, y));
+				return !!t && !t.removed && !t.staging && !removed.has(t.key) && t.isHalf;
+			}
+
 			function isFreeForSolver(t) {
 				if (removed.has(t.key)) return false;
 				if (hasLive(t.z + 1, t.x, t.y)) return false;
+				if (hasLiveHalf(t.z + 1, t.x - 1, t.y) ||
+				    hasLiveHalf(t.z + 1, t.x + 1, t.y) ||
+				    hasLiveHalf(t.z + 1, t.x - 1, t.y + 1) ||
+				    hasLiveHalf(t.z + 1, t.x + 1, t.y + 1)) return false;
 				var hasLeft = hasLive(t.z, t.x - 2, t.y);
 				var hasRight = hasLive(t.z, t.x + 2, t.y);
 				return !(hasLeft && hasRight);
@@ -550,7 +611,7 @@
 		var SIDE_B = 3;                 // bottom face (px)
 		var STEP_X = 22;                // horizontal pitch between x-cells (2 cells = 44px)
 		var STEP_Y = 61;                // vertical pitch between rows
-		var Z_OFFSET_X = 3;             // diagonal plane shift
+		var Z_OFFSET_X = 1;             // diagonal plane shift (minimal)
 		var Z_OFFSET_Y = 9;
 		var PAD = 8;                    // breathing room around the board
 
@@ -571,15 +632,21 @@
 		   top of the board. (This was the 23/24 bug: their top 8px were
 		   cut off by overflow:hidden in every previous version.) */
 		function layoutPos(t, m) {
-			var topPad = m.maxZ * Z_OFFSET_Y;
+			var topPad = m.maxZ * Z_OFFSET_Y + 4;
+			/* Half-cover tiles (isHalf) sit exactly on the crossing of
+			   FOUR base tiles below: grid x is at a half-step (x*STEP_X
+			   is already the midpoint), and y is pushed DOWN by half the
+			   row pitch so it straddles two base rows perfectly. */
+			var shiftX = t.isHalf ? 0 : t.z * Z_OFFSET_X;
+			var shiftY = t.isHalf ? Math.round(STEP_Y / 2) : t.z * Z_OFFSET_Y;
 			return {
-				x: PAD + (t.x - m.minX) * STEP_X + t.z * Z_OFFSET_X,
-				y: PAD + topPad + (t.y - m.minY) * STEP_Y - t.z * Z_OFFSET_Y
+				x: PAD + (t.x - m.minX) * STEP_X + shiftX,
+				y: PAD + topPad + (t.y - m.minY) * STEP_Y - shiftY
 			};
 		}
 
 		function boardSize(m) {
-			var topPad = m.maxZ * Z_OFFSET_Y;
+			var topPad = m.maxZ * Z_OFFSET_Y + 4;
 			return {
 				w: PAD + (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + SIDE_R + PAD,
 				h: PAD + topPad + (m.maxY - m.minY) * STEP_Y + TILE_H + SIDE_B + PAD
@@ -601,7 +668,7 @@
 
 		function createTileEl(t, i) {
 			var el = document.createElement('div');
-			el.className = 'tile z' + t.z;
+			el.className = 'tile z' + t.z + (t.isHalf ? ' half' : '');
 			el.dataset.index = i;
 
 			var overlay = document.createElement('div');
@@ -612,8 +679,8 @@
 			el._symEl = sym;
 
 			var plane = document.createElement('span');
-			plane.className = 'plane-badge' + (t.z === 1 ? ' p2' : '');
-			plane.textContent = t.z + 1;
+			plane.className = 'plane-badge' + (t.z === 1 ? ' p2' : '') + (t.isHalf ? ' half-badge' : '');
+			plane.textContent = (t.z + 1) + (t.isHalf ? '½' : '');
 
 			var num = document.createElement('span');
 			num.className = 'num-badge';
@@ -680,6 +747,7 @@
 			var wrapW = wrap.clientWidth || window.innerWidth;
 			var wrapH = wrap.clientHeight || window.innerHeight;
 			var s = Math.min((wrapW - 4) / size.w, (wrapH - 4) / size.h);
+			app._scale = s;
 
 			boardEl.style.width = size.w + 'px';
 			boardEl.style.height = size.h + 'px';
@@ -703,7 +771,9 @@
 			timerStarted: false,
 			history: [],
 			_metrics: null,
-			_boardSize: null
+			_boardSize: null,
+			_scale: 1,
+			autoMatching: false
 		};
 
 		function pairsLeft() {
@@ -829,6 +899,7 @@
 		   auto-match without an extra click.
 		   ============================================================ */
 		function handleTileClick(tile) {
+			if (app.autoMatching) return;
 			if (tile.removed || tile.staging) return;
 			if (!isFree(app.board, tile)) {
 				app.peeking = null;
@@ -839,6 +910,24 @@
 
 			/* Case 1: covered tile → reveal (cover previous peeked) */
 			if (tile.faceDown) {
+				/* If the previously revealed tile matches this one →
+				   BOTH go to staging immediately (auto-match, saves
+				   an extra click on the first tile). */
+				if (app.peeking && app.peeking.key !== tile.key &&
+				    app.peeking.symbol === tile.symbol) {
+					var first = app.peeking;
+					app.peeking = null;
+					tile.faceDown = false;
+					updateStates();
+					app.autoMatching = true;
+					setTimeout(function () {
+						app.autoMatching = false;
+						moveToStaging(first);
+						moveToStaging(tile);
+					}, 250);
+					return;
+				}
+
 				if (app.peeking && app.peeking.key !== tile.key) {
 					app.peeking.faceDown = true;
 				}
@@ -971,6 +1060,7 @@
 		}
 
 		boardEl.addEventListener('pointerdown', function (e) {
+			if (app.autoMatching) return;
 			var hit = tileFromEvent(e);
 			if (!hit) {
 				app.peeking = null;
@@ -997,8 +1087,11 @@
 			var dy = e.clientY - drag.startY;
 			if (Math.abs(dx) > 4 || Math.abs(dy) > 4) drag.moved = true;
 			if (!drag.moved) return;
-			drag.el.style.setProperty('--tx', (drag.baseX + dx) + 'px');
-			drag.el.style.setProperty('--ty', (drag.baseY + dy) + 'px');
+			/* Divide by scale: the board is scaled via transform:scale(),
+			   so screen pixels ≠ board-local pixels. */
+			var s = app._scale || 1;
+			drag.el.style.setProperty('--tx', (drag.baseX + dx / s) + 'px');
+			drag.el.style.setProperty('--ty', (drag.baseY + dy / s) + 'px');
 		});
 
 		function endDrag() {

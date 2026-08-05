@@ -53,13 +53,27 @@ No grid array: only a `Map` of placed tiles. Adjacency queries use neighbor look
 A tile is **free** (playable) when:
 
 ```
-NOT ( ∃ tile at (z+1, x±1, y±1) )    // nothing above (3×3 area — classic rule)
+NOT ( ∃ full tile at (z+1, x, y) )            // nothing directly above
+NOT ( ∃ half-cover tile at (z+1, x±1, y±1) )  // nothing half-covering
 AND NOT ( blocker on BOTH left AND right )
-   where  blocker(left)  = ∃ tile at (z, x-2, y±1)
-     and  blocker(right) = ∃ tile at (z, x+2, y±1)
+   where  blocker(left)  = ∃ tile at (z, x-2, y)
+     and  blocker(right) = ∃ tile at (z, x+2, y)
 ```
 
-**Rendering aligns with the logic**: layers stack almost vertically (no horizontal offset, small RISE), so a tile visually covered by a tile above is always logically blocked. Blocked tiles are dimmed (brightness 0.4, opacity 0.55, no shadow) — impossible to misread as playable.
+**Rendering aligns with the logic**: layers stack almost vertically (no horizontal offset, small RISE), so a tile visually covered by a tile above is always logically blocked. Blocked tiles are dimmed via a **darker face colour** (fully opaque — no transparency, never see through).
+
+### Half-Cover Tiles
+
+A half-cover tile is an upper-layer tile placed exactly on the **crossing of 4 base tiles** below:
+
+```
+half-cover at (z, x, y) requires support tiles at
+    (z-1, x-1, y), (z-1, x+1, y), (z-1, x-1, y+1), (z-1, x+1, y+1)
+```
+
+**Blocking**: a live half-cover tile at `(z, x, y)` blocks all four support tiles simultaneously. `isFree()` checks the four positions `(z+1, x±1, y)` and `(z+1, x±1, y+1)`; the solver mirrors this via `hasLiveHalf()`.
+
+**Rendering centering**: in `layoutPos()`, half-cover tiles receive `shiftX = 0` (they are already horizontally centered by their odd grid x) and `shiftY = round(STEP_Y / 2)` (vertically centered between the two base rows). This gives pixel-perfect geometric centering in both axes — the tile appears exactly at the midpoint of its 4 support tiles.
 
 ## Layout Generator
 
