@@ -99,10 +99,13 @@
 			cursor: pointer;
 			transition: transform 0.08s ease, box-shadow 0.15s ease, filter 0.15s ease;
 			color: #1e293b;
+			/* Only free tiles can be clicked: covered/blocked tiles are
+			   not interactive, so clicks pass through to the tile on top. */
+			pointer-events: none;
 		}
 
-		.tile.free { filter: brightness(1.05); }
-		.tile.blocked { filter: brightness(0.62) saturate(0.7); cursor: default; }
+		.tile.free { filter: brightness(1.05); pointer-events: auto; }
+		.tile.blocked { filter: brightness(0.62) saturate(0.7); cursor: default; pointer-events: none; }
 		.tile.selected {
 			transform: translateY(-6px) scale(1.08);
 			box-shadow: 0 8px 16px rgba(56, 189, 248, 0.5), 0 0 0 3px var(--accent);
