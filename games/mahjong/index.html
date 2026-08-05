@@ -88,14 +88,16 @@
 			position: absolute;
 			width: 42px;
 			height: 48px;
-			background: linear-gradient(145deg, #ffffff, var(--bg-tile-dark));
+			/* 3D block look: darker side faces (right + bottom) make each
+			   tile look like a small solid block with real thickness. */
+			background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 70%, #cbd5e1 100%);
 			border: 1px solid #94a3b8;
 			border-radius: 6px;
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			font-size: 22px;
-			box-shadow: 0 3px 6px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.6);
+			box-shadow: 2px 2px 0 #94a3b8, 4px 4px 0 #64748b, 5px 5px 6px rgba(0, 0, 0, 0.35);
 			cursor: pointer;
 			transition: transform 0.08s ease, box-shadow 0.15s ease, filter 0.15s ease;
 			color: #1e293b;
@@ -106,11 +108,11 @@
 
 		.tile.free { filter: brightness(1.03); pointer-events: auto; }
 		.tile.blocked {
-			filter: brightness(0.8) saturate(0.55);
+			filter: brightness(0.78) saturate(0.5);
 			opacity: 1;
 			cursor: default;
 			pointer-events: none;
-			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+			box-shadow: none;
 		}
 		.tile.selected {
 			transform: translateY(-6px) scale(1.08);
@@ -284,10 +286,9 @@
 		}
 
 		/* A tile is free (playable) when:
-		   - nothing directly above it: a tile of the layer above sits on
-		     the exact same cell (z+1, x, y). The generator places upper
-		     layers directly on top of lower ones, so what you see covering
-		     a tile is exactly what blocks it — visually consistent.
+		   - nothing above it in the 3x3 area (z+1) — classic Mahjong rule.
+		     Upper tiles lean diagonally (Z_OFFSET), so the 3x3 area above
+		     matches exactly what the player sees covering the tile below.
 		   - NOT (blocked on left AND blocked on right)
 		   Blocked left  = any tile at (z, x-2, y±1)
 		   Blocked right = any tile at (z, x+2, y±1)
@@ -295,7 +296,12 @@
 		function isFree(board, tile) {
 			if (tile.removed) return false;
 
-			if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
+			var zUp = tile.z + 1;
+			for (var dx = -1; dx <= 1; dx++) {
+				for (var dy = -1; dy <= 1; dy++) {
+					if (hasTile(board, zUp, tile.x + dx, tile.y + dy)) return false;
+				}
+			}
 
 			var hasLeft = false;
 			for (var dy = -1; dy <= 1; dy++) {
