@@ -412,18 +412,25 @@
 			}
 
 			var candidates = [];
-			for (var x = Math.max(0, minX); x <= Math.min(GRID_W, maxX); x++) {
+			for (var x = Math.max(0, minX - 1); x <= Math.min(GRID_W, maxX + 1); x++) {
 				if (x % 2 !== 0) continue;
-				for (var y = Math.max(0, minY); y <= Math.min(GRID_H, maxY); y++) {
+				for (var y = Math.max(0, minY - 1); y <= Math.min(GRID_H, maxY + 1); y++) {
 					var key = makeKey(z, x, y);
 					if (taken.has(key)) continue;
-					// Direct stacking: a tile of layer z sits EXACTLY above a
-					// tile of layer z-1 (same x,y). This matches isFree()'s
-					// exact-cell rule, so what you see covering a tile is
-					// exactly what blocks it — structure stays compact.
-					if (belowSet.has(makeKey(z - 1, x, y))) {
-						candidates.push({ x: x, y: y });
+					// 3x3 support: a tile of layer z is supported when there is
+					// ANY tile at z-1 in its 3x3 area. Matches isFree()'s 3x3
+					// above rule exactly, so a visually covered tile is always
+					// logically blocked. Generates dense, playable layers.
+					var supported = false;
+					for (var dx = -1; dx <= 1 && !supported; dx++) {
+						for (var dy = -1; dy <= 1; dy++) {
+							if (belowSet.has(makeKey(z - 1, x + dx, y + dy))) {
+								supported = true;
+								break;
+							}
+						}
 					}
+					if (supported) candidates.push({ x: x, y: y });
 				}
 			}
 			return candidates;
@@ -619,13 +626,14 @@
 		var TILE_W = 42, TILE_H = 48;
 		// Grid geometry (Mahjong rule):
 		// - two tiles at x and x+2 are horizontally adjacent (blockers at x±2):
-		//   distance = 2 * STEP_X = 40px < TILE_W -> tiles touch / interlock.
+		//   distance = 2 * STEP_X = 44px ≈ TILE_W (42px) -> 2px gap.
 		// - two tiles at y and y+1 are vertically adjacent one above the other:
-		//   STEP_Y = 28 < TILE_H -> rows interlock like classic Mahjong.
+		//   STEP_Y = 52 >= TILE_H -> rows of the same layer NEVER overlap
+		//   visually. Only a tile of a higher layer can cover a tile below.
 		// - each higher layer leans diagonally up-right by Z_OFFSET_X/Z_OFFSET_Y,
-		//   giving a compact light 3D look; upper tiles sit on the exact same
-		//   (x,y) as the tile they cover, so logic and visuals always match.
-		var STEP_X = 20, STEP_Y = 28, Z_OFFSET_X = 4, Z_OFFSET_Y = 10;
+		//   giving a clear light 3D effect: the covering tile visibly sits
+		//   on top of the tile it blocks (consistent with the 3x3 rule).
+		var STEP_X = 22, STEP_Y = 52, Z_OFFSET_X = 4, Z_OFFSET_Y = 10;
 
 		function computeBoardMetrics(layout) {
 			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
