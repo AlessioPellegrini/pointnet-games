@@ -1,24 +1,24 @@
-# Mahjong Solitaire
+# Mahjong Arcade
 
 Classic Mahjong Solitaire tile-matching game with progressive arcade levels, optimized for mobile without pan/zoom.
 
-> **Status: Planned** — The game engine will be extracted from [ffalt/mah](https://github.com/ffalt/mah) (MIT), rewritten in vanilla TypeScript/JS and converted into an arcade progression system.
+> **Status: Planned** — Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## Attribution
 
-- Engine base: [ffalt/mah](https://github.com/ffalt/mah) — "a html5 mahjong solitaire game" — **MIT License**
-- Copyright (C) ffalt — original MIT notice retained in the engine source
-- Game logic, arcade progression, UI, scoring and mobile optimization: **PointNet Games** — **GPL-2.0+**
+- Algorithms studied and inspired by: [ffalt/mah](https://github.com/ffalt/mah) — "a html5 mahjong solitaire game" — **MIT License**
+- Original implementation, arcade progression, UI, scoring and mobile optimization: **PointNet Games** — **GPL-2.0+**
+- No code is copied: the engine is written from scratch in vanilla JavaScript with zero dependencies.
 
 ## Roadmap
 
-### Phase 1 — Engine extraction (in progress)
-- [ ] Fork `ffalt/mah`
-- [ ] Extract pure engine (board, builder, random-layout, solver, game state, rng)
-- [ ] Remove Angular, compile to vanilla TypeScript/JS
+### Phase 1 — Core engine (in progress)
+- [x] Study `ffalt/mah` algorithms (board, solver, random-layout)
+- [x] Design vanilla JS engine: tile model, board layers, matching rules
+- [ ] Implement layout generator (procedural shapes, layers)
+- [ ] Implement solver (DFS + pruning, solvability check)
 - [ ] Minimal playable UI: solvable board via SVG tiles
 - [ ] `manifest.json` + `index.html` registering the game in the plugin
-- [ ] Include MIT LICENSE file for the extracted engine
 
 ### Phase 2 — Tiles & Hints
 - [ ] 3-4 selectable tile back variants (classic, flowers, bamboo, animals)
@@ -63,18 +63,22 @@ The difficulty progression uses the engine's procedural layout generators:
 
 All boards are generated with the solver to guarantee solvability.
 
+## Architecture
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data model, generator, solver, scoring, rendering and level parameters.
+
 ## Technical Notes
 
-- **Engine**: pure TypeScript, compiled to a single self-contained JS bundle
+- **Engine**: vanilla JavaScript, single self-contained HTML file (no build step)
 - **No runtime dependencies**: static HTML + JS + CSS served via iframe
 - **No pan/zoom**: the board always fits the viewport, tiles scale responsively
 - **API integration**: `window.pointnetGamesAPI.submitScore()` for leaderboard (Phase 4)
-- **License**: dual — MIT for extracted engine, GPL-2.0+ for original additions
+- **License**: GPL-2.0+ — original implementation inspired by ffalt/mah (MIT)
 
 ## Changelog
 
 ### v0.1.0 — Planned
-- Project scaffolding: this doc only. Engine extraction and playable build scheduled for Phase 1.
+- Project scaffolding: this doc only. Name: Mahjong Arcade. From-scratch vanilla JS implementation decided.
 
 ---
 
