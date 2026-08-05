@@ -8,15 +8,9 @@
 		:root {
 			--bg: #0f172a;
 			--bg-panel: #1e293b;
-			--bg-tile: #f8fafc;
-			--bg-tile-dark: #cbd5e1;
-			--border: #0b1220;
 			--text: #e2e8f0;
 			--text-dim: #94a3b8;
 			--accent: #38bdf8;
-			--accent-2: #f472b6;
-			--gold: #fbbf24;
-			--danger: #ef4444;
 			--success: #22c55e;
 		}
 
@@ -46,7 +40,7 @@
 		.game-title {
 			font-size: 1.3rem;
 			font-weight: 800;
-			background: linear-gradient(135deg, var(--accent), var(--accent-2));
+			background: linear-gradient(135deg, var(--accent), #f472b6);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 			background-clip: text;
@@ -66,7 +60,6 @@
 
 		.status-item { display: flex; align-items: center; gap: 5px; font-size: 0.9rem; font-weight: 700; }
 		.status-value { color: var(--accent); min-width: 24px; text-align: center; }
-		.status-value.time { color: var(--text); }
 		.status-value.pairs { color: var(--success); }
 
 		.board-wrap {
@@ -79,17 +72,12 @@
 			min-height: 0;
 		}
 
-		#board {
-			position: relative;
-			transform-origin: top left;
-		}
+		#board { position: relative; transform-origin: top left; }
 
 		.tile {
 			position: absolute;
 			width: 42px;
 			height: 48px;
-			/* 3D block look: darker side faces (right + bottom) make each
-			   tile look like a small solid block with real thickness. */
 			background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 70%, #cbd5e1 100%);
 			border: 1px solid #94a3b8;
 			border-radius: 6px;
@@ -97,21 +85,16 @@
 			align-items: center;
 			justify-content: center;
 			font-size: 22px;
-			box-shadow: 2px 2px 0 #94a3b8, 4px 4px 0 #64748b, 5px 5px 6px rgba(0, 0, 0, 0.35);
+			box-shadow: 2px 2px 0 #94a3b8, 4px 4px 0 #64748b, 5px 5px 6px rgba(0,0,0,0.35);
+			color: #1e293b;
 			cursor: pointer;
 			transition: transform 0.08s ease, box-shadow 0.15s ease, filter 0.15s ease;
-			color: #1e293b;
-			/* Only free tiles can be clicked: covered/blocked tiles are
-			   not interactive, so clicks pass through to the tile on top. */
-			pointer-events: none;
 		}
 
-		.tile.free { filter: brightness(1.03); pointer-events: auto; }
+		.tile.free { pointer-events: auto; }
 		.tile.blocked {
-			filter: brightness(0.78) saturate(0.5);
-			opacity: 1;
-			cursor: default;
 			pointer-events: none;
+			filter: brightness(0.75) saturate(0.5);
 			box-shadow: none;
 		}
 		.tile.selected {
@@ -141,53 +124,18 @@
 			background: var(--bg-panel);
 			color: var(--text);
 		}
-
 		.btn:hover { background: #3b4c66; }
 		.btn:active { transform: scale(0.96); }
-
-		.overlay {
-			position: fixed;
-			inset: 0;
-			display: none;
-			align-items: center;
-			justify-content: center;
-			background: rgba(0, 0, 0, 0.7);
-			backdrop-filter: blur(4px);
-			z-index: 1000;
-		}
-		.overlay.show { display: flex; }
-
-		.modal {
-			background: var(--bg-panel);
-			border-radius: 16px;
-			padding: 28px 32px;
-			text-align: center;
-			max-width: 340px;
-			width: 90%;
-			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-		}
-		.modal-emoji { font-size: 3rem; margin-bottom: 8px; }
-		.modal-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; }
-		.modal-text { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 18px; }
-		.modal-actions { display: flex; gap: 10px; justify-content: center; }
-		.btn-primary { background: var(--accent); color: #0f172a; }
-		.btn-primary:hover { background: #7dd3fc; }
-
-		@media (max-height: 500px) {
-			.game-title { font-size: 1rem; }
-			.status-bar { padding: 3px 10px; gap: 12px; font-size: 0.8rem; }
-			.btn { padding: 5px 14px; font-size: 0.8rem; }
-		}
 	</style>
 </head>
 <body>
-	<div class="game-container" id="game" data-game-id="" data-game-slug="mahjong">
+	<div class="game-container">
 		<div class="game-header">
 			<h1 class="game-title">🀄 Mahjong Arcade</h1>
 		</div>
 
 		<div class="status-bar">
-			<div class="status-item">⏱️ <span class="status-value time" id="timer">0</span></div>
+			<div class="status-item">⏱️ <span class="status-value" id="timer">0</span></div>
 			<div class="status-item">🀄 <span class="status-value pairs" id="pairs-left">0</span></div>
 			<div class="status-item">🏆 <span class="status-value" id="score">0</span></div>
 		</div>
@@ -203,55 +151,27 @@
 		</div>
 	</div>
 
-	<div class="overlay" id="overlay">
-		<div class="modal">
-			<div class="modal-emoji" id="modal-emoji">🎉</div>
-			<h2 class="modal-title" id="modal-title">Level Complete!</h2>
-			<p class="modal-text" id="modal-text"></p>
-			<div class="modal-actions">
-				<button class="btn btn-primary" id="modal-btn">▶ Next Level</button>
-			</div>
-		</div>
-	</div>
-
 	<script>
 	(function () {
 		'use strict';
 
 		/* ============================================================
-		   LEVEL CONFIG (Phase 3 will expand this table)
+		   STATIC TEST LAYOUT — 2 aligned planes (no generator yet).
+		   Planes are perfectly stacked: upper tiles sit EXACTLY above
+		   lower tiles at the same (x,y), so nothing hangs in the air.
 		   ============================================================ */
-		var LEVELS = [
-			{ shape: 'cross', layers: 3, targetTiles: 36, timeLimit: 180 },
-			{ shape: 'cross', layers: 3, targetTiles: 44, timeLimit: 180 },
-			{ shape: 'lines', layers: 3, targetTiles: 48, timeLimit: 180 },
-			{ shape: 'rings', layers: 3, targetTiles: 54, timeLimit: 200 },
-			{ shape: 'lines', layers: 4, targetTiles: 64, timeLimit: 200 },
-			{ shape: 'rings', layers: 4, targetTiles: 72, timeLimit: 220 },
-			{ shape: 'shapes', layers: 4, targetTiles: 80, timeLimit: 240 },
-			{ shape: 'shapes', layers: 5, targetTiles: 96, timeLimit: 280 },
-			{ shape: 'shapes', layers: 5, targetTiles: 112, timeLimit: 300 },
-			{ shape: 'shapes', layers: 5, targetTiles: 128, timeLimit: 360 }
-		];
 
-		/* ============================================================
-		   GRID LIMITS
-		   ============================================================ */
-		var GRID_W = 20;
-		var GRID_H = 12;
-		var MAX_Z = 5;
+		// Symbols, one per pair (24 tiles = 12 pairs)
+		var SYMBOLS = ['🀄','🍀','🌸','🔥','❄️','💎','⭐','🌙','☀️','🍃','💜','🔷'];
 
-		/* ============================================================
-		   RNG — deterministic LCG
-		   ============================================================ */
+		// Deterministic RNG (LCG)
 		function createRng(seed) {
 			var s = seed >>> 0;
 			return {
 				next: function () {
 					s = (s * 1664525 + 1013904223) >>> 0;
 					return s / 4294967296;
-				},
-				reset: function () { s = seed >>> 0; }
+				}
 			};
 		}
 
@@ -263,16 +183,71 @@
 			return arr;
 		}
 
+		// ---- Plane 0 (base) - 4x4 even-step grid: 16 tiles
+		var BASE_COORDS = [
+			[0,0],[2,0],[4,0],[6,0],
+			[0,1],[2,1],[4,1],[6,1],
+			[0,2],[2,2],[4,2],[6,2],
+			[0,3],[2,3],[4,3],[6,3]
+		];
+
+		// ---- Plane 1 (upper) - 8 tiles, aligned subset of the centre
+		var UPPER_COORDS = [
+			[2,1],[4,1],
+			[2,2],[4,2],
+			[2,3],[4,3],
+			[2,0],[4,0]
+		];
+
+		// Builds a layout with a shuffled pair deck and verifies it is
+		// solvable via DFS; re-rolls until a solvable layout is found.
+		function buildStaticLayout() {
+			var allCoords = BASE_COORDS.concat(UPPER_COORDS);
+			var lastBest = null;
+
+			for (var attempt = 0; attempt < 100; attempt++) {
+				var rng = createRng(42 + attempt);
+				var deck = [];
+				for (var i = 0; i < SYMBOLS.length; i++) {
+					deck.push(SYMBOLS[i]);
+					deck.push(SYMBOLS[i]);
+				}
+				shuffle(deck, rng);
+
+				var tiles = [];
+				for (var c = 0; c < allCoords.length; c++) {
+					var coord = allCoords[c];
+					var z = coord[0] < 0 ? 1 : 0; // never used; coords are all plain
+					// allCoords is BASE (z=0) then UPPER (z=1)
+					z = c < BASE_COORDS.length ? 0 : 1;
+					tiles.push({
+						z: z,
+						x: coord[0],
+						y: coord[1],
+						symbol: deck[c],
+						removed: false
+					});
+				}
+
+				var board = buildBoard(tiles);
+				if (solveBoard(board)) {
+					return tiles;
+				}
+				lastBest = tiles;
+			}
+			// Emergency fallback: the last generated layout.
+			return lastBest;
+		}
+
 		/* ============================================================
-		   BOARD DATA MODEL
+		   BOARD MODEL
 		   ============================================================ */
 		function makeKey(z, x, y) { return z + ',' + x + ',' + y; }
 
-		function buildBoard(layout) {
+		function buildBoard(tiles) {
 			var board = new Map();
-			for (var i = 0; i < layout.length; i++) {
-				var t = layout[i];
-				t.removed = false;
+			for (var i = 0; i < tiles.length; i++) {
+				var t = tiles[i];
 				t.key = makeKey(t.z, t.x, t.y);
 				board.set(t.key, t);
 			}
@@ -280,253 +255,49 @@
 		}
 
 		function hasTile(board, z, x, y) {
-			if (z < 0 || x < 0 || y < 0 || z > MAX_Z || x > GRID_W || y > GRID_H) return false;
-			var tile = board.get(makeKey(z, x, y));
-			return !!tile && !tile.removed;
+			var t = board.get(makeKey(z, x, y));
+			return !!t && !t.removed;
 		}
 
-		/* A tile is free (playable) when:
-		   - nothing above it in the 3x3 area (z+1) — classic Mahjong rule.
-		     Upper tiles lean diagonally (Z_OFFSET), so the 3x3 area above
-		     matches exactly what the player sees covering the tile below.
-		   - NOT (blocked on left AND blocked on right)
-		   Blocked left  = any tile at (z, x-2, y±1)
-		   Blocked right = any tile at (z, x+2, y±1)
+		/* Rule: a tile is free when:
+		   - nothing EXACTLY above it (z+1, x, y) — planes are aligned-stacked
+		   - NOT blocked on BOTH sides (left x-2 and right x+2, same z)
 		*/
 		function isFree(board, tile) {
 			if (tile.removed) return false;
+			if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
 
-			var zUp = tile.z + 1;
-			for (var dx = -1; dx <= 1; dx++) {
-				for (var dy = -1; dy <= 1; dy++) {
-					if (hasTile(board, zUp, tile.x + dx, tile.y + dy)) return false;
-				}
-			}
-
-			var hasLeft = false;
-			for (var dy = -1; dy <= 1; dy++) {
-				if (hasTile(board, tile.z, tile.x - 2, tile.y + dy)) { hasLeft = true; break; }
-			}
-
-			var hasRight = false;
-			for (var dy = -1; dy <= 1; dy++) {
-				if (hasTile(board, tile.z, tile.x + 2, tile.y + dy)) { hasRight = true; break; }
-			}
-
+			var hasLeft = hasTile(board, tile.z, tile.x - 2, tile.y);
+			var hasRight = hasTile(board, tile.z, tile.x + 2, tile.y);
 			return !(hasLeft && hasRight);
 		}
 
 		function getFreeTiles(board) {
 			var free = [];
-			board.forEach(function (tile) {
-				if (!tile.removed && isFree(board, tile)) free.push(tile);
+			board.forEach(function (t) {
+				if (!t.removed && isFree(board, t)) free.push(t);
 			});
 			return free;
 		}
 
 		/* ============================================================
-		   SHAPES (base layer generators)
-		   ============================================================ */
-		function shapeCross() {
-			var pts = [];
-			for (var i = -4; i <= 4; i++) {
-				pts.push([9 + i * 2, 5]);
-				pts.push([9, 5 + i]);
-			}
-			return pts;
-		}
-
-		function shapeLines() {
-			var pts = [];
-			for (var c = 0; c < 8; c++) {
-				for (var r = 0; r < 4; r++) {
-					pts.push([2 + c * 2, 2 + r * 2]);
-				}
-			}
-			return pts;
-		}
-
-		function shapeRings() {
-			var pts = [];
-			for (var ring = 0; ring < 3; ring++) {
-				var x0 = 3 - ring, y0 = 3 - ring, x1 = 15 + ring, y1 = 8 + ring;
-				for (var x = x0; x <= x1; x += 2) {
-					pts.push([x, y0]);
-					pts.push([x, y1]);
-				}
-				for (var y = y0 + 1; y < y1; y++) {
-					pts.push([x0, y]);
-					pts.push([x1, y]);
-				}
-			}
-			return pts;
-		}
-
-		function shapeShapes(rng) {
-			var pts = [];
-			var placed = new Set();
-			for (var b = 0; b < 6; b++) {
-				var bx = 2 + Math.floor(rng.next() * 10) * 2;
-				var by = 2 + Math.floor(rng.next() * 6);
-				for (var i = 0; i < 4; i++) {
-					var dx = Math.floor(rng.next() * 3) * 2;
-					var dy = Math.floor(rng.next() * 2);
-					var x = bx + dx, y = by + dy;
-					var key = x + ',' + y;
-					if (!placed.has(key) && x >= 0 && x <= GRID_W && y >= 0 && y <= GRID_H) {
-						placed.add(key);
-						pts.push([x, y]);
-					}
-				}
-			}
-			return pts;
-		}
-
-		var SHAPE_FUNCS = {
-			cross: function () { return shapeCross(); },
-			lines: function () { return shapeLines(); },
-			rings: function () { return shapeRings(); },
-			shapes: function (rng) { return shapeShapes(rng); }
-		};
-
-		/* ============================================================
-		   LAYOUT GENERATOR — base + upper layers
-		   ============================================================ */
-		function computeCandidates(layout, z, rng) {
-			var minX = GRID_W, maxX = 0, minY = GRID_H, maxY = 0;
-			var belowSet = new Set();
-			for (var i = 0; i < layout.length; i++) {
-				var t = layout[i];
-				if (t.z !== z - 1) continue;
-				if (t.x < minX) minX = t.x;
-				if (t.x > maxX) maxX = t.x;
-				if (t.y < minY) minY = t.y;
-				if (t.y > maxY) maxY = t.y;
-				belowSet.add(makeKey(t.z, t.x, t.y));
-			}
-			if (maxX < minX) return [];
-
-			var taken = new Set();
-			for (var j = 0; j < layout.length; j++) {
-				if (layout[j].z === z) taken.add(makeKey(layout[j].z, layout[j].x, layout[j].y));
-			}
-
-			var candidates = [];
-			for (var x = Math.max(0, minX - 1); x <= Math.min(GRID_W, maxX + 1); x++) {
-				if (x % 2 !== 0) continue;
-				for (var y = Math.max(0, minY - 1); y <= Math.min(GRID_H, maxY + 1); y++) {
-					var key = makeKey(z, x, y);
-					if (taken.has(key)) continue;
-					// 3x3 support: a tile of layer z is supported when there is
-					// ANY tile at z-1 in its 3x3 area. Matches isFree()'s 3x3
-					// above rule exactly, so a visually covered tile is always
-					// logically blocked. Generates dense, playable layers.
-					var supported = false;
-					for (var dx = -1; dx <= 1 && !supported; dx++) {
-						for (var dy = -1; dy <= 1; dy++) {
-							if (belowSet.has(makeKey(z - 1, x + dx, y + dy))) {
-								supported = true;
-								break;
-							}
-						}
-					}
-					if (supported) candidates.push({ x: x, y: y });
-				}
-			}
-			return candidates;
-		}
-
-		function generateLayout(params, rng) {
-			var shapeFn = SHAPE_FUNCS[params.shape] || SHAPE_FUNCS.cross;
-			var basePts = shapeFn(rng);
-			var baseCount = basePts.length - (basePts.length % 2);
-			var layout = [];
-			for (var i = 0; i < baseCount; i++) {
-				layout.push({ z: 0, x: basePts[i][0], y: basePts[i][1] });
-			}
-
-			var z = 1;
-			while (z < params.layers && layout.length < params.targetTiles) {
-				var candidates = computeCandidates(layout, z, rng);
-				shuffle(candidates, rng);
-
-				var remaining = params.targetTiles - layout.length;
-				var layersLeft = params.layers - z;
-				var budget = Math.min(candidates.length, Math.max(2, Math.round(remaining / layersLeft)));
-				var evenBudget = budget - (budget % 2);
-
-				var placed = 0;
-				for (var c = 0; c < candidates.length; c++) {
-					if (placed >= evenBudget) break;
-					if (layout.length + placed >= params.targetTiles) break;
-					layout.push({ z: z, x: candidates[c].x, y: candidates[c].y });
-					placed++;
-				}
-				z++;
-			}
-
-			if (layout.length % 2 !== 0) {
-				layout.pop();
-			}
-			return layout;
-		}
-
-		/* ============================================================
-		   TILE ASSIGNMENT
-		   ============================================================ */
-		var TILE_SYMBOLS = ['🀄','🍀','🌸','🔥','❄️','💎','⭐','🌙','☀️','🍃','💜','🔷','♠️','♥️','🍇','🎲'];
-
-		function assignTiles(layout, rng) {
-			var tileCount = layout.length;
-			var groupCount = tileCount / 2;
-			var deck = [];
-			for (var g = 0; g < groupCount; g++) {
-				deck.push({ groupId: g, symbol: TILE_SYMBOLS[g % TILE_SYMBOLS.length] });
-				deck.push({ groupId: g, symbol: TILE_SYMBOLS[g % TILE_SYMBOLS.length] });
-			}
-			shuffle(deck, rng);
-
-			var assigned = [];
-			for (var i = 0; i < layout.length; i++) {
-				var t = layout[i];
-				var card = deck[i];
-				assigned.push({
-					z: t.z, x: t.x, y: t.y,
-					value: card.groupId,
-					groupId: card.groupId,
-					symbol: card.symbol,
-					removed: false
-				});
-			}
-			return assigned;
-		}
-
-		/* ============================================================
 		   SOLVER — DFS with heuristic (fewest free first)
+		   Verifies that a given layout is fully winnable.
 		   ============================================================ */
 		function solveBoard(board) {
 			var tileList = Array.from(board.values());
 			var removed = new Set();
 
-			function isFreeForSolver(tile) {
-				if (removed.has(tile.key)) return false;
-				var zUp = tile.z + 1;
-				for (var dx = -1; dx <= 1; dx++) {
-					for (var dy = -1; dy <= 1; dy++) {
-						var other = board.get(makeKey(zUp, tile.x + dx, tile.y + dy));
-						if (other && !other.removed && !removed.has(other.key)) return false;
-					}
-				}
-				var hasLeft = false;
-				for (var dy = -1; dy <= 1; dy++) {
-					var l = board.get(makeKey(tile.z, tile.x - 2, tile.y + dy));
-					if (l && !l.removed && !removed.has(l.key)) { hasLeft = true; break; }
-				}
-				var hasRight = false;
-				for (var dy = -1; dy <= 1; dy++) {
-					var r = board.get(makeKey(tile.z, tile.x + 2, tile.y + dy));
-					if (r && !r.removed && !removed.has(r.key)) { hasRight = true; break; }
-				}
+			function hasLive(z, x, y) {
+				var t = board.get(makeKey(z, x, y));
+				return !!t && !t.removed && !removed.has(t.key);
+			}
+
+			function isFreeForSolver(t) {
+				if (removed.has(t.key)) return false;
+				if (hasLive(t.z + 1, t.x, t.y)) return false;
+				var hasLeft = hasLive(t.z, t.x - 2, t.y);
+				var hasRight = hasLive(t.z, t.x + 2, t.y);
 				return !(hasLeft && hasRight);
 			}
 
@@ -541,23 +312,21 @@
 
 			function rec() {
 				if (removed.size === tileList.length) return true;
-
 				var free = getFree();
 				if (free.length === 0) return false;
 
-				var byGroup = {};
+				var bySym = {};
 				for (var i = 0; i < free.length; i++) {
-					var gid = free[i].groupId;
-					if (!byGroup[gid]) byGroup[gid] = [];
-					byGroup[gid].push(free[i]);
+					var s = free[i].symbol;
+					(bySym[s] = bySym[s] || []).push(free[i]);
 				}
 
-				var groupIds = Object.keys(byGroup).sort(function (a, b) {
-					return byGroup[a].length - byGroup[b].length;
+				var syms = Object.keys(bySym).sort(function (a, b) {
+					return bySym[a].length - bySym[b].length;
 				});
 
-				for (var g = 0; g < groupIds.length; g++) {
-					var members = byGroup[groupIds[g]];
+				for (var g = 0; g < syms.length; g++) {
+					var members = bySym[syms[g]];
 					for (var i2 = 0; i2 < members.length; i2++) {
 						for (var j = i2 + 1; j < members.length; j++) {
 							var a = members[i2], b = members[j];
@@ -576,196 +345,110 @@
 		}
 
 		/* ============================================================
-		   LEVEL GENERATION — re-roll until solvable
-		   ============================================================ */
-		function generateSolvableLevel(levelIndex) {
-			var params = LEVELS[Math.min(levelIndex, LEVELS.length - 1)];
-			var lastGood = null;
-
-			for (var attempt = 0; attempt < 100; attempt++) {
-				var seed = (Math.random() * 0xffffffff) >>> 0;
-				var rng = createRng(seed);
-				var layout = generateLayout(params, rng);
-				if (layout.length < 4) continue;
-
-				var tileList = assignTiles(layout, rng);
-				var board = buildBoard(tileList);
-
-				var free = getFreeTiles(board);
-				var freeByGroup = {};
-				var hasVisiblePair = false;
-				for (var i = 0; i < free.length; i++) {
-					var gid = free[i].groupId;
-					freeByGroup[gid] = (freeByGroup[gid] || 0) + 1;
-					if (freeByGroup[gid] >= 2) { hasVisiblePair = true; break; }
-				}
-				if (!hasVisiblePair) continue;
-
-				if (solveBoard(board)) {
-					return { board: board, params: params, seed: seed, layout: tileList };
-				}
-				lastGood = { board: board, params: params, seed: seed, layout: tileList };
-			}
-
-			if (lastGood) return lastGood;
-
-			// Fallback: super-easy 12-tile cross
-			var easyLayout = [];
-			for (var i2 = -2; i2 <= 2; i2++) {
-				easyLayout.push({ z: 0, x: 8 + i2 * 2, y: 5 });
-				easyLayout.push({ z: 0, x: 8, y: 5 + i2 });
-			}
-			var easyTiles = assignTiles(easyLayout, createRng(42));
-			var easyBoard = buildBoard(easyTiles);
-			return { board: easyBoard, params: { shape: 'cross', layers: 1, targetTiles: 12, timeLimit: 120 }, seed: 42, layout: easyTiles };
-		}
-
-		/* ============================================================
-		   RENDERING
+		   RENDERING — aligned grid, no Z offset (planes overlay exactly)
 		   ============================================================ */
 		var TILE_W = 42, TILE_H = 48;
-		// Grid geometry (Mahjong rule):
-		// - two tiles at x and x+2 are horizontally adjacent (blockers at x±2):
-		//   distance = 2 * STEP_X = 44px ≈ TILE_W (42px) -> 2px gap.
-		// - two tiles at y and y+1 are vertically adjacent one above the other:
-		//   STEP_Y = 52 >= TILE_H -> rows of the same layer NEVER overlap
-		//   visually. Only a tile of a higher layer can cover a tile below.
-		// - each higher layer leans diagonally up-right by Z_OFFSET_X/Z_OFFSET_Y,
-		//   giving a clear light 3D effect: the covering tile visibly sits
-		//   on top of the tile it blocks (consistent with the 3x3 rule).
-		var STEP_X = 22, STEP_Y = 52, Z_OFFSET_X = 4, Z_OFFSET_Y = 10;
-
-		function computeBoardMetrics(layout) {
-			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
-			for (var i = 0; i < layout.length; i++) {
-				var t = layout[i];
-				if (t.x < minX) minX = t.x;
-				if (t.x > maxX) maxX = t.x;
-				if (t.y < minY) minY = t.y;
-				if (t.y > maxY) maxY = t.y;
-				if (t.z > maxZ) maxZ = t.z;
-			}
-			return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ };
-		}
+		var STEP_X = 22, STEP_Y = 48;   // rows/cols touch, perfectly aligned
+		var Z_RISE = 8;                  // upper plane lifts 8px for depth
 
 		var boardEl = document.getElementById('board');
 		var boardWrapEl = document.getElementById('board-wrap');
 		var timerEl = document.getElementById('timer');
 		var pairsLeftEl = document.getElementById('pairs-left');
 		var scoreEl = document.getElementById('score');
-		var overlayEl = document.getElementById('overlay');
-		var modalEmoji = document.getElementById('modal-emoji');
-		var modalTitle = document.getElementById('modal-title');
-		var modalText = document.getElementById('modal-text');
-		var modalBtn = document.getElementById('modal-btn');
 
-		/* ============================================================
-		   APP STATE
-		   ============================================================ */
-		var app = {
-			levelIndex: 0,
-			board: null,
-			layout: [],
-			selected: null,
-			score: 0,
-			elapsed: 0,
-			timerInterval: null,
-			timerStarted: false,
-			history: [],
-			hintsUsed: 0,
-			undosUsed: 0,
-			over: false
-		};
-
-		function totalPairs() {
-			return app.layout.length / 2;
-		}
-
-		function pairsLeft() {
-			var count = 0;
-			for (var i = 0; i < app.layout.length; i++) {
-				if (!app.layout[i].removed) count++;
-			}
-			return count / 2;
+		function computeMetrics(tiles) {
+			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
+			tiles.forEach(function (t) {
+				if (t.x < minX) minX = t.x;
+				if (t.x > maxX) maxX = t.x;
+				if (t.y < minY) minY = t.y;
+				if (t.y > maxY) maxY = t.y;
+				if (t.z > maxZ) maxZ = t.z;
+			});
+			return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ };
 		}
 
 		function renderBoard() {
 			boardEl.innerHTML = '';
-			var metrics = computeBoardMetrics(app.layout);
+			var m = computeMetrics(app.tiles);
 
-			var width = (metrics.maxX - metrics.minX) * STEP_X + metrics.maxZ * Z_OFFSET_X + TILE_W + 10;
-			var height = (metrics.maxY - metrics.minY) * STEP_Y + metrics.maxZ * Z_OFFSET_Y + TILE_H + 10;
+			var width = (m.maxX - m.minX) * STEP_X + TILE_W + 10;
+			var height = (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_RISE + TILE_H + 10;
 			boardEl.style.width = width + 'px';
 			boardEl.style.height = height + 'px';
 
-			for (var i = 0; i < app.layout.length; i++) {
-				var t = app.layout[i];
+			for (var i = 0; i < app.tiles.length; i++) {
+				var t = app.tiles[i];
 				var el = document.createElement('div');
 				el.className = 'tile';
 				el.dataset.key = t.key;
-				if (t.removed) {
-					el.classList.add('removed');
-					el.style.display = 'none';
-				}
-				el.style.left = ((t.x - metrics.minX) * STEP_X + t.z * Z_OFFSET_X) + 'px';
-				el.style.top = ((t.y - metrics.minY) * STEP_Y - t.z * Z_OFFSET_Y) + 'px';
+				el.style.left = ((t.x - m.minX) * STEP_X) + 'px';
+				el.style.top = ((t.y - m.minY) * STEP_Y - t.z * Z_RISE) + 'px';
 				el.style.zIndex = 10 + t.z * 10;
 				el.textContent = t.symbol;
 				el.addEventListener('click', (function (tile) {
-					return function () { handleTileClick(tile); };
+					return function () { handleClick(tile); };
 				})(t));
 				boardEl.appendChild(el);
 			}
 
 			fitBoard(width, height);
-			updateBoardClassNames();
+			updateClasses();
 		}
 
-		function fitBoard(boardW, boardH) {
+		function fitBoard(width, height) {
 			var wrapW = boardWrapEl.clientWidth || window.innerWidth;
 			var wrapH = boardWrapEl.clientHeight || window.innerHeight;
-			var scale = Math.min(1, (wrapW - 8) / boardW, (wrapH - 8) / boardH);
-			if (scale < 1) {
-				boardEl.style.transform = 'scale(' + scale + ')';
-			} else {
-				boardEl.style.transform = '';
-			}
+			var scale = Math.min(1, (wrapW - 8) / width, (wrapH - 8) / height);
+			boardEl.style.transform = scale < 1 ? 'scale(' + scale + ')' : '';
 		}
 
-		function updateBoardClassNames() {
+		function updateClasses() {
 			var cells = boardEl.querySelectorAll('.tile');
 			for (var i = 0; i < cells.length; i++) {
 				var el = cells[i];
 				var t = app.board.get(el.dataset.key);
+				el.className = 'tile';
 				if (!t || t.removed) {
 					el.classList.add('removed');
 					el.style.display = 'none';
 					continue;
 				}
 				el.style.display = 'flex';
-				el.classList.remove('free', 'blocked', 'selected', 'match-hint');
 				if (isFree(app.board, t)) {
 					el.classList.add('free');
 				} else {
 					el.classList.add('blocked');
 				}
-				if (app.selected && app.selected.key === t.key) {
-					el.classList.add('selected');
-				}
-				if (t.hinted) {
-					el.classList.add('match-hint');
-				}
+				if (app.selected && app.selected.key === t.key) el.classList.add('selected');
+				if (t.hinted) el.classList.add('match-hint');
 			}
 		}
 
 		/* ============================================================
-		   GAME ACTIONS
+		   APP STATE + GAME FLOW
 		   ============================================================ */
+		var app = {
+			tiles: [],
+			board: null,
+			selected: null,
+			score: 0,
+			elapsed: 0,
+			timerInterval: null,
+			timerStarted: false,
+			history: []
+		};
+
+		function pairsLeft() {
+			var count = 0;
+			app.tiles.forEach(function (t) { if (!t.removed) count++; });
+			return count / 2;
+		}
+
 		function startTimer() {
 			if (app.timerInterval) return;
 			app.timerStarted = true;
-			app.elapsed = 0;
-			timerEl.textContent = '0';
 			app.timerInterval = setInterval(function () {
 				app.elapsed++;
 				timerEl.textContent = app.elapsed;
@@ -773,45 +456,27 @@
 		}
 
 		function stopTimer() {
-			if (app.timerInterval) {
-				clearInterval(app.timerInterval);
-				app.timerInterval = null;
-			}
+			if (app.timerInterval) { clearInterval(app.timerInterval); app.timerInterval = null; }
 		}
 
-		function handleTileClick(tile) {
-			if (app.over) return;
-			if (tile.removed) return;
-			if (!isFree(app.board, tile)) {
-				wiggle(tile);
-				return;
-			}
-
+		function handleClick(tile) {
+			if (tile.removed || !isFree(app.board, tile)) return;
 			if (!app.timerStarted) startTimer();
 
 			if (app.selected) {
 				if (app.selected.key === tile.key) {
 					app.selected = null;
-					updateBoardClassNames();
+					updateClasses();
 					return;
 				}
-				if (app.selected.groupId === tile.groupId) {
+				if (app.selected.symbol === tile.symbol) {
 					match(app.selected, tile);
 					return;
 				}
 				app.selected = null;
 			}
-
 			app.selected = tile;
-			updateBoardClassNames();
-		}
-
-		function wiggle(tile) {
-			var el = boardEl.querySelector('[data-key="' + tile.key + '"]');
-			if (!el) return;
-			el.style.transform = 'translateX(-4px)';
-			setTimeout(function () { el.style.transform = 'translateX(4px)'; }, 60);
-			setTimeout(function () { el.style.transform = ''; }, 120);
+			updateClasses();
 		}
 
 		function match(a, b) {
@@ -819,17 +484,11 @@
 			b.removed = true;
 			app.history.push([a, b]);
 			app.selected = null;
-			app.score += 100 + Math.max(0, 30 - app.elapsed) * 2;
+			app.score += 100;
 			scoreEl.textContent = app.score;
-
-			var pairCount = pairsLeft();
-			pairsLeftEl.textContent = pairCount;
-
-			updateBoardClassNames();
-
-			if (pairCount === 0) {
-				levelComplete();
-			}
+			pairsLeftEl.textContent = pairsLeft();
+			updateClasses();
+			if (pairsLeft() === 0) levelComplete();
 		}
 
 		function undo() {
@@ -837,116 +496,77 @@
 			var pair = app.history.pop();
 			pair[0].removed = false;
 			pair[1].removed = false;
-			app.selected = null;
-			app.undosUsed++;
+			updateClasses();
 			pairsLeftEl.textContent = pairsLeft();
-			updateBoardClassNames();
 		}
 
 		function hint() {
-			if (app.over) return;
-			clearHints();
 			var free = getFreeTiles(app.board);
-			if (free.length < 2) return;
-			var byGroup = {};
-			for (var i = 0; i < free.length; i++) {
-				var gid = free[i].groupId;
-				if (!byGroup[gid]) byGroup[gid] = [];
-				byGroup[gid].push(free[i]);
-			}
-			var bestGroup = null;
-			var bestCount = 0;
-			for (var g in byGroup) {
-				if (byGroup[g].length >= 2 && byGroup[g].length > bestCount) {
-					bestGroup = byGroup[g];
-					bestCount = byGroup[g].length;
+			var bySymbol = {};
+			free.forEach(function (t) {
+				(bySymbol[t.symbol] = bySymbol[t.symbol] || []).push(t);
+			});
+			for (var sym in bySymbol) {
+				if (bySymbol[sym].length >= 2) {
+					bySymbol[sym][0].hinted = true;
+					bySymbol[sym][1].hinted = true;
+					updateClasses();
+					setTimeout(function () {
+						bySymbol[sym][0].hinted = false;
+						bySymbol[sym][1].hinted = false;
+						updateClasses();
+					}, 2000);
+					return;
 				}
 			}
-			if (bestGroup) {
-				bestGroup[0].hinted = true;
-				bestGroup[1].hinted = true;
-				app.hintsUsed++;
-			}
-			updateBoardClassNames();
-			setTimeout(clearHints, 2000);
 		}
 
-		function clearHints() {
-			for (var i = 0; i < app.layout.length; i++) {
-				app.layout[i].hinted = false;
-			}
+		function levelComplete() {
+			stopTimer();
+			modalTitle.textContent = 'Cleared!';
+			overlay.style.display = 'flex';
 		}
 
 		/* ============================================================
-		   LEVEL FLOW
+		   INIT
 		   ============================================================ */
-		function startLevel(index) {
-			app.levelIndex = index;
+		function startGame() {
+			app.tiles = buildStaticLayout();
+			app.board = buildBoard(app.tiles);
 			app.selected = null;
 			app.score = 0;
 			app.elapsed = 0;
 			app.history = [];
-			app.hintsUsed = 0;
-			app.undosUsed = 0;
-			app.over = false;
 			app.timerStarted = false;
 			stopTimer();
 			timerEl.textContent = '0';
 			scoreEl.textContent = '0';
-			overlayEl.classList.remove('show');
-			clearHints();
-
-			var result = generateSolvableLevel(index);
-			app.board = result.board;
-			app.layout = result.layout;
-			pairsLeftEl.textContent = totalPairs();
-
+			pairsLeftEl.textContent = pairsLeft();
+			overlay.style.display = 'none';
 			renderBoard();
 		}
 
-		function levelComplete() {
-			app.over = true;
-			stopTimer();
+		var overlay = document.createElement('div');
+		var modalTitle = document.createElement('h2');
+		overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;';
+		overlay.style.display = 'none';
+		modalTitle.style.cssText = 'color:#fff;font-size:2rem;background:#1e293b;padding:24px 40px;border-radius:16px;';
+		overlay.appendChild(modalTitle);
+		document.body.appendChild(overlay);
 
-			var levelParams = LEVELS[Math.min(app.levelIndex, LEVELS.length - 1)];
-			var bonus = Math.max(0, levelParams.timeLimit - app.elapsed) * 5;
-			var finalScore = app.score + bonus;
-
-			modalEmoji.textContent = '🎉';
-			modalTitle.textContent = 'Level ' + (app.levelIndex + 1) + ' Complete!';
-			modalText.textContent = 'Score: +' + finalScore + ' · Time: ' + app.elapsed + 's';
-
-			var isLast = app.levelIndex >= LEVELS.length - 1;
-			modalBtn.textContent = isLast ? '🔁 Restart' : '▶ Next Level';
-			modalBtn.onclick = function () {
-				if (isLast) {
-					startLevel(0);
-				} else {
-					startLevel(app.levelIndex + 1);
-				}
-			};
-
-			overlayEl.classList.add('show');
-		}
-
-		/* ============================================================
-		   EVENT LISTENERS + INIT
-		   ============================================================ */
 		document.getElementById('btn-hint').addEventListener('click', hint);
 		document.getElementById('btn-undo').addEventListener('click', undo);
-		document.getElementById('btn-new').addEventListener('click', function () {
-			startLevel(app.levelIndex);
-		});
+		document.getElementById('btn-new').addEventListener('click', startGame);
 
 		window.addEventListener('resize', function () {
-			if (!app.layout.length) return;
-			var metrics = computeBoardMetrics(app.layout);
-			var width = (metrics.maxX - metrics.minX) * STEP_X + metrics.maxZ * Z_OFFSET_X + TILE_W + 10;
-			var height = (metrics.maxY - metrics.minY) * STEP_Y + metrics.maxZ * Z_OFFSET_Y + TILE_H + 10;
+			if (!app.tiles.length) return;
+			var m = computeMetrics(app.tiles);
+			var width = (m.maxX - m.minX) * STEP_X + TILE_W + 10;
+			var height = (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_RISE + TILE_H + 10;
 			fitBoard(width, height);
 		});
 
-		startLevel(0);
+		startGame();
 	})();
 	</script>
 </body>
