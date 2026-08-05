@@ -9,7 +9,6 @@
 			--bg: #0f172a;
 			--bg-panel: #1e293b;
 			--text: #e2e8f0;
-			--text-dim: #94a3b8;
 			--accent: #38bdf8;
 			--success: #22c55e;
 		}
@@ -66,52 +65,16 @@
 			flex: 1;
 			position: relative;
 			overflow: hidden;
-			display: flex;
-			align-items: center;
-			justify-content: center;
 			min-height: 0;
 		}
 
-		#board { position: relative; transform-origin: top left; }
-
-		.tile {
-			position: absolute;
-			width: 42px;
-			height: 48px;
-			/* 3D block thickness via SOLID BORDERS, not shadows:
-			   - right + bottom borders are thick and dark (the "side faces")
-			   - top + left borders remain thin
-			   Every tile has the SAME exact border geometry no matter where
-			   it sits, so no tile can look thicker or higher than another.
-			   No shadow spread, no projection — the illusion is impossible. */
-			background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 70%, #cbd5e1 100%);
-			border: 1px solid #94a3b8;
-			border-right: 3px solid #64748b;
-			border-bottom: 4px solid #475569;
-			border-radius: 6px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 22px;
-			color: #1e293b;
+		#canvas {
+			width: 100%;
+			height: 100%;
+			display: block;
+			touch-action: manipulation;
 			cursor: pointer;
-			transition: transform 0.08s ease, filter 0.15s ease;
 		}
-
-		.tile.free { pointer-events: auto; }
-		.tile.blocked {
-			pointer-events: none;
-			filter: brightness(0.75) saturate(0.5);
-			/* No box-shadow override: every tile keeps the same 3D
-			   thickness, free or blocked — the only difference is dimming. */
-		}
-		.tile.selected {
-			transform: translateY(-6px) scale(1.08);
-			box-shadow: 0 8px 16px rgba(56, 189, 248, 0.5), 0 0 0 3px var(--accent);
-			z-index: 200 !important;
-		}
-		.tile.match-hint { box-shadow: 0 0 0 3px var(--success); }
-		.tile.removed { display: none; }
 
 		.action-bar {
 			display: flex;
@@ -149,7 +112,7 @@
 		</div>
 
 		<div class="board-wrap" id="board-wrap">
-			<div id="board"></div>
+			<canvas id="canvas"></canvas>
 		</div>
 
 		<div class="action-bar">
@@ -164,15 +127,10 @@
 		'use strict';
 
 		/* ============================================================
-		   STATIC TEST LAYOUT — 2 aligned planes (no generator yet).
-		   Planes are perfectly stacked: upper tiles sit EXACTLY above
-		   lower tiles at the same (x,y), so nothing hangs in the air.
+		   STATIC TEST LAYOUT — 2 aligned planes
 		   ============================================================ */
-
-		// Symbols, one per pair (24 tiles = 12 pairs)
 		var SYMBOLS = ['🀄','🍀','🌸','🔥','❄️','💎','⭐','🌙','☀️','🍃','💜','🔷'];
 
-		// Deterministic RNG (LCG)
 		function createRng(seed) {
 			var s = seed >>> 0;
 			return {
@@ -191,7 +149,6 @@
 			return arr;
 		}
 
-		// ---- Plane 0 (base) - 4x4 even-step grid: 16 tiles
 		var BASE_COORDS = [
 			[0,0],[2,0],[4,0],[6,0],
 			[0,1],[2,1],[4,1],[6,1],
@@ -199,7 +156,6 @@
 			[0,3],[2,3],[4,3],[6,3]
 		];
 
-		// ---- Plane 1 (upper) - 8 tiles, aligned subset of the centre
 		var UPPER_COORDS = [
 			[2,1],[4,1],
 			[2,2],[4,2],
@@ -207,8 +163,6 @@
 			[2,0],[4,0]
 		];
 
-		// Builds a layout with a shuffled pair deck and verifies it is
-		// solvable via DFS; re-rolls until a solvable layout is found.
 		function buildStaticLayout() {
 			var allCoords = BASE_COORDS.concat(UPPER_COORDS);
 			var lastBest = null;
@@ -224,31 +178,26 @@
 
 				var tiles = [];
 				for (var c = 0; c < allCoords.length; c++) {
-					var coord = allCoords[c];
-					var z = coord[0] < 0 ? 1 : 0; // never used; coords are all plain
-					// allCoords is BASE (z=0) then UPPER (z=1)
-					z = c < BASE_COORDS.length ? 0 : 1;
+					var z = c < BASE_COORDS.length ? 0 : 1;
 					tiles.push({
 						z: z,
-						x: coord[0],
-						y: coord[1],
+						x: allCoords[c][0],
+						y: allCoords[c][1],
 						symbol: deck[c],
+						label: c + 1,
 						removed: false
 					});
 				}
 
 				var board = buildBoard(tiles);
-				if (solveBoard(board)) {
-					return tiles;
-				}
+				if (solveBoard(board)) return tiles;
 				lastBest = tiles;
 			}
-			// Emergency fallback: the last generated layout.
 			return lastBest;
 		}
 
 		/* ============================================================
-		   BOARD MODEL
+		   BOARD MODEL + SOLVER
 		   ============================================================ */
 		function makeKey(z, x, y) { return z + ',' + x + ',' + y; }
 
@@ -267,31 +216,14 @@
 			return !!t && !t.removed;
 		}
 
-		/* Rule: a tile is free when:
-		   - nothing EXACTLY above it (z+1, x, y) — planes are aligned-stacked
-		   - NOT blocked on BOTH sides (left x-2 and right x+2, same z)
-		*/
 		function isFree(board, tile) {
 			if (tile.removed) return false;
 			if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
-
 			var hasLeft = hasTile(board, tile.z, tile.x - 2, tile.y);
 			var hasRight = hasTile(board, tile.z, tile.x + 2, tile.y);
 			return !(hasLeft && hasRight);
 		}
 
-		function getFreeTiles(board) {
-			var free = [];
-			board.forEach(function (t) {
-				if (!t.removed && isFree(board, t)) free.push(t);
-			});
-			return free;
-		}
-
-		/* ============================================================
-		   SOLVER — DFS with heuristic (fewest free first)
-		   Verifies that a given layout is fully winnable.
-		   ============================================================ */
 		function solveBoard(board) {
 			var tileList = Array.from(board.values());
 			var removed = new Set();
@@ -309,18 +241,13 @@
 				return !(hasLeft && hasRight);
 			}
 
-			function getFree() {
+			function rec() {
+				if (removed.size === tileList.length) return true;
 				var free = [];
 				for (var i = 0; i < tileList.length; i++) {
 					var t = tileList[i];
 					if (!removed.has(t.key) && isFreeForSolver(t)) free.push(t);
 				}
-				return free;
-			}
-
-			function rec() {
-				if (removed.size === tileList.length) return true;
-				var free = getFree();
 				if (free.length === 0) return false;
 
 				var bySym = {};
@@ -328,11 +255,9 @@
 					var s = free[i].symbol;
 					(bySym[s] = bySym[s] || []).push(free[i]);
 				}
-
 				var syms = Object.keys(bySym).sort(function (a, b) {
 					return bySym[a].length - bySym[b].length;
 				});
-
 				for (var g = 0; g < syms.length; g++) {
 					var members = bySym[syms[g]];
 					for (var i2 = 0; i2 < members.length; i2++) {
@@ -348,21 +273,21 @@
 				}
 				return false;
 			}
-
 			return rec();
 		}
 
 		/* ============================================================
-		   RENDERING — aligned grid, no Z offset (planes overlay exactly)
+		   CANVAS RENDERING — each tile drawn by the SAME function,
+		   identical 3D geometry everywhere. Impossible to differ.
 		   ============================================================ */
+		var canvas = document.getElementById('canvas');
+		var ctx = canvas.getContext('2d');
+
 		var TILE_W = 42, TILE_H = 48;
-		var STEP_X = 22, STEP_Y = 48;   // rows/cols touch, perfectly aligned
-		// Each plane above shifts diagonally up-right by a fixed offset,
-		// exactly like classic Mahjong: the next layer sits visibly on top
-		// of the previous one (stair-step), all tiles uniform in thickness.
+		var THICK = 3;                 // 3D side-face thickness (px)
+		var STEP_X = 22, STEP_Y = 48;
 		var Z_OFFSET_X = 2, Z_OFFSET_Y = 8;
 
-		var boardEl = document.getElementById('board');
 		var boardWrapEl = document.getElementById('board-wrap');
 		var timerEl = document.getElementById('timer');
 		var pairsLeftEl = document.getElementById('pairs-left');
@@ -380,62 +305,135 @@
 			return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ };
 		}
 
-		function renderBoard() {
-			boardEl.innerHTML = '';
-			var m = computeMetrics(app.tiles);
-
-			var width = (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + 10;
-			var height = (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_OFFSET_Y + TILE_H + 10;
-			boardEl.style.width = width + 'px';
-			boardEl.style.height = height + 'px';
-
-			for (var i = 0; i < app.tiles.length; i++) {
-				var t = app.tiles[i];
-				var el = document.createElement('div');
-				el.className = 'tile z' + t.z;
-				el.dataset.key = t.key;
-				el.style.left = ((t.x - m.minX) * STEP_X + t.z * Z_OFFSET_X) + 'px';
-				el.style.top = ((t.y - m.minY) * STEP_Y - t.z * Z_OFFSET_Y) + 'px';
-				el.style.zIndex = 10 + t.z * 10;
-				el.textContent = t.symbol;
-				el.addEventListener('click', (function (tile) {
-					return function () { handleClick(tile); };
-				})(t));
-				boardEl.appendChild(el);
-			}
-
-			fitBoard(width, height);
-			updateClasses();
+		function layoutPos(t, m) {
+			return {
+				x: (t.x - m.minX) * STEP_X + t.z * Z_OFFSET_X,
+				y: (t.y - m.minY) * STEP_Y - t.z * Z_OFFSET_Y
+			};
 		}
 
-		function fitBoard(width, height) {
+		function boardSize(m) {
+			return {
+				w: (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + 6,
+				h: (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_OFFSET_Y + TILE_H + 6
+			};
+		}
+
+		var scale = 1;
+
+		function fitAndRender() {
+			var m = computeMetrics(app.tiles);
+			var size = boardSize(m);
 			var wrapW = boardWrapEl.clientWidth || window.innerWidth;
 			var wrapH = boardWrapEl.clientHeight || window.innerHeight;
-			var scale = Math.min(1, (wrapW - 8) / width, (wrapH - 8) / height);
-			boardEl.style.transform = scale < 1 ? 'scale(' + scale + ')' : '';
+			scale = Math.min(1, (wrapW - 2) / size.w, (wrapH - 2) / size.h);
+
+			canvas.width = Math.max(1, Math.floor(size.w * scale));
+			canvas.height = Math.max(1, Math.floor(size.h * scale));
+			ctx.save();
+			ctx.setTransform(scale, 0, 0, scale, 0, 0);
+			render(m);
+			ctx.restore();
 		}
 
-		function updateClasses() {
-			var cells = boardEl.querySelectorAll('.tile');
-			for (var i = 0; i < cells.length; i++) {
-				var el = cells[i];
-				var t = app.board.get(el.dataset.key);
-				// Keep the plane colour class (z0/z1); only toggle state.
-				el.className = 'tile z' + t.z;
-				if (!t || t.removed) {
-					el.classList.add('removed');
-					el.style.display = 'none';
-					continue;
-				}
-				el.style.display = 'flex';
-				if (isFree(app.board, t)) {
-					el.classList.add('free');
-				} else {
-					el.classList.add('blocked');
-				}
-				if (app.selected && app.selected.key === t.key) el.classList.add('selected');
-				if (t.hinted) el.classList.add('match-hint');
+		/* The SINGLE drawing routine for a tile: front face + right face +
+		   bottom face. Called with the same constants for every tile. */
+		function drawTile(t) {
+			var m = app._metrics;
+			var p = layoutPos(t, m);
+
+			// Front face colour by plane.
+			var front = t.z === 0 ? '#e2e8f0' : '#ffffff';
+			// Dim free/blocked identically for every tile of the same state.
+			ctx.globalAlpha = t.removed ? 0 : (isFree(app.board, t) ? 1 : 0.55);
+
+			// Bottom face (dark).
+			ctx.fillStyle = '#475569';
+			ctx.beginPath();
+			ctx.moveTo(p.x, p.y + TILE_H);
+			ctx.lineTo(p.x + THICK, p.y + TILE_H + THICK);
+			ctx.lineTo(p.x + TILE_W + THICK, p.y + TILE_H + THICK);
+			ctx.lineTo(p.x + TILE_W, p.y + TILE_H);
+			ctx.closePath();
+			ctx.fill();
+
+			// Right face (mid-dark).
+			ctx.fillStyle = '#64748b';
+			ctx.beginPath();
+			ctx.moveTo(p.x + TILE_W, p.y);
+			ctx.lineTo(p.x + TILE_W + THICK, p.y + THICK);
+			ctx.lineTo(p.x + TILE_W + THICK, p.y + TILE_H + THICK);
+			ctx.lineTo(p.x + TILE_W, p.y + TILE_H);
+			ctx.closePath();
+			ctx.fill();
+
+			// Front face.
+			ctx.fillStyle = front;
+			ctx.fillRect(p.x, p.y, TILE_W, TILE_H);
+			ctx.strokeStyle = '#94a3b8';
+			ctx.lineWidth = 1;
+			ctx.strokeRect(p.x, p.y, TILE_W, TILE_H);
+
+			// Symbol.
+			ctx.fillStyle = '#1e293b';
+			ctx.font = '22px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(t.label, p.x + TILE_W / 2, p.y + TILE_H / 2);
+
+			// Selected highlight.
+			if (app.selected && app.selected.key === t.key) {
+				ctx.strokeStyle = '#38bdf8';
+				ctx.lineWidth = 3;
+				ctx.strokeRect(p.x - 2, p.y - 2, TILE_W + 4, TILE_H + 4);
 			}
+			// Hint highlight.
+			if (t.hinted) {
+				ctx.strokeStyle = '#22c55e';
+				ctx.lineWidth = 3;
+				ctx.strokeRect(p.x - 2, p.y - 2, TILE_W + 4, TILE_H + 4);
+			}
+
+			ctx.globalAlpha = 1;
+		}
+
+		function render(m) {
+			app._metrics = m;
+			ctx.clearRect(0, 0, canvas.width / scale, canvas.height / scale);
+			// Draw by plane: base first, upper on top.
+			for (var z = 0; z <= m.maxZ; z++) {
+				for (var i = 0; i < app.tiles.length; i++) {
+					if (app.tiles[i].z === z) drawTile(app.tiles[i]);
+				}
+			}
+		}
+
+		/* ============================================================
+		   HIT TEST — find tile under (px,py) using the same layout math
+		   ============================================================ */
+		function hitTest(px, py) {
+			var m = app._metrics;
+			var tile = null;
+			for (var z = 0; z <= m.maxZ; z++) {
+				for (var i = 0; i < app.tiles.length; i++) {
+					var t = app.tiles[i];
+					if (t.z !== z || t.removed) continue;
+					var p = layoutPos(t, m);
+					if (px >= p.x && px <= p.x + TILE_W &&
+					    py >= p.y && py <= p.y + TILE_H) {
+						tile = t;
+					}
+				}
+			}
+			return tile;
+		}
+
+		function canvasPos(e) {
+			var rect = canvas.getBoundingClientRect();
+			return {
+				x: (e.clientX - rect.left) / scale,
+				y: (e.clientY - rect.top) / scale
+			};
 		}
 
 		/* ============================================================
@@ -449,7 +447,8 @@
 			elapsed: 0,
 			timerInterval: null,
 			timerStarted: false,
-			history: []
+			history: [],
+			_metrics: null
 		};
 
 		function pairsLeft() {
@@ -471,14 +470,16 @@
 			if (app.timerInterval) { clearInterval(app.timerInterval); app.timerInterval = null; }
 		}
 
-		function handleClick(tile) {
-			if (tile.removed || !isFree(app.board, tile)) return;
+		function handleClickPos(px, py) {
+			var tile = hitTest(px, py);
+			if (!tile) { app.selected = null; fitAndRender(); return; }
+			if (!isFree(app.board, tile)) { app.selected = null; fitAndRender(); return; }
 			if (!app.timerStarted) startTimer();
 
 			if (app.selected) {
 				if (app.selected.key === tile.key) {
 					app.selected = null;
-					updateClasses();
+					fitAndRender();
 					return;
 				}
 				if (app.selected.symbol === tile.symbol) {
@@ -488,7 +489,7 @@
 				app.selected = null;
 			}
 			app.selected = tile;
-			updateClasses();
+			fitAndRender();
 		}
 
 		function match(a, b) {
@@ -499,7 +500,7 @@
 			app.score += 100;
 			scoreEl.textContent = app.score;
 			pairsLeftEl.textContent = pairsLeft();
-			updateClasses();
+			fitAndRender();
 			if (pairsLeft() === 0) levelComplete();
 		}
 
@@ -508,12 +509,15 @@
 			var pair = app.history.pop();
 			pair[0].removed = false;
 			pair[1].removed = false;
-			updateClasses();
+			fitAndRender();
 			pairsLeftEl.textContent = pairsLeft();
 		}
 
 		function hint() {
-			var free = getFreeTiles(app.board);
+			var free = [];
+			app.board.forEach(function (t) {
+				if (!t.removed && isFree(app.board, t)) free.push(t);
+			});
 			var bySymbol = {};
 			free.forEach(function (t) {
 				(bySymbol[t.symbol] = bySymbol[t.symbol] || []).push(t);
@@ -522,11 +526,11 @@
 				if (bySymbol[sym].length >= 2) {
 					bySymbol[sym][0].hinted = true;
 					bySymbol[sym][1].hinted = true;
-					updateClasses();
+					fitAndRender();
 					setTimeout(function () {
 						bySymbol[sym][0].hinted = false;
 						bySymbol[sym][1].hinted = false;
-						updateClasses();
+						fitAndRender();
 					}, 2000);
 					return;
 				}
@@ -539,9 +543,6 @@
 			overlay.style.display = 'flex';
 		}
 
-		/* ============================================================
-		   INIT
-		   ============================================================ */
 		function startGame() {
 			app.tiles = buildStaticLayout();
 			app.board = buildBoard(app.tiles);
@@ -555,7 +556,7 @@
 			scoreEl.textContent = '0';
 			pairsLeftEl.textContent = pairsLeft();
 			overlay.style.display = 'none';
-			renderBoard();
+			fitAndRender();
 		}
 
 		var overlay = document.createElement('div');
@@ -566,16 +567,17 @@
 		overlay.appendChild(modalTitle);
 		document.body.appendChild(overlay);
 
+		canvas.addEventListener('click', function (e) {
+			var pos = canvasPos(e);
+			handleClickPos(pos.x, pos.y);
+		});
+
 		document.getElementById('btn-hint').addEventListener('click', hint);
 		document.getElementById('btn-undo').addEventListener('click', undo);
 		document.getElementById('btn-new').addEventListener('click', startGame);
 
 		window.addEventListener('resize', function () {
-			if (!app.tiles.length) return;
-			var m = computeMetrics(app.tiles);
-			var width = (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + 10;
-			var height = (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_OFFSET_Y + TILE_H + 10;
-			fitBoard(width, height);
+			if (app.tiles.length) fitAndRender();
 		});
 
 		startGame();
