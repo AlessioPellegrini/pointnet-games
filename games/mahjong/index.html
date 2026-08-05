@@ -78,18 +78,25 @@
 			position: absolute;
 			width: 42px;
 			height: 48px;
-			background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 70%, #cbd5e1 100%);
+			/* NO 3D shadow at all: shadows and side-face tricks created an
+			   optical illusion on edge tiles (top-middle looked thicker).
+			   Depth is expressed 100% by BACKGROUND COLOUR per plane (z0/z1)
+			   plus the diagonal offset Z_OFFSET_X/Y. Impossible to misread. */
 			border: 1px solid #94a3b8;
 			border-radius: 6px;
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			font-size: 22px;
-			box-shadow: 2px 2px 0 #94a3b8, 4px 4px 0 #64748b, 5px 5px 6px rgba(0,0,0,0.35);
 			color: #1e293b;
 			cursor: pointer;
-			transition: transform 0.08s ease, box-shadow 0.15s ease, filter 0.15s ease;
+			transition: transform 0.08s ease, filter 0.15s ease;
 		}
+
+		/* Plane 0 (base): light grey — reads as "bottom".
+		   Plane 1 (upper): white — reads as "top". */
+		.tile.z0 { background: #e2e8f0; }
+		.tile.z1 { background: #ffffff; }
 
 		.tile.free { pointer-events: auto; }
 		.tile.blocked {
@@ -226,6 +233,7 @@
 						x: coord[0],
 						y: coord[1],
 						symbol: deck[c],
+						label: c + 1,   // DEBUG: sequential number 1..24
 						removed: false
 					});
 				}
@@ -350,7 +358,10 @@
 		   ============================================================ */
 		var TILE_W = 42, TILE_H = 48;
 		var STEP_X = 22, STEP_Y = 48;   // rows/cols touch, perfectly aligned
-		var Z_RISE = 8;                  // upper plane lifts 8px for depth
+		// Each plane above shifts diagonally up-right by a fixed offset,
+		// exactly like classic Mahjong: the next layer sits visibly on top
+		// of the previous one (stair-step), all tiles uniform in thickness.
+		var Z_OFFSET_X = 2, Z_OFFSET_Y = 8;
 
 		var boardEl = document.getElementById('board');
 		var boardWrapEl = document.getElementById('board-wrap');
@@ -374,20 +385,20 @@
 			boardEl.innerHTML = '';
 			var m = computeMetrics(app.tiles);
 
-			var width = (m.maxX - m.minX) * STEP_X + TILE_W + 10;
-			var height = (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_RISE + TILE_H + 10;
+			var width = (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + 10;
+			var height = (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_OFFSET_Y + TILE_H + 10;
 			boardEl.style.width = width + 'px';
 			boardEl.style.height = height + 'px';
 
 			for (var i = 0; i < app.tiles.length; i++) {
 				var t = app.tiles[i];
 				var el = document.createElement('div');
-				el.className = 'tile';
+				el.className = 'tile z' + t.z;
 				el.dataset.key = t.key;
-				el.style.left = ((t.x - m.minX) * STEP_X) + 'px';
-				el.style.top = ((t.y - m.minY) * STEP_Y - t.z * Z_RISE) + 'px';
+				el.style.left = ((t.x - m.minX) * STEP_X + t.z * Z_OFFSET_X) + 'px';
+				el.style.top = ((t.y - m.minY) * STEP_Y - t.z * Z_OFFSET_Y) + 'px';
 				el.style.zIndex = 10 + t.z * 10;
-				el.textContent = t.symbol;
+				el.textContent = t.label;   // DEBUG: show number instead of emoji
 				el.addEventListener('click', (function (tile) {
 					return function () { handleClick(tile); };
 				})(t));
@@ -410,7 +421,8 @@
 			for (var i = 0; i < cells.length; i++) {
 				var el = cells[i];
 				var t = app.board.get(el.dataset.key);
-				el.className = 'tile';
+				// Keep the plane colour class (z0/z1); only toggle state.
+				el.className = 'tile z' + t.z;
 				if (!t || t.removed) {
 					el.classList.add('removed');
 					el.style.display = 'none';
@@ -562,8 +574,8 @@
 		window.addEventListener('resize', function () {
 			if (!app.tiles.length) return;
 			var m = computeMetrics(app.tiles);
-			var width = (m.maxX - m.minX) * STEP_X + TILE_W + 10;
-			var height = (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_RISE + TILE_H + 10;
+			var width = (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + 10;
+			var height = (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_OFFSET_Y + TILE_H + 10;
 			fitBoard(width, height);
 		});
 
