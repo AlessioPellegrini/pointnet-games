@@ -278,7 +278,10 @@
 		}
 
 		/* A tile is free (playable) when:
-		   - nothing above it in the 3x3 area (z+1)
+		   - nothing directly above it at (z+1, x, y) — first levels.
+		     The full 3x3 "above" rule is introduced in Phase 3 with the
+		     arcade difficulty progression, so early gameplay feels fair
+		     and matches what is visually stacked.
 		   - NOT (blocked on left AND blocked on right)
 		   Blocked left  = any tile at (z, x-2, y±1)
 		   Blocked right = any tile at (z, x+2, y±1)
@@ -286,12 +289,8 @@
 		function isFree(board, tile) {
 			if (tile.removed) return false;
 
-			var zUp = tile.z + 1;
-			for (var dx = -1; dx <= 1; dx++) {
-				for (var dy = -1; dy <= 1; dy++) {
-					if (hasTile(board, zUp, tile.x + dx, tile.y + dy)) return false;
-				}
-			}
+			// Early levels: only the exact cell above counts.
+			if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
 
 			var hasLeft = false;
 			for (var dy = -1; dy <= 1; dy++) {
