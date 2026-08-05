@@ -610,10 +610,15 @@
 		   RENDERING
 		   ============================================================ */
 		var TILE_W = 42, TILE_H = 48;
-		// Vertical spacing must be >= tile height so tiles in the same layer
-		// never overlap: a tile that is visually "under" another (z+1) is
-		// blocked and not clickable, while same-layer neighbours stay fully visible.
-		var STEP_X = 22, STEP_Y = 50, RISE = 9;
+		// Grid geometry (Mahjong rule):
+		// - two tiles at x and x+2 are horizontally adjacent (blockers at x±2):
+		//   distance = 2 * STEP_X = 44px ≈ TILE_W (42px) -> small 2px gap.
+		// - two tiles at y and y+1 are vertically adjacent one above the other:
+		//   STEP_Y = 50 >= TILE_H so rows never overlap.
+		// - each higher layer shifts tiles diagonally up-right:
+		//   RISE = 20 makes the covering tile clearly overlap the one below,
+		//   so a covered tile is obviously not playable.
+		var STEP_X = 22, STEP_Y = 50, RISE = 20;
 
 		function computeBoardMetrics(layout) {
 			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
