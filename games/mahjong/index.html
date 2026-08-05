@@ -104,13 +104,13 @@
 			pointer-events: none;
 		}
 
-		.tile.free { filter: brightness(1.05); pointer-events: auto; }
+		.tile.free { filter: brightness(1.03); pointer-events: auto; }
 		.tile.blocked {
-			filter: brightness(0.4) saturate(0.4) blur(0.3px);
-			opacity: 0.55;
+			filter: brightness(0.8) saturate(0.55);
+			opacity: 1;
 			cursor: default;
 			pointer-events: none;
-			box-shadow: none;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 		}
 		.tile.selected {
 			transform: translateY(-6px) scale(1.08);
@@ -284,10 +284,10 @@
 		}
 
 		/* A tile is free (playable) when:
-		   - nothing above it in the 3x3 area (z+1) — the classic rule.
-		     The rendering aligns with this exact area (layers stack
-		     almost vertically), so a tile visually covered is always
-		     logically blocked — impossible to misread.
+		   - nothing directly above it: a tile of the layer above sits on
+		     the exact same cell (z+1, x, y). The generator places upper
+		     layers directly on top of lower ones, so what you see covering
+		     a tile is exactly what blocks it — visually consistent.
 		   - NOT (blocked on left AND blocked on right)
 		   Blocked left  = any tile at (z, x-2, y±1)
 		   Blocked right = any tile at (z, x+2, y±1)
@@ -295,12 +295,7 @@
 		function isFree(board, tile) {
 			if (tile.removed) return false;
 
-			var zUp = tile.z + 1;
-			for (var dx = -1; dx <= 1; dx++) {
-				for (var dy = -1; dy <= 1; dy++) {
-					if (hasTile(board, zUp, tile.x + dx, tile.y + dy)) return false;
-				}
-			}
+			if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
 
 			var hasLeft = false;
 			for (var dy = -1; dy <= 1; dy++) {
@@ -411,21 +406,18 @@
 			}
 
 			var candidates = [];
-			for (var x = Math.max(0, minX - 1); x <= Math.min(GRID_W, maxX + 1); x++) {
+			for (var x = Math.max(0, minX); x <= Math.min(GRID_W, maxX); x++) {
 				if (x % 2 !== 0) continue;
-				for (var y = Math.max(0, minY - 1); y <= Math.min(GRID_H, maxY + 1); y++) {
+				for (var y = Math.max(0, minY); y <= Math.min(GRID_H, maxY); y++) {
 					var key = makeKey(z, x, y);
 					if (taken.has(key)) continue;
-					var supported = false;
-					for (var dx = -1; dx <= 1 && !supported; dx++) {
-						for (var dy = -1; dy <= 1; dy++) {
-							if (belowSet.has(makeKey(z - 1, x + dx, y + dy))) {
-								supported = true;
-								break;
-							}
-						}
+					// Direct stacking: a tile of layer z sits EXACTLY above a
+					// tile of layer z-1 (same x,y). This matches isFree()'s
+					// exact-cell rule, so what you see covering a tile is
+					// exactly what blocks it — structure stays compact.
+					if (belowSet.has(makeKey(z - 1, x, y))) {
+						candidates.push({ x: x, y: y });
 					}
-					if (supported) candidates.push({ x: x, y: y });
 				}
 			}
 			return candidates;
@@ -621,13 +613,13 @@
 		var TILE_W = 42, TILE_H = 48;
 		// Grid geometry (Mahjong rule):
 		// - two tiles at x and x+2 are horizontally adjacent (blockers at x±2):
-		//   distance = 2 * STEP_X = 44px ≈ TILE_W (42px) -> small 2px gap.
+		//   distance = 2 * STEP_X = 40px < TILE_W -> tiles touch / interlock.
 		// - two tiles at y and y+1 are vertically adjacent one above the other:
-		//   STEP_Y = 50 >= TILE_H so rows never overlap.
-		// - layers stack almost vertically (no horizontal offset): a tile at
-		//   z+1 sits directly above the tile at z, so whatever is visually
-		//   covering a tile is exactly what logic says blocks it (3x3 above).
-		var STEP_X = 22, STEP_Y = 50, RISE = 12;
+		//   STEP_Y = 28 < TILE_H -> rows interlock like classic Mahjong.
+		// - each higher layer leans diagonally up-right by Z_OFFSET_X/Z_OFFSET_Y,
+		//   giving a compact light 3D look; upper tiles sit on the exact same
+		//   (x,y) as the tile they cover, so logic and visuals always match.
+		var STEP_X = 20, STEP_Y = 28, Z_OFFSET_X = 4, Z_OFFSET_Y = 10;
 
 		function computeBoardMetrics(layout) {
 			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
@@ -687,8 +679,8 @@
 			boardEl.innerHTML = '';
 			var metrics = computeBoardMetrics(app.layout);
 
-			var width = (metrics.maxX - metrics.minX) * STEP_X + TILE_W + 10;
-			var height = (metrics.maxY - metrics.minY) * STEP_Y + metrics.maxZ * RISE + TILE_H + 10;
+			var width = (metrics.maxX - metrics.minX) * STEP_X + metrics.maxZ * Z_OFFSET_X + TILE_W + 10;
+			var height = (metrics.maxY - metrics.minY) * STEP_Y + metrics.maxZ * Z_OFFSET_Y + TILE_H + 10;
 			boardEl.style.width = width + 'px';
 			boardEl.style.height = height + 'px';
 
@@ -701,8 +693,8 @@
 					el.classList.add('removed');
 					el.style.display = 'none';
 				}
-				el.style.left = ((t.x - metrics.minX) * STEP_X) + 'px';
-				el.style.top = ((t.y - metrics.minY) * STEP_Y - t.z * RISE) + 'px';
+				el.style.left = ((t.x - metrics.minX) * STEP_X + t.z * Z_OFFSET_X) + 'px';
+				el.style.top = ((t.y - metrics.minY) * STEP_Y - t.z * Z_OFFSET_Y) + 'px';
 				el.style.zIndex = 10 + t.z * 10;
 				el.textContent = t.symbol;
 				el.addEventListener('click', (function (tile) {
@@ -935,8 +927,8 @@
 		window.addEventListener('resize', function () {
 			if (!app.layout.length) return;
 			var metrics = computeBoardMetrics(app.layout);
-			var width = (metrics.maxX - metrics.minX) * STEP_X + TILE_W + 10;
-			var height = (metrics.maxY - metrics.minY) * STEP_Y + metrics.maxZ * RISE + TILE_H + 10;
+			var width = (metrics.maxX - metrics.minX) * STEP_X + metrics.maxZ * Z_OFFSET_X + TILE_W + 10;
+			var height = (metrics.maxY - metrics.minY) * STEP_Y + metrics.maxZ * Z_OFFSET_Y + TILE_H + 10;
 			fitBoard(width, height);
 		});
 
