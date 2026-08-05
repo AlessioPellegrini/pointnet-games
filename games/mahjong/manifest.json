@@ -1,9 +1,9 @@
 {
 	"name": "Mahjong Arcade",
 	"slug": "mahjong",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"author": "PointNet Games",
-	"description": "Classic Mahjong Solitaire tile-matching with progressive arcade levels. Mobile-first, no pan/zoom, solvability guaranteed by solver.",
+	"description": "Classic Mahjong Solitaire tile-matching with a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards via DFS solver. Mobile-first, no pan/zoom.",
 	"type": "iframe",
 	"width": 400,
 	"height": 700,
@@ -15,5 +15,5 @@
 	},
 	"max_score": 999999,
 	"license": "GPL-2.0+",
-	"instructions": "Match identical tiles to remove them. A tile is playable when nothing is stacked above it and at least one side is free. Clear the board to advance to the next level."
+	"instructions": "Tap a free tile to send it to the staging box. Two matching tiles in the box disappear. 4 tiles without a match = game over. Face-down tiles reveal their symbol on tap, then go to staging on second tap. Drag tiles to peek underneath."
 }

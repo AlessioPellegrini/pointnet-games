@@ -24,6 +24,7 @@
 			user-select: none;
 			-webkit-user-select: none;
 			touch-action: manipulation;
+			-webkit-tap-highlight-color: transparent;
 		}
 
 		.game-container {
@@ -61,19 +62,190 @@
 		.status-value { color: var(--accent); min-width: 24px; text-align: center; }
 		.status-value.pairs { color: var(--success); }
 
+		/* ----------------------------------------------------------
+		   STAGING BOX — 4 slots where clicked tiles are held.
+		   Two matching tiles in the box automatically match.
+		   4 tiles without a match = game over.
+		   ---------------------------------------------------------- */
+		.staging-box {
+			display: flex;
+			justify-content: center;
+			gap: 8px;
+			padding: 8px 14px;
+			background: var(--bg-panel);
+			border-radius: 10px;
+			flex-shrink: 0;
+			min-height: 60px;
+			align-items: center;
+		}
+
+		.staging-slot {
+			width: 38px;
+			height: 48px;
+			border: 2px dashed rgba(148, 163, 184, 0.35);
+			border-radius: 4px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 20px;
+			opacity: 0.5;
+			position: relative;
+		}
+
+		.staging-slot.filled {
+			border-style: solid;
+			border-color: rgba(56, 189, 248, 0.5);
+			background: linear-gradient(180deg, #f7f9fc 0%, #e9edf2 100%);
+			box-shadow:
+				1px 0 0 0 rgba(71, 85, 105, 0.30),
+				0 3px 0 0 rgba(71, 85, 105, 0.25),
+				1px 3px 0 0 rgba(71, 85, 105, 0.25),
+				3px 5px 8px rgba(15, 23, 42, 0.25);
+			opacity: 1;
+		}
+
 		.board-wrap {
 			flex: 1;
 			position: relative;
 			overflow: hidden;
 			min-height: 0;
+			background: radial-gradient(circle at 50% 42%, #1e293b 0%, #0b1220 100%);
+			border-radius: 14px;
 		}
 
-		#canvas {
-			width: 100%;
-			height: 100%;
-			display: block;
-			touch-action: manipulation;
+		#board {
+			position: absolute;
+			top: 0;
+			left: 0;
+			transform-origin: top left;
+			touch-action: none;
+		}
+
+		/* ----------------------------------------------------------
+		   TILE — every tile is pixel-identical. Rounded corners,
+		   soft semi-transparent side faces, subtle gradient face,
+		   uniform drop shadow (same blur on all sides: cannot
+		   create the asymmetric edge illusion).
+		   ---------------------------------------------------------- */
+		.tile {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 42px;
+			height: 56px;
+			border-radius: 4px;
+			background: linear-gradient(180deg, #f7f9fc 0%, #e9edf2 100%);
+			color: #1e293b;
+			box-shadow:
+				1px 0 0 0 rgba(71, 85, 105, 0.30),                /* right face (soft 3D)  */
+				0 3px 0 0 rgba(71, 85, 105, 0.25),                /* bottom face (soft 3D) */
+				1px 3px 0 0 rgba(71, 85, 105, 0.25),              /* bottom-right corner   */
+				rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,       /* deep ambient shadow   */
+				rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,            /* tight dark shadow     */
+				rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;     /* face top inner edge   */
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
 			cursor: pointer;
+			transition: transform 0.12s ease;
+			transform: translate(var(--tx), var(--ty));
+			will-change: transform;
+		}
+
+		.tile.z0 { z-index: 1; }
+		.tile.z1 {
+			z-index: 2;
+			background: linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%);
+		}
+
+		/* Face-down (covered) tiles — memory mechanic.
+		   Symbol is HIDDEN: the sym element is invisible and the
+		   tile shows a plain back. Always fully opaque, even when
+		   blocked (no peeking through semi-transparency). */
+		.tile.face-down {
+			background: linear-gradient(135deg, #1e3a5f 0%, #0f2742 100%);
+			color: #e2e8f0;
+			opacity: 1;
+		}
+		.tile.face-down .tile-sym { visibility: hidden; }
+		.tile.face-down::after {
+			content: '?';
+			position: absolute;
+			inset: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 20px;
+			font-weight: 900;
+			color: rgba(226, 232, 240, 0.45);
+			pointer-events: none;
+		}
+		.tile.face-down.blocked:hover { opacity: 1; }
+
+		.tile:hover { transform: translate(var(--tx), var(--ty)) scale(1.05); }
+
+		.tile-overlay {
+			position: absolute;
+			inset: 0;
+			border-radius: 4px;
+			opacity: 0;
+			transition: opacity 0.12s ease;
+			background: rgba(255, 255, 255, 0.55);
+			box-shadow: 0 0 0 2px var(--accent) inset;
+			pointer-events: none;
+		}
+		.tile:hover .tile-overlay { opacity: 1; }
+
+		.tile.blocked:not(.face-down) { opacity: 0.5; cursor: default; }
+		.tile.blocked:hover { transform: translate(var(--tx), var(--ty)); }
+		.tile.blocked:hover .tile-overlay { opacity: 0; }
+
+		.tile.removed { visibility: hidden; pointer-events: none; }
+
+		/* Tiles inside the staging box disappear from the board */
+		.tile.in-staging { visibility: hidden; pointer-events: none; }
+
+		.tile.selected { outline: 3px solid var(--accent); outline-offset: 2px; z-index: 3; }
+		.tile.hinted { outline: 3px solid var(--success); outline-offset: 2px; z-index: 3; }
+
+		/* Dragging (peek): lift over everything, no transition lag */
+		.tile.dragging {
+			z-index: 100;
+			transition: none;
+			touch-action: none;
+			cursor: grabbing;
+			transform: translate(var(--tx), var(--ty));
+		}
+		.tile.dragging .tile-overlay { opacity: 0; }
+
+		.tile-sym { font-size: 20px; line-height: 1; }
+
+		.plane-badge {
+			position: absolute;
+			top: 3px;
+			left: 4px;
+			font-size: 8px;
+			font-weight: 900;
+			line-height: 1;
+			padding: 2px 4px;
+			border-radius: 5px;
+			color: #fff;
+			background: #475569;
+		}
+		.plane-badge.p2 { background: #2563eb; }
+
+		.num-badge {
+			position: absolute;
+			top: 3px;
+			right: 4px;
+			font-size: 8px;
+			font-weight: 900;
+			line-height: 1;
+			padding: 2px 4px;
+			border-radius: 5px;
+			color: #fff;
+			background: rgba(30, 41, 59, 0.55);
 		}
 
 		.action-bar {
@@ -97,6 +269,45 @@
 		}
 		.btn:hover { background: #3b4c66; }
 		.btn:active { transform: scale(0.96); }
+
+		.overlay {
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.7);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
+		}
+		.overlay.show { display: flex; }
+
+		.modal {
+			background: var(--bg-panel);
+			padding: 24px 40px;
+			border-radius: 16px;
+			text-align: center;
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			align-items: center;
+		}
+		.modal h2 { font-size: 1.6rem; }
+		.modal p { color: #94a3b8; font-weight: 600; }
+
+		/* ----------------------------------------------------------
+		   MOBILE — maximise board space on small screens
+		   ---------------------------------------------------------- */
+		@media (max-width: 480px) {
+			.game-container { padding: 4px; gap: 4px; }
+			.status-bar { padding: 4px 10px; gap: 12px; }
+			.staging-box { padding: 4px 8px; gap: 6px; min-height: 50px; }
+			.staging-slot { width: 32px; height: 42px; font-size: 16px; }
+			.btn { padding: 6px 14px; font-size: 0.8rem; }
+			.game-title { font-size: 1.1rem; }
+			.status-item { font-size: 0.8rem; }
+			.tile-sym { font-size: 18px; }
+			.board-wrap { border-radius: 10px; }
+		}
 	</style>
 </head>
 <body>
@@ -111,8 +322,10 @@
 			<div class="status-item">🏆 <span class="status-value" id="score">0</span></div>
 		</div>
 
+		<div class="staging-box" id="staging-box"></div>
+
 		<div class="board-wrap" id="board-wrap">
-			<canvas id="canvas"></canvas>
+			<div id="board"></div>
 		</div>
 
 		<div class="action-bar">
@@ -122,14 +335,28 @@
 		</div>
 	</div>
 
+	<div class="overlay" id="overlay">
+		<div class="modal">
+			<h2 id="modal-title">🏆 Cleared!</h2>
+			<p id="modal-stats"></p>
+			<button class="btn" id="btn-play-again">🔄 Play again</button>
+		</div>
+	</div>
+
 	<script>
 	(function () {
 		'use strict';
 
 		/* ============================================================
-		   STATIC TEST LAYOUT — 2 aligned planes
+		   CONSTANTS
 		   ============================================================ */
-		var SYMBOLS = ['🀄','🍀','🌸','🔥','❄️','💎','⭐','🌙','☀️','🍃','💜','🔷'];
+		var MAX_STAGING = 4;           // staging box capacity
+		var FACE_DOWN_PAIRS = 1;       // how many pairs start covered (memory)
+
+		/* ============================================================
+		   SYMBOLS + RNG
+		   ============================================================ */
+		var SYMBOLS = ['🀄', '🍀', '🌸', '🔥', '❄️', '💎', '⭐', '🌙', '☀️', '🍃', '💜', '🔷'];
 
 		function createRng(seed) {
 			var s = seed >>> 0;
@@ -149,18 +376,21 @@
 			return arr;
 		}
 
+		/* ============================================================
+		   STATIC TEST LAYOUT — 2 aligned planes
+		   ============================================================ */
 		var BASE_COORDS = [
-			[0,0],[2,0],[4,0],[6,0],
-			[0,1],[2,1],[4,1],[6,1],
-			[0,2],[2,2],[4,2],[6,2],
-			[0,3],[2,3],[4,3],[6,3]
+			[0, 0], [2, 0], [4, 0], [6, 0],
+			[0, 1], [2, 1], [4, 1], [6, 1],
+			[0, 2], [2, 2], [4, 2], [6, 2],
+			[0, 3], [2, 3], [4, 3], [6, 3]
 		];
 
 		var UPPER_COORDS = [
-			[2,1],[4,1],
-			[2,2],[4,2],
-			[2,3],[4,3],
-			[2,0],[4,0]
+			[2, 1], [4, 1],
+			[2, 2], [4, 2],
+			[2, 3], [4, 3],
+			[2, 0], [4, 0]
 		];
 
 		function buildStaticLayout() {
@@ -185,15 +415,46 @@
 						y: allCoords[c][1],
 						symbol: deck[c],
 						label: c + 1,
-						removed: false
+						removed: false,
+						staging: false,
+						faceDown: false,
+						hinted: false
 					});
 				}
 
 				var board = buildBoard(tiles);
-				if (solveBoard(board)) return tiles;
+				if (solveBoard(board)) {
+					applyFaceDown(tiles, FACE_DOWN_PAIRS);
+					return tiles;
+				}
 				lastBest = tiles;
 			}
+			applyFaceDown(lastBest, FACE_DOWN_PAIRS);
 			return lastBest;
+		}
+
+		/* Cover numPairs random pairs of tiles (memory mechanic) */
+		function applyFaceDown(tiles, numPairs) {
+			var done = 0;
+			var guard = 0;
+			while (done < numPairs && guard < 50) {
+				guard++;
+				var idx = Math.floor(Math.random() * tiles.length);
+				if (tiles[idx].faceDown) continue;
+				var sym = tiles[idx].symbol;
+				var pairIdx = -1;
+				for (var i = 0; i < tiles.length; i++) {
+					if (i !== idx && tiles[i].symbol === sym && !tiles[i].faceDown) {
+						pairIdx = i;
+						break;
+					}
+				}
+				if (pairIdx !== -1) {
+					tiles[idx].faceDown = true;
+					tiles[pairIdx].faceDown = true;
+					done++;
+				}
+			}
 		}
 
 		/* ============================================================
@@ -211,13 +472,15 @@
 			return board;
 		}
 
+		/* A tile blocks other tiles only if it's still on the board
+		   (not removed, not moved into the staging box). */
 		function hasTile(board, z, x, y) {
 			var t = board.get(makeKey(z, x, y));
-			return !!t && !t.removed;
+			return !!t && !t.removed && !t.staging;
 		}
 
 		function isFree(board, tile) {
-			if (tile.removed) return false;
+			if (tile.removed || tile.staging) return false;
 			if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
 			var hasLeft = hasTile(board, tile.z, tile.x - 2, tile.y);
 			var hasRight = hasTile(board, tile.z, tile.x + 2, tile.y);
@@ -225,12 +488,14 @@
 		}
 
 		function solveBoard(board) {
-			var tileList = Array.from(board.values());
+			var tileList = Array.from(board.values()).filter(function (t) {
+				return !t.staging;
+			});
 			var removed = new Set();
 
 			function hasLive(z, x, y) {
 				var t = board.get(makeKey(z, x, y));
-				return !!t && !t.removed && !removed.has(t.key);
+				return !!t && !t.removed && !t.staging && !removed.has(t.key);
 			}
 
 			function isFreeForSolver(t) {
@@ -277,21 +542,17 @@
 		}
 
 		/* ============================================================
-		   CANVAS RENDERING — each tile drawn by the SAME function,
-		   identical 3D geometry everywhere. Impossible to differ.
+		   GEOMETRY — integer pixels for every tile.
+		   The board element is the ONLY thing that gets scaled.
 		   ============================================================ */
-		var canvas = document.getElementById('canvas');
-		var ctx = canvas.getContext('2d');
-
-		var TILE_W = 42, TILE_H = 48;
-		var THICK = 3;                 // 3D side-face thickness (px)
-		var STEP_X = 22, STEP_Y = 48;
-		var Z_OFFSET_X = 2, Z_OFFSET_Y = 8;
-
-		var boardWrapEl = document.getElementById('board-wrap');
-		var timerEl = document.getElementById('timer');
-		var pairsLeftEl = document.getElementById('pairs-left');
-		var scoreEl = document.getElementById('score');
+		var TILE_W = 42, TILE_H = 56;
+		var SIDE_R = 2;                 // right face (px)
+		var SIDE_B = 3;                 // bottom face (px)
+		var STEP_X = 22;                // horizontal pitch between x-cells (2 cells = 44px)
+		var STEP_Y = 61;                // vertical pitch between rows
+		var Z_OFFSET_X = 3;             // diagonal plane shift
+		var Z_OFFSET_Y = 9;
+		var PAD = 8;                    // breathing room around the board
 
 		function computeMetrics(tiles) {
 			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
@@ -305,135 +566,126 @@
 			return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ };
 		}
 
+		/* Top pad = max plane thickness. Pushes the whole stack down so
+		   upper-plane tiles at the first row are NEVER clipped at the
+		   top of the board. (This was the 23/24 bug: their top 8px were
+		   cut off by overflow:hidden in every previous version.) */
 		function layoutPos(t, m) {
+			var topPad = m.maxZ * Z_OFFSET_Y;
 			return {
-				x: (t.x - m.minX) * STEP_X + t.z * Z_OFFSET_X,
-				y: (t.y - m.minY) * STEP_Y - t.z * Z_OFFSET_Y
+				x: PAD + (t.x - m.minX) * STEP_X + t.z * Z_OFFSET_X,
+				y: PAD + topPad + (t.y - m.minY) * STEP_Y - t.z * Z_OFFSET_Y
 			};
 		}
 
 		function boardSize(m) {
+			var topPad = m.maxZ * Z_OFFSET_Y;
 			return {
-				w: (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + 6,
-				h: (m.maxY - m.minY) * STEP_Y + m.maxZ * Z_OFFSET_Y + TILE_H + 6
+				w: PAD + (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + SIDE_R + PAD,
+				h: PAD + topPad + (m.maxY - m.minY) * STEP_Y + TILE_H + SIDE_B + PAD
 			};
 		}
 
-		var scale = 1;
+		/* ============================================================
+		   DOM TILES
+		   ============================================================ */
+		var wrap = document.getElementById('board-wrap');
+		var boardEl = document.getElementById('board');
+		var timerEl = document.getElementById('timer');
+		var pairsLeftEl = document.getElementById('pairs-left');
+		var scoreEl = document.getElementById('score');
+		var overlayEl = document.getElementById('overlay');
+		var modalTitle = document.getElementById('modal-title');
+		var modalStats = document.getElementById('modal-stats');
+		var stagingBoxEl = document.getElementById('staging-box');
 
-		function fitAndRender() {
-			var m = computeMetrics(app.tiles);
-			var size = boardSize(m);
-			var wrapW = boardWrapEl.clientWidth || window.innerWidth;
-			var wrapH = boardWrapEl.clientHeight || window.innerHeight;
-			scale = Math.min(1, (wrapW - 2) / size.w, (wrapH - 2) / size.h);
+		function createTileEl(t, i) {
+			var el = document.createElement('div');
+			el.className = 'tile z' + t.z;
+			el.dataset.index = i;
 
-			canvas.width = Math.max(1, Math.floor(size.w * scale));
-			canvas.height = Math.max(1, Math.floor(size.h * scale));
-			ctx.save();
-			ctx.setTransform(scale, 0, 0, scale, 0, 0);
-			render(m);
-			ctx.restore();
+			var overlay = document.createElement('div');
+			overlay.className = 'tile-overlay';
+
+			var sym = document.createElement('span');
+			sym.className = 'tile-sym';
+			el._symEl = sym;
+
+			var plane = document.createElement('span');
+			plane.className = 'plane-badge' + (t.z === 1 ? ' p2' : '');
+			plane.textContent = t.z + 1;
+
+			var num = document.createElement('span');
+			num.className = 'num-badge';
+			num.textContent = t.label;
+
+			el.appendChild(overlay);
+			el.appendChild(sym);
+			el.appendChild(plane);
+			el.appendChild(num);
+			return el;
 		}
 
-		/* The SINGLE drawing routine for a tile: front face + right face +
-		   bottom face. Called with the same constants for every tile. */
-		function drawTile(t) {
-			var m = app._metrics;
-			var p = layoutPos(t, m);
+		function rebuildBoard() {
+			boardEl.innerHTML = '';
+			app.tileEls = [];
+			app._metrics = computeMetrics(app.tiles);
+			app._boardSize = boardSize(app._metrics);
 
-			// Front face colour by plane.
-			var front = t.z === 0 ? '#e2e8f0' : '#ffffff';
-			// Dim free/blocked identically for every tile of the same state.
-			ctx.globalAlpha = t.removed ? 0 : (isFree(app.board, t) ? 1 : 0.55);
+			/* Paint order: plane first (base below upper), then row,
+			   then column — so tiles are stacked exactly like a real
+			   mahjong board and later elements paint on top. */
+			var order = app.tiles.map(function (t, i) { return i; }).sort(function (a, b) {
+				var ta = app.tiles[a], tb = app.tiles[b];
+				if (ta.z !== tb.z) return ta.z - tb.z;
+				if (ta.y !== tb.y) return ta.y - tb.y;
+				return ta.x - tb.x;
+			});
 
-			// Bottom face (dark).
-			ctx.fillStyle = '#475569';
-			ctx.beginPath();
-			ctx.moveTo(p.x, p.y + TILE_H);
-			ctx.lineTo(p.x + THICK, p.y + TILE_H + THICK);
-			ctx.lineTo(p.x + TILE_W + THICK, p.y + TILE_H + THICK);
-			ctx.lineTo(p.x + TILE_W, p.y + TILE_H);
-			ctx.closePath();
-			ctx.fill();
-
-			// Right face (mid-dark).
-			ctx.fillStyle = '#64748b';
-			ctx.beginPath();
-			ctx.moveTo(p.x + TILE_W, p.y);
-			ctx.lineTo(p.x + TILE_W + THICK, p.y + THICK);
-			ctx.lineTo(p.x + TILE_W + THICK, p.y + TILE_H + THICK);
-			ctx.lineTo(p.x + TILE_W, p.y + TILE_H);
-			ctx.closePath();
-			ctx.fill();
-
-			// Front face.
-			ctx.fillStyle = front;
-			ctx.fillRect(p.x, p.y, TILE_W, TILE_H);
-			ctx.strokeStyle = '#94a3b8';
-			ctx.lineWidth = 1;
-			ctx.strokeRect(p.x, p.y, TILE_W, TILE_H);
-
-			// Symbol.
-			ctx.fillStyle = '#1e293b';
-			ctx.font = '22px sans-serif';
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillText(t.label, p.x + TILE_W / 2, p.y + TILE_H / 2);
-
-			// Selected highlight.
-			if (app.selected && app.selected.key === t.key) {
-				ctx.strokeStyle = '#38bdf8';
-				ctx.lineWidth = 3;
-				ctx.strokeRect(p.x - 2, p.y - 2, TILE_W + 4, TILE_H + 4);
+			for (var k = 0; k < order.length; k++) {
+				var idx = order[k];
+				var t = app.tiles[idx];
+				var el = createTileEl(t, idx);
+				var pos = layoutPos(t, app._metrics);
+				el.style.setProperty('--tx', pos.x + 'px');
+				el.style.setProperty('--ty', pos.y + 'px');
+				boardEl.appendChild(el);
+				app.tileEls[idx] = el;
 			}
-			// Hint highlight.
-			if (t.hinted) {
-				ctx.strokeStyle = '#22c55e';
-				ctx.lineWidth = 3;
-				ctx.strokeRect(p.x - 2, p.y - 2, TILE_W + 4, TILE_H + 4);
-			}
-
-			ctx.globalAlpha = 1;
+			updateStates();
+			fitBoard();
 		}
 
-		function render(m) {
-			app._metrics = m;
-			ctx.clearRect(0, 0, canvas.width / scale, canvas.height / scale);
-			// Draw by plane: base first, upper on top.
-			for (var z = 0; z <= m.maxZ; z++) {
-				for (var i = 0; i < app.tiles.length; i++) {
-					if (app.tiles[i].z === z) drawTile(app.tiles[i]);
+		function updateStates() {
+			for (var i = 0; i < app.tiles.length; i++) {
+				var t = app.tiles[i];
+				var el = app.tileEls[i];
+				if (!el) continue;
+				el.classList.toggle('removed', t.removed);
+				el.classList.toggle('in-staging', t.staging && !t.removed);
+				el.classList.toggle('blocked', !t.removed && !t.staging && !isFree(app.board, t));
+				el.classList.toggle('face-down', t.faceDown && !t.staging && !t.removed);
+				el.classList.toggle('hinted', !!t.hinted);
+				if (el._symEl) {
+					el._symEl.textContent = t.faceDown ? '🀄' : t.symbol;
 				}
 			}
 		}
 
 		/* ============================================================
-		   HIT TEST — find tile under (px,py) using the same layout math
+		   FITTING — scale the whole board, never individual tiles.
 		   ============================================================ */
-		function hitTest(px, py) {
-			var m = app._metrics;
-			var tile = null;
-			for (var z = 0; z <= m.maxZ; z++) {
-				for (var i = 0; i < app.tiles.length; i++) {
-					var t = app.tiles[i];
-					if (t.z !== z || t.removed) continue;
-					var p = layoutPos(t, m);
-					if (px >= p.x && px <= p.x + TILE_W &&
-					    py >= p.y && py <= p.y + TILE_H) {
-						tile = t;
-					}
-				}
-			}
-			return tile;
-		}
+		function fitBoard() {
+			var size = app._boardSize;
+			var wrapW = wrap.clientWidth || window.innerWidth;
+			var wrapH = wrap.clientHeight || window.innerHeight;
+			var s = Math.min((wrapW - 4) / size.w, (wrapH - 4) / size.h);
 
-		function canvasPos(e) {
-			var rect = canvas.getBoundingClientRect();
-			return {
-				x: (e.clientX - rect.left) / scale,
-				y: (e.clientY - rect.top) / scale
-			};
+			boardEl.style.width = size.w + 'px';
+			boardEl.style.height = size.h + 'px';
+			boardEl.style.transform = 'scale(' + s + ')';
+			boardEl.style.left = Math.round((wrapW - size.w * s) / 2) + 'px';
+			boardEl.style.top = Math.round((wrapH - size.h * s) / 2) + 'px';
 		}
 
 		/* ============================================================
@@ -442,13 +694,16 @@
 		var app = {
 			tiles: [],
 			board: null,
-			selected: null,
+			staging: [],          // tiles in the staging box (max 4)
+			peeking: null,        // face-down tile currently revealed
+			tileEls: [],
 			score: 0,
 			elapsed: 0,
 			timerInterval: null,
 			timerStarted: false,
 			history: [],
-			_metrics: null
+			_metrics: null,
+			_boardSize: null
 		};
 
 		function pairsLeft() {
@@ -470,38 +725,156 @@
 			if (app.timerInterval) { clearInterval(app.timerInterval); app.timerInterval = null; }
 		}
 
-		function handleClickPos(px, py) {
-			var tile = hitTest(px, py);
-			if (!tile) { app.selected = null; fitAndRender(); return; }
-			if (!isFree(app.board, tile)) { app.selected = null; fitAndRender(); return; }
-			if (!app.timerStarted) startTimer();
-
-			if (app.selected) {
-				if (app.selected.key === tile.key) {
-					app.selected = null;
-					fitAndRender();
-					return;
+		/* ============================================================
+		   STAGING BOX — click a free tile to send it here.
+		   Two same symbols → auto-match. 4 without match → game over.
+		   ============================================================ */
+		function renderStaging() {
+			stagingBoxEl.innerHTML = '';
+			for (var i = 0; i < MAX_STAGING; i++) {
+				var slot = document.createElement('div');
+				slot.className = 'staging-slot';
+				if (i < app.staging.length) {
+					slot.classList.add('filled');
+					slot.textContent = app.staging[i].symbol;
 				}
-				if (app.selected.symbol === tile.symbol) {
-					match(app.selected, tile);
-					return;
-				}
-				app.selected = null;
+				stagingBoxEl.appendChild(slot);
 			}
-			app.selected = tile;
-			fitAndRender();
 		}
 
-		function match(a, b) {
-			a.removed = true;
-			b.removed = true;
-			app.history.push([a, b]);
-			app.selected = null;
-			app.score += 100;
-			scoreEl.textContent = app.score;
+		function moveToStaging(tile) {
+			if (app.staging.length >= MAX_STAGING) return;
+			if (tile.staging || tile.removed) return;
+
+			/* Flight animation: capture source position & make a clone
+			   while the tile is still visible on the board. */
+			var srcEl = app.tileEls[app.tiles.indexOf(tile)];
+			var srcRect = null;
+			var flyer = null;
+			if (srcEl) {
+				srcRect = srcEl.getBoundingClientRect();
+				flyer = srcEl.cloneNode(true);
+				flyer.classList.remove('dragging', 'in-staging', 'removed', 'blocked', 'selected', 'hinted');
+				flyer.style.cssText =
+					'position:fixed;margin:0;z-index:500;pointer-events:none;will-change:transform;' +
+					'transition:transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 250ms ease;' +
+					'left:' + srcRect.left + 'px;top:' + srcRect.top + 'px;' +
+					'width:' + srcRect.width + 'px;height:' + srcRect.height + 'px;';
+			}
+
+			var pendingSlotIdx = app.staging.length;
+
+			app.staging.push(tile);
+			tile.staging = true;
+			tile.faceDown = false;
+
+			/* Auto-match: check if same symbol already in the box */
+			var matched = false;
+			for (var i = 0; i < app.staging.length - 1; i++) {
+				var prev = app.staging[i];
+				if (prev.symbol === tile.symbol && prev !== tile) {
+					prev.staging = false;
+					tile.staging = false;
+					prev.removed = true;
+					tile.removed = true;
+					app.staging = app.staging.filter(function (t) {
+						return t !== prev && t !== tile;
+					});
+					app.history.push([prev, tile]);
+					app.score += 100;
+					scoreEl.textContent = app.score;
+					matched = true;
+					break;
+				}
+			}
+
 			pairsLeftEl.textContent = pairsLeft();
-			fitAndRender();
+			updateStates();
+			renderStaging();
+
+			/* Launch the flying clone towards its slot */
+			if (flyer) {
+				var slot = stagingBoxEl.children[Math.min(pendingSlotIdx, MAX_STAGING - 1)] || stagingBoxEl;
+				var dstRect = slot.getBoundingClientRect();
+				var dx = dstRect.left - srcRect.left + (dstRect.width - srcRect.width) / 2;
+				var dy = dstRect.top - srcRect.top + (dstRect.height - srcRect.height) / 2;
+				var s = Math.max(0.1, Math.min(1,
+					dstRect.width / srcRect.width,
+					dstRect.height / srcRect.height
+				));
+				document.body.appendChild(flyer);
+				flyer.offsetWidth; /* force reflow to start the transition */
+				flyer.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + s + ')';
+				if (matched) flyer.style.opacity = '0';
+				setTimeout(function () { flyer.remove(); }, 350);
+			}
+
+			/* Game over: 4 tiles in the box without any match */
+			if (!matched && app.staging.length >= MAX_STAGING) {
+				stopTimer();
+				modalTitle.textContent = '💀 Staging Full!';
+				modalStats.textContent = '4 tiles, no match — try again!';
+				overlayEl.classList.add('show');
+				return;
+			}
+
 			if (pairsLeft() === 0) levelComplete();
+		}
+
+		/* ============================================================
+		   CLICK / TAP LOGIC
+		   face-down: 1st click reveals, 2nd click sends to staging.
+		   face-up: 1st click sends to staging.
+		   If a revealed tile matches one already in staging →
+		   auto-match without an extra click.
+		   ============================================================ */
+		function handleTileClick(tile) {
+			if (tile.removed || tile.staging) return;
+			if (!isFree(app.board, tile)) {
+				app.peeking = null;
+				updateStates();
+				return;
+			}
+			if (!app.timerStarted) startTimer();
+
+			/* Case 1: covered tile → reveal (cover previous peeked) */
+			if (tile.faceDown) {
+				if (app.peeking && app.peeking.key !== tile.key) {
+					app.peeking.faceDown = true;
+				}
+				tile.faceDown = false;
+				app.peeking = tile;
+
+				/* If its match is already in staging → auto-match */
+				for (var i = 0; i < app.staging.length; i++) {
+					if (app.staging[i].symbol === tile.symbol) {
+						app.peeking = null;
+						moveToStaging(tile);
+						return;
+					}
+				}
+
+				updateStates();
+				return;
+			}
+
+			/* Case 2: click on the currently peeked tile → staging */
+			if (app.peeking && app.peeking.key === tile.key) {
+				app.peeking = null;
+				moveToStaging(tile);
+				return;
+			}
+
+			/* Case 3: face-up tile → staging (any peeking tile re-covers) */
+			if (app.peeking) {
+				app.peeking.faceDown = true;
+				app.peeking = null;
+			}
+			moveToStaging(tile);
+		}
+
+		function match() {
+			/* Kept for downstream compat — matches are automatic in staging. */
 		}
 
 		function undo() {
@@ -509,14 +882,19 @@
 			var pair = app.history.pop();
 			pair[0].removed = false;
 			pair[1].removed = false;
-			fitAndRender();
+			pair[0].faceDown = false;
+			pair[1].faceDown = false;
+			pair[0].staging = false;
+			pair[1].staging = false;
+			updateStates();
+			renderStaging();
 			pairsLeftEl.textContent = pairsLeft();
 		}
 
 		function hint() {
 			var free = [];
 			app.board.forEach(function (t) {
-				if (!t.removed && isFree(app.board, t)) free.push(t);
+				if (!t.removed && !t.staging && isFree(app.board, t)) free.push(t);
 			});
 			var bySymbol = {};
 			free.forEach(function (t) {
@@ -526,11 +904,11 @@
 				if (bySymbol[sym].length >= 2) {
 					bySymbol[sym][0].hinted = true;
 					bySymbol[sym][1].hinted = true;
-					fitAndRender();
+					updateStates();
 					setTimeout(function () {
 						bySymbol[sym][0].hinted = false;
 						bySymbol[sym][1].hinted = false;
-						fitAndRender();
+						updateStates();
 					}, 2000);
 					return;
 				}
@@ -539,45 +917,118 @@
 
 		function levelComplete() {
 			stopTimer();
-			modalTitle.textContent = 'Cleared!';
-			overlay.style.display = 'flex';
+			modalTitle.textContent = '🏆 Cleared!';
+			modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score;
+			overlayEl.classList.add('show');
 		}
 
 		function startGame() {
+			stopTimer();
 			app.tiles = buildStaticLayout();
 			app.board = buildBoard(app.tiles);
-			app.selected = null;
+			app.staging = [];
+			app.peeking = null;
+			app.tileEls = [];
 			app.score = 0;
 			app.elapsed = 0;
 			app.history = [];
 			app.timerStarted = false;
-			stopTimer();
+
+			app._metrics = computeMetrics(app.tiles);
+			app._boardSize = boardSize(app._metrics);
+
 			timerEl.textContent = '0';
 			scoreEl.textContent = '0';
 			pairsLeftEl.textContent = pairsLeft();
-			overlay.style.display = 'none';
-			fitAndRender();
+			overlayEl.classList.remove('show');
+			renderStaging();
+			rebuildBoard();
 		}
 
-		var overlay = document.createElement('div');
-		var modalTitle = document.createElement('h2');
-		overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:1000;';
-		overlay.style.display = 'none';
-		modalTitle.style.cssText = 'color:#fff;font-size:2rem;background:#1e293b;padding:24px 40px;border-radius:16px;';
-		overlay.appendChild(modalTitle);
-		document.body.appendChild(overlay);
+		/* ============================================================
+		   DRAG TO PEEK — pointer events cover mouse + touch.
+		   Tiles can be lifted and moved; on release they snap back.
+		   Movement < 5px is treated as a normal click.
+		   ============================================================ */
+		var drag = {
+			active: false,
+			el: null,
+			tile: null,
+			startX: 0,
+			startY: 0,
+			baseX: 0,
+			baseY: 0,
+			moved: false
+		};
 
-		canvas.addEventListener('click', function (e) {
-			var pos = canvasPos(e);
-			handleClickPos(pos.x, pos.y);
+		function tileFromEvent(e) {
+			var el = e.target.closest('.tile');
+			if (!el) return null;
+			var idx = parseInt(el.dataset.index, 10);
+			var tile = app.tiles[idx];
+			if (!tile || tile.removed || tile.staging) return null;
+			return { el: el, tile: tile };
+		}
+
+		boardEl.addEventListener('pointerdown', function (e) {
+			var hit = tileFromEvent(e);
+			if (!hit) {
+				app.peeking = null;
+				updateStates();
+				return;
+			}
+			if (!isFree(app.board, hit.tile)) return;
+
+			drag.active = true;
+			drag.el = hit.el;
+			drag.tile = hit.tile;
+			drag.startX = e.clientX;
+			drag.startY = e.clientY;
+			drag.baseX = parseInt(hit.el.style.getPropertyValue('--tx'), 10);
+			drag.baseY = parseInt(hit.el.style.getPropertyValue('--ty'), 10);
+			drag.moved = false;
+			hit.el.classList.add('dragging');
+			try { hit.el.setPointerCapture(e.pointerId); } catch (err) {}
 		});
+
+		boardEl.addEventListener('pointermove', function (e) {
+			if (!drag.active) return;
+			var dx = e.clientX - drag.startX;
+			var dy = e.clientY - drag.startY;
+			if (Math.abs(dx) > 4 || Math.abs(dy) > 4) drag.moved = true;
+			if (!drag.moved) return;
+			drag.el.style.setProperty('--tx', (drag.baseX + dx) + 'px');
+			drag.el.style.setProperty('--ty', (drag.baseY + dy) + 'px');
+		});
+
+		function endDrag() {
+			if (!drag.active) return;
+			var el = drag.el;
+			var tile = drag.tile;
+			var wasClick = !drag.moved;
+
+			drag.active = false;
+			drag.el = null;
+			drag.tile = null;
+
+			/* Snap back with animation */
+			el.classList.remove('dragging');
+			el.style.setProperty('--tx', drag.baseX + 'px');
+			el.style.setProperty('--ty', drag.baseY + 'px');
+
+			if (wasClick) handleTileClick(tile);
+		}
+
+		boardEl.addEventListener('pointerup', endDrag);
+		boardEl.addEventListener('pointercancel', endDrag);
 
 		document.getElementById('btn-hint').addEventListener('click', hint);
 		document.getElementById('btn-undo').addEventListener('click', undo);
 		document.getElementById('btn-new').addEventListener('click', startGame);
+		document.getElementById('btn-play-again').addEventListener('click', startGame);
 
 		window.addEventListener('resize', function () {
-			if (app.tiles.length) fitAndRender();
+			if (app.tiles.length) fitBoard();
 		});
 
 		startGame();
