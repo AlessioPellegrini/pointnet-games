@@ -95,7 +95,8 @@
 		.tile.blocked {
 			pointer-events: none;
 			filter: brightness(0.75) saturate(0.5);
-			box-shadow: none;
+			/* No box-shadow override: every tile keeps the same 3D
+			   thickness, free or blocked — the only difference is dimming. */
 		}
 		.tile.selected {
 			transform: translateY(-6px) scale(1.08);
