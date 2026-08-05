@@ -1,0 +1,19 @@
+{
+	"name": "Mahjong Arcade",
+	"slug": "mahjong",
+	"version": "0.1.0",
+	"author": "PointNet Games",
+	"description": "Classic Mahjong Solitaire tile-matching with progressive arcade levels. Mobile-first, no pan/zoom, solvability guaranteed by solver.",
+	"type": "iframe",
+	"width": 400,
+	"height": 700,
+	"orientation": "portrait",
+	"controls": ["touch", "mouse"],
+	"categories": ["puzzle", "classic", "arcade"],
+	"difficulties": {
+		"arcade": "🎮 Arcade"
+	},
+	"max_score": 999999,
+	"license": "GPL-2.0+",
+	"instructions": "Match identical tiles to remove them. A tile is playable when nothing is stacked above it and at least one side is free. Clear the board to advance to the next level."
+}
