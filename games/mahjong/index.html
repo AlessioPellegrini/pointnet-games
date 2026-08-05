@@ -233,7 +233,6 @@
 						x: coord[0],
 						y: coord[1],
 						symbol: deck[c],
-						label: c + 1,   // DEBUG: sequential number 1..24
 						removed: false
 					});
 				}
@@ -398,7 +397,7 @@
 				el.style.left = ((t.x - m.minX) * STEP_X + t.z * Z_OFFSET_X) + 'px';
 				el.style.top = ((t.y - m.minY) * STEP_Y - t.z * Z_OFFSET_Y) + 'px';
 				el.style.zIndex = 10 + t.z * 10;
-				el.textContent = t.label;   // DEBUG: show number instead of emoji
+				el.textContent = t.symbol;
 				el.addEventListener('click', (function (tile) {
 					return function () { handleClick(tile); };
 				})(t));
