@@ -78,11 +78,16 @@
 			position: absolute;
 			width: 42px;
 			height: 48px;
-			/* NO 3D shadow at all: shadows and side-face tricks created an
-			   optical illusion on edge tiles (top-middle looked thicker).
-			   Depth is expressed 100% by BACKGROUND COLOUR per plane (z0/z1)
-			   plus the diagonal offset Z_OFFSET_X/Y. Impossible to misread. */
+			/* 3D block thickness via SOLID BORDERS, not shadows:
+			   - right + bottom borders are thick and dark (the "side faces")
+			   - top + left borders remain thin
+			   Every tile has the SAME exact border geometry no matter where
+			   it sits, so no tile can look thicker or higher than another.
+			   No shadow spread, no projection — the illusion is impossible. */
+			background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 70%, #cbd5e1 100%);
 			border: 1px solid #94a3b8;
+			border-right: 3px solid #64748b;
+			border-bottom: 4px solid #475569;
 			border-radius: 6px;
 			display: flex;
 			align-items: center;
@@ -92,11 +97,6 @@
 			cursor: pointer;
 			transition: transform 0.08s ease, filter 0.15s ease;
 		}
-
-		/* Plane 0 (base): light grey — reads as "bottom".
-		   Plane 1 (upper): white — reads as "top". */
-		.tile.z0 { background: #e2e8f0; }
-		.tile.z1 { background: #ffffff; }
 
 		.tile.free { pointer-events: auto; }
 		.tile.blocked {
