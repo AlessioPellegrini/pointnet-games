@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.4.0** — Difficulty rebalance with 15 layouts, 100 progressive levels and up to 130 tiles. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.4.1** — Splash screen, high-DPI board rendering and the 15-layout difficulty rebalance with 100 progressive levels and up to 130 tiles. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## Attribution
 
@@ -139,7 +139,17 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.4.0 — 15 layouts, difficulty rebalance & 5-file split (current)
+### v0.4.1 — Splash screen & crisp rendering (current)
+- Splash screen with title, description, PLAY button and version badge (`v0.4.1` in superscript after the title), matching the minesweeper-arcade pattern
+- Fullscreen request on PLAY (postMessage bridge / inline class) + `pointnet-games:start` support for the plugin's mobile "GIOCA" button
+- WordPress `pointnetGamesAPI` shim (postMessage) with `getNickname()` / `isUserLoggedIn()` / `_setGameId()`
+- Board rendered only after PLAY (not at init) so `fitBoard()` reads the final viewport size
+- Board scale applied in **two phases** (remove transform → next paint → re-apply) so the browser re-rasterizes tiles at the current viewport resolution — fixes low-res tiles when the iframe grows to fullscreen on WordPress
+- Tiles use **2D transforms only** (`translate()` instead of `translate3d()`): the whole board stays one composited layer, no per-tile GPU layer upscaling
+- `transform-origin: top left` on `#board` keeps the scaled board perfectly centred
+- `refitUntilStable()` re-fits after the async iframe fullscreen resize
+
+### v0.4.0 — 15 layouts, difficulty rebalance & 5-file split
 - Code split into 5 files: `index.html` (shell) + `style.css` + `data.js` + `engine.js` + `game.js` (was a single self-contained HTML)
 - New layouts: diamond, wall, labyrinth, pyramid_half, checker, bridge, spiral, helix (15 total)
 - XL variants for cross, pyramid and fortress — grids up to 6×9 (max 6 columns, 9 rows on mobile)

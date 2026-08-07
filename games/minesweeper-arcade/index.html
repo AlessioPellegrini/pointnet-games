@@ -362,6 +362,19 @@
 			line-height: 1.2;
 		}
 
+		.splash-version {
+			font-size: 0.45em;
+			font-weight: 700;
+			vertical-align: super;
+			margin-left: 4px;
+			opacity: 0.7;
+			background: linear-gradient(135deg, var(--accent), var(--accent-2));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+			letter-spacing: 0.3px;
+		}
+
 		.splash-subtitle { color: var(--text-dim); font-size: 1rem; margin-bottom: 20px; line-height: 1.4; }
 		.splash-play { font-size: 1.3rem; padding: 14px 40px; box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4); animation: pulse-glow 2s ease-in-out infinite; flex-shrink: 0; }
 		.splash-hint { margin-top: 10px; color: var(--text-dim); font-size: 0.8rem; }
@@ -456,7 +469,7 @@
 	<div id="splash">
 		<div class="splash-inner">
 			<div class="splash-emoji">💣</div>
-			<h1 class="splash-title">Minesweeper Arcade</h1>
+			<h1 class="splash-title">Minesweeper Arcade<sup class="splash-version">v1.1.0</sup></h1>
 			<p class="splash-subtitle">Beat progressive levels: clear the board, advance to the next level. One mistake and you're back to Level 1!</p>
 			<button id="splash-play" class="btn btn-primary splash-play">🎮 PLAY</button>
 			<p class="splash-hint">Desktop: click = reveal · right-click = flag</p>

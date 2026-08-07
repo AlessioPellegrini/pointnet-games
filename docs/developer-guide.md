@@ -276,6 +276,56 @@ una **schermata iniziale (splash)** separata dal gameplay:
 - La pagina WordPress sottostante (classifica + istruzioni) resta visibile
   una volta usciti dal fullscreen
 
+#### 🏷️ Mostra la versione nella splash
+
+Consigliato: aggiungi un **badge versione in apice** dopo il titolo della
+splash, allineato a `manifest.json` → `version`:
+
+```html
+<h1 class="splash-title">Mio Gioco<sup class="splash-version">v1.0.0</sup></h1>
+```
+
+```css
+.splash-version {
+	font-size: 0.45em;
+	font-weight: 700;
+	vertical-align: super;
+	margin-left: 4px;
+	opacity: 0.7;
+	letter-spacing: 0.3px;
+}
+```
+
+#### 🔍 Rendering nitido dentro l'iframe (raccomandazioni testate)
+
+L'iframe parte alla dimensione `manifest.json` (piccola) e cresce a
+fullscreen dopo il round-trip `fullscreen-request` → **async**. Se il board
+viene scalato con `transform: scale()`, il browser può riusare la texture
+rasterizzata alla dimensione piccola e upscalarla → **tiles/blur low-res**.
+
+Raccomandazioni testate sui giochi Mahjong e Minesweeper:
+
+1. **Evita `zoom` CSS per il fit**: forza un full layout recalc a ogni
+   cambiamento (lento) e rompe il centraggio (`offsetWidth` inaffidabile).
+   Usa `transform: scale()`.
+2. **`transform-origin: top left`** sul contenitore scalato — altrimenti lo
+   scale parte dal centro e la board appare spostata/tagliata.
+3. **Evita `translate3d()`/`perspective()` per-tile**: promuove ogni tile a
+   layer GPU separato rasterizzato alla dimensione nativa (blur all'hover).
+   Usa transform 2D (`translate()`) e `z-index` per lo stacking.
+4. **Rasterizzazione in due fasi**: per invalidare la texture GPU al resize
+   (rimuovi il transform → paint → ri-applica il nuovo scale):
+   ```javascript
+   el.style.transform = 'none';
+   requestAnimationFrame(function () {
+       el.style.transform = 'scale(' + s + ')';
+   });
+   ```
+5. **Re-fit fino a stabilizzazione**: dopo l'avvio, per ~600ms controlla a
+   ogni frame reale del wrapper e ri-applica il fit appena l'iframe cresce.
+6. **Non renderizzare il board all'init** dietro la splash: renderizzalo
+   solo al click GIOCA, quando il viewport ha le dimensioni finali.
+
 Se il tuo gioco non supporta il fullscreen, assicurati che il contenuto
 si adatti all'altezza indicata in `manifest.json` (`height`).
 
@@ -409,6 +459,7 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
+- **v0.1.4** — Sezione 5 "Buone Pratiche" ampliata: badge versione nella splash, raccomandazioni testate per rendering nitido nell'iframe (evitare `zoom` CSS, `transform-origin: top left`, transform 2D per-tile, rasterizzazione in due fasi, re-fit finché stabile, niente board all'init)
 - **v0.1.3** — Sezione 6.1 "Disinstallazione di un Gioco" (dalla dashboard PointNet Games, con opzione di eliminare i punteggi del singolo gioco)
 - **v0.1.2** — Aggiornato esempio `endGame()` (mostra il punteggio subito, posizione in background); nota su shim postMessage automatico con Promise garantite; avviso "mostra punteggio subito" nella sezione `submitScore`; classifica con solo miglior punteggio per giocatore; utenti registrati mostrano `user_login` univoco (anonimi = "Anonimo"); nuovo attributo `difficulty` per shortcode `[pointnet_game_leaderboard]` e `getLeaderboard()`
 - **v0.1.0** — Prima versione della guida API

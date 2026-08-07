@@ -126,6 +126,7 @@ class PointNet_Games_Admin {
 						<th><?php esc_html_e( 'ID', 'pointnet-games' ); ?></th>
 						<th><?php esc_html_e( 'Game', 'pointnet-games' ); ?></th>
 						<th><?php esc_html_e( 'Slug', 'pointnet-games' ); ?></th>
+						<th><?php esc_html_e( 'Version', 'pointnet-games' ); ?></th>
 						<th><?php esc_html_e( 'Shortcode', 'pointnet-games' ); ?></th>
 						<th><?php esc_html_e( 'Game Page', 'pointnet-games' ); ?></th>
 						<th><?php esc_html_e( 'Actions', 'pointnet-games' ); ?></th>
@@ -373,13 +374,17 @@ class PointNet_Games_Admin {
 		);
 
 		if ( empty( $games ) ) {
-			echo '<tr><td colspan="6">' . esc_html__( 'No games installed. Add a folder with manifest.json in games/.', 'pointnet-games' ) . '</td></tr>';
+			echo '<tr><td colspan="7">' . esc_html__( 'No games installed. Add a folder with manifest.json in games/.', 'pointnet-games' ) . '</td></tr>';
 			return;
 		}
 
 		foreach ( $games as $game ) {
 			$slug = get_post_meta( $game->ID, '_pointnet_games_slug', true );
 			$slug = $slug ? $slug : $game->post_name;
+
+			// Game version from manifest.json (set by the registry sync).
+			$version = get_post_meta( $game->ID, '_pointnet_games_version', true );
+			$version = $version ? $version : '—';
 
 			// Canonical URL: the CPT permalink (e.g. /games/minesweeper-arcade/).
 			$game_url = get_permalink( $game->ID );
@@ -392,6 +397,7 @@ class PointNet_Games_Admin {
 			}
 			echo '</td>';
 			echo '<td><code>' . esc_html( $slug ) . '</code></td>';
+			echo '<td><code>' . esc_html( $version ) . '</code></td>';
 			echo '<td><code>[pointnet_game slug="' . esc_html( $slug ) . '"]</code></td>';
 			echo '<td><a href="' . esc_url( $game_url ) . '" target="_blank">' . esc_html__( 'Open game', 'pointnet-games' ) . '</a></td>';
 

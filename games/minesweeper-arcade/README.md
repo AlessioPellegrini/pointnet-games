@@ -46,7 +46,12 @@ Total score = sum of all completed levels
 
 ## 📝 Changelog
 
-### 1.0.0 (current)
+### 1.1.0 (current)
+- Version badge (`v1.1.0` in superscript) added to the splash screen title
+- High-DPI board rendering: the board rasterizes at the current viewport resolution whenever the iframe grows to fullscreen (two-phase transform re-application), keeping cells and text crisp on WordPress embeds
+- Splash screen now shows the game version in superscript after the title, consistent with mahjong
+
+### 1.0.0
 - Initial release with **15 progressive levels** and gradual difficulty
 - Mobile friendly grids (max 14 columns)
 - Progressive scoring with per-level multiplier

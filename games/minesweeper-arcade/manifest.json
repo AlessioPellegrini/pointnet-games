@@ -1,7 +1,7 @@
 {
 	"name": "Minesweeper Arcade",
 	"slug": "minesweeper-arcade",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"author": "PointNet Games",
 	"description": "Minesweeper with progressive levels: clear the board and move to the next level. One mistake and you're back to Level 1. Mobile friendly.",
 	"type": "iframe",

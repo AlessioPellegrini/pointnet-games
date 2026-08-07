@@ -110,8 +110,20 @@ html, body {
 	position: absolute;
 	top: 0;
 	left: 0;
+	/* Anchor the scale to the top-left corner. Without this the default
+	   transform-origin (50% 50%) makes scale() expand the board from its
+	   centre, shifting the visible board LEFT and clipping it at the TOP
+	   of board-wrap (which has overflow:hidden). With top left, the
+	   scaled board sits exactly at the (left, top) computed by
+	   fitBoard(), so the centring formula is correct. */
 	transform-origin: top left;
 	touch-action: none;
+	/* The board is fitted with transform: scale() set by fitBoard() in
+	   game.js. top/left/width/height are set in JS to centre the scaled
+	   board inside board-wrap. fitBoard() applies the scale in two phases
+	   (remove transform → next paint → re-apply) so the browser creates a
+	   fresh texture at the CURRENT viewport resolution — this is what
+	   keeps tiles crisp when the WordPress iframe grows to fullscreen. */
 }
 
 /* ----------------------------------------------------------
@@ -142,8 +154,13 @@ html, body {
 	font-weight: 800;
 	cursor: pointer;
 	transition: transform 0.12s ease;
-	transform: perspective(700px) translate3d(var(--tx), var(--ty), var(--tz));
-	will-change: transform;
+	/* 2D transform ONLY — this is the key fix. A 3D transform
+	   (translate3d / perspective) automatically promotes every tile
+	   to its own GPU layer, rasterized at native size and then
+	   upscaled by #board's scale() → low-res. With a plain translate()
+	   the whole board stays one composited layer and is rasterized
+	   at the final viewport resolution → crisp, always. */
+	transform: translate(var(--tx), var(--ty));
 }
 
 .tile.z0 { z-index: 1; }
@@ -201,7 +218,7 @@ html, body {
 .tile.face-down.blocked:hover .tile-overlay { opacity: 0; }
 .tile.face-down.blocked:hover { opacity: 1; }
 
-.tile:hover { transform: perspective(700px) translate3d(var(--tx), var(--ty), var(--tz)) scale(1.05); }
+.tile:hover { transform: translate(var(--tx), var(--ty)) scale(1.05); }
 
 .tile-overlay {
 	position: absolute;
@@ -225,7 +242,7 @@ html, body {
 .tile.z1.blocked:not(.face-down) {
 	background: linear-gradient(180deg, #e0e3e7 0%, #cdd1d6 100%);
 }
-.tile.blocked:hover { transform: perspective(700px) translate3d(var(--tx), var(--ty), var(--tz)); }
+.tile.blocked:hover { transform: translate(var(--tx), var(--ty)); }
 .tile.blocked:hover .tile-overlay { opacity: 0; }
 
 .tile.removed { visibility: hidden; pointer-events: none; }
@@ -236,13 +253,16 @@ html, body {
 .tile.selected { outline: 3px solid var(--accent); outline-offset: 2px; z-index: 3; }
 .tile.hinted { outline: 3px solid var(--success); outline-offset: 2px; z-index: 3; }
 
-/* Dragging (peek): lift over everything, no transition lag */
+/* Dragging (peek): lift over everything, no transition lag.
+   Also 2D translate() here — even during the drag the tile must stay
+   in the board layer so it is always rasterized at the final scale
+   (no GPU layer upscaling → no blur). */
 .tile.dragging {
 	z-index: 100;
 	transition: none;
 	touch-action: none;
 	cursor: grabbing;
-	transform: perspective(700px) translate3d(var(--tx), var(--ty), var(--tz));
+	transform: translate(var(--tx), var(--ty));
 }
 .tile.dragging .tile-overlay { opacity: 0; }
 

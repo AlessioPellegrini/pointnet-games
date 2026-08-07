@@ -28,6 +28,9 @@
 	var modalTitle = document.getElementById('modal-title');
 	var modalStats = document.getElementById('modal-stats');
 	var stagingBoxEl = document.getElementById('staging-box');
+	var splashEl = document.getElementById('splash');
+	var splashPlayBtn = document.getElementById('splash-play');
+	var fsCloseBtn = document.getElementById('fs-close');
 
 	/* ============================================================
 	   DOM TILES
@@ -115,14 +118,55 @@
 		var wrapH = wrap.clientHeight || window.innerHeight;
 		var s = Math.min((wrapW - 4) / size.w, (wrapH - 4) / size.h);
 		app._scale = s;
+		app._fitW = wrapW;
+		app._fitH = wrapH;
 
+		/* transform: scale() is used for fit. Centring with the raw
+		   formula is correct here (unlike zoom, transform:scale() does
+		   not change the layout box). */
 		boardEl.style.width = size.w + 'px';
 		boardEl.style.height = size.h + 'px';
-		/* Centre explicitly: the scaled board has screen size size.*s.
-		   Position its top-left so its centre sits exactly in the wrap. */
 		boardEl.style.left = Math.round((wrapW - size.w * s) / 2) + 'px';
 		boardEl.style.top = Math.round((wrapH - size.h * s) / 2) + 'px';
-		boardEl.style.transform = 'scale(' + s + ')';
+
+		/* Two-phase re-rasterization. The blur on WordPress happened
+		   because after the iframe resize, changing scale() alone
+		   reused the previously rasterized (small) board texture and
+		   upscaled it. Removing the transform on the first frame makes
+		   the browser discard that texture; re-applying the new scale
+		   on the NEXT paint generates a fresh texture at the current
+		   viewport resolution → crisp tiles at any embed size, without
+		   the layout cost of CSS zoom. */
+		boardEl.style.transform = 'none';
+		requestAnimationFrame(function () {
+			boardEl.style.transform = 'scale(' + s + ')';
+		});
+	}
+
+	/* Re-fit loop. The WordPress parent resizes the game iframe
+	   asynchronously after the fullscreen-request round-trip, so a single
+	   fit can run at the small embed size → the board is fitted small then
+	   upscaled (blurred) to fullscreen. This loop re-checks the real
+	   board-wrap size every animation frame and re-fits whenever it
+	   changes, until it stabilizes. Self-terminates after ~600ms, so it
+	   costs almost nothing when the size is already correct. */
+	function refitUntilStable() {
+		var deadline = Date.now() + 600;
+		var stableFrames = 0;
+
+		function tick() {
+			var w = wrap.clientWidth;
+			var h = wrap.clientHeight;
+			if (w !== app._fitW || h !== app._fitH) {
+				stableFrames = 0;
+				fitBoard();
+			} else {
+				stableFrames++;
+			}
+			if (stableFrames >= 3 || Date.now() > deadline) return;
+			requestAnimationFrame(tick);
+		}
+		requestAnimationFrame(tick);
 	}
 
 	/* ============================================================
@@ -419,6 +463,11 @@
 		overlayEl.classList.remove('show');
 		renderStaging();
 		rebuildBoard();
+		/* Watch for the async iframe resize (WordPress fullscreen): if the
+		   board was rasterized at the small embed size, refitUntilStable()
+		   detects the real (larger) board-wrap size and re-rasterizes the
+		   board at the new resolution before the user perceives blur. */
+		refitUntilStable();
 	}
 
 	/* ============================================================
@@ -551,5 +600,111 @@
 		if (app.tiles.length) fitBoard();
 	});
 
-	startGame();
+	/* ============================================================
+	   FULLSCREEN / SPLASH
+	   ============================================================ */
+	function requestGameFullscreen() {
+		var inIframe = window.parent !== window;
+		if (inIframe) {
+			window.parent.postMessage({ type: 'pointnet-games:fullscreen-request' }, '*');
+		} else {
+			document.body.classList.add('pointnet-games-fs');
+			fsCloseBtn.style.display = 'flex';
+		}
+	}
+
+	function exitGameFullscreen() {
+		var inIframe = window.parent !== window;
+		if (inIframe) {
+			window.parent.postMessage({ type: 'pointnet-games:fullscreen-exit' }, '*');
+		} else {
+			document.body.classList.remove('pointnet-games-fs');
+			fsCloseBtn.style.display = 'none';
+		}
+	}
+
+	/* Defer startGame() to the next animation frame so the splash fade
+	   is applied before the board renders. The WordPress async iframe
+	   resize is handled by refitUntilStable() inside startGame(), so a
+	   single rAF is enough — double rAF only delayed the board. */
+	function startAfterSplash() {
+		requestAnimationFrame(startGame);
+	}
+
+	splashPlayBtn.addEventListener('click', function () {
+		splashEl.classList.add('hidden');
+		requestGameFullscreen();
+		startAfterSplash();
+	});
+
+	// External start message from the parent page "PLAY" button.
+	window.addEventListener('message', function (event) {
+		var msg = event.data;
+		if (!msg || typeof msg !== 'object' || msg.type !== 'pointnet-games:start') {
+			return;
+		}
+		splashEl.classList.add('hidden');
+		requestGameFullscreen();
+		startAfterSplash();
+	});
+
+	fsCloseBtn.addEventListener('click', function () {
+		exitGameFullscreen();
+	});
+
+	/* ============================================================
+	   WP GAMES INTEGRATION
+	   ============================================================ */
+	function initWPGamesBridge() {
+		var params = new URLSearchParams(window.location.search);
+
+		if (params.get('pointnet_game_id')) {
+			var gameId = params.get('pointnet_game_id');
+
+			if (typeof window.pointnetGamesAPI !== 'undefined') {
+				window.pointnetGamesAPI._setGameId(parseInt(gameId, 10) || 0);
+			} else {
+				window.parent.postMessage({ type: 'pointnet-games:init' }, '*');
+			}
+		}
+
+		window.addEventListener('message', function (event) {
+			var msg = event.data;
+			if (!msg || typeof msg !== 'object' || !msg.type) return;
+
+			if (msg.type === 'pointnet-games:init-confirm') {
+				window.__wpGamesState = window.__wpGamesState || {};
+				window.__wpGamesState.gameId = msg.data.gameId;
+				window.__wpGamesState.nickname = msg.data.nickname;
+				window.__wpGamesState.loggedIn = msg.data.loggedIn;
+			}
+		});
+	}
+
+	function wirePostMessageAPI() {
+		if (typeof window.pointnetGamesAPI !== 'undefined') return;
+
+		window.pointnetGamesAPI = {
+			_currentGameId: parseInt(new URLSearchParams(window.location.search).get('pointnet_game_id'), 10) || 0,
+
+			_setGameId: function (id) {
+				this._currentGameId = id || 0;
+			},
+
+			getNickname: function () {
+				return window.__wpGamesState ? window.__wpGamesState.nickname || '' : '';
+			},
+
+			isUserLoggedIn: function () {
+				return !!(window.__wpGamesState && window.__wpGamesState.loggedIn);
+			}
+		};
+	}
+
+	/* The board is rendered only when PLAY is pressed: startGame()
+	   is called from the splash button / pointnet-games:start.
+	   Rendering at init would compute a wrong board scale and make
+	   the tiles appear low-res. */
+	initWPGamesBridge();
+	wirePostMessageAPI();
 })();
