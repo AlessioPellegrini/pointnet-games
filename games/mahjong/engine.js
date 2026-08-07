@@ -165,14 +165,14 @@ function solveBoard(board) {
    GEOMETRY — integer pixels for every tile.
    The board element is the ONLY thing that gets scaled.
    ============================================================ */
-var TILE_W = 42, TILE_H = 56;
-var SIDE_R = 2;                 // right face (px)
+var TILE_W = 48, TILE_H = 64;
+var SIDE_R = 1;                 // right face (px)
 var SIDE_B = 3;                 // bottom face (px)
-var STEP_X = 22;                // horizontal pitch between x-cells (2 cells = 44px)
-var STEP_Y = 61;                // vertical pitch between rows
-var Z_OFFSET_X = 5;             // horizontal plane shift (dx per plane) — slight right shift
+var STEP_X = 25;                // horizontal pitch between x-cells (2 cells = 50px)
+var STEP_Y = 69;                // vertical pitch between rows
+var Z_OFFSET_X = 0;             // horizontal plane shift (dx per plane) — none, perfectly centered
 var Z_OFFSET_Y = 8;             // upward plane shift (dy per plane) — slight up shift
-var PAD = 8;                    // breathing room around the board
+var PAD = 4;                    // breathing room around the board
 var TOP_PAD_EXTRA = 2;          // extra top clearance — LOWER = board sits higher
 
 function computeMetrics(tiles) {

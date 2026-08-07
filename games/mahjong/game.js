@@ -118,12 +118,10 @@
 
 		boardEl.style.width = size.w + 'px';
 		boardEl.style.height = size.h + 'px';
-		/* transform-origin is center center → position board at the wrap
-		   center, then scale + slight 3D rotateX for pseudo-3D depth. */
-		boardEl.style.left = '50%';
-		boardEl.style.top = '50%';
-		boardEl.style.marginLeft = (-size.w / 2) + 'px';
-		boardEl.style.marginTop = (-size.h / 2 + 8) + 'px';
+		/* Centre explicitly: the scaled board has screen size size.*s.
+		   Position its top-left so its centre sits exactly in the wrap. */
+		boardEl.style.left = Math.round((wrapW - size.w * s) / 2) + 'px';
+		boardEl.style.top = Math.round((wrapH - size.h * s) / 2) + 'px';
 		boardEl.style.transform = 'scale(' + s + ')';
 	}
 
@@ -329,6 +327,17 @@
 
 		/* Case 3: face-up tile → staging (any peeking tile re-covers) */
 		if (app.peeking) {
+			/* AUTO-MATCH: the peeked tile and the clicked tile share
+			   the same symbol → BOTH go to staging immediately (the
+			   peeked tile must not be re-covered). */
+			if (app.peeking.key !== tile.key && app.peeking.symbol === tile.symbol) {
+				var first = app.peeking;
+				app.peeking = null;
+				moveToStaging(first);
+				moveToStaging(tile);
+				return;
+			}
+			/* Otherwise: re-cover the peeked tile. */
 			app.peeking.faceDown = true;
 			app.peeking = null;
 		}

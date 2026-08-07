@@ -110,7 +110,7 @@ html, body {
 	position: absolute;
 	top: 0;
 	left: 0;
-	transform-origin: center center;
+	transform-origin: top left;
 	touch-action: none;
 }
 
@@ -124,8 +124,8 @@ html, body {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 42px;
-	height: 56px;
+	width: 48px;
+	height: 64px;
 	border-radius: 4px;
 	background: linear-gradient(180deg, #f7f9fc 0%, #e9edf2 100%);
 	color: #1e293b;
@@ -246,7 +246,7 @@ html, body {
 }
 .tile.dragging .tile-overlay { opacity: 0; }
 
-.tile-sym { font-size: 26px; line-height: 1; }
+.tile-sym { font-size: 30px; line-height: 1; }
 
 .plane-badge {
 	position: absolute;
@@ -347,6 +347,6 @@ html, body {
 	.btn { padding: 6px 14px; font-size: 0.8rem; }
 	.game-title { font-size: 1.1rem; }
 	.status-item { font-size: 0.8rem; }
-	.tile-sym { font-size: 18px; }
+	.tile-sym { font-size: 28px; }
 	.board-wrap { border-radius: 10px; }
 }

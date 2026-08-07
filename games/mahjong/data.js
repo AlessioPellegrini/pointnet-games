@@ -772,32 +772,34 @@ function buildStepRanges(count) {
 var STEP_RANGES = buildStepRanges(26);
 
 var ORDERED_STEPS = [
+	/* covered = NUMERO DI TILE COPERTE VISIBILI (da v0.4.0: una sola
+	   tile per coppia è coperta, la gemella è scoperta). */
 	{ layout: 'dragon',      variant: 'small',  symSet: 'default', covered: 0, maxStaging: 4 },
 	{ layout: 'cross',       variant: 'small',  symSet: 'red',     covered: 0, maxStaging: 4 },
-	{ layout: 'pyramid',     variant: 'small',  symSet: 'green',   covered: 1, maxStaging: 4 },
-	{ layout: 'turtle',      variant: 'small',  symSet: 'blue',    covered: 1, maxStaging: 4 },
-	{ layout: 'checker',     variant: 'small',  symSet: 'gold',    covered: 2, maxStaging: 4 },
-	{ layout: 'halfcover',   variant: 'small',  symSet: 'dark',    covered: 2, maxStaging: 3 },
-	{ layout: 'diamond',     variant: 'small',  symSet: 'default', covered: 2, maxStaging: 3 },
-	{ layout: 'cross',       variant: 'medium', symSet: 'red',     covered: 3, maxStaging: 3 },
-	{ layout: 'pyramid_half', variant: 'small', symSet: 'green',   covered: 3, maxStaging: 3 },
-	{ layout: 'dragon',      variant: 'medium', symSet: 'blue',    covered: 3, maxStaging: 3 },
-	{ layout: 'labyrinth',   variant: 'small',  symSet: 'gold',    covered: 4, maxStaging: 3 },
-	{ layout: 'bridge',      variant: 'small',  symSet: 'dark',    covered: 4, maxStaging: 3 },
-	{ layout: 'pyramid',     variant: 'medium', symSet: 'default', covered: 4, maxStaging: 3 },
-	{ layout: 'spiral',      variant: 'small',  symSet: 'red',     covered: 5, maxStaging: 3 },
-	{ layout: 'turtle',      variant: 'medium', symSet: 'green',   covered: 5, maxStaging: 3 },
-	{ layout: 'diamond',     variant: 'medium', symSet: 'blue',    covered: 5, maxStaging: 3 },
-	{ layout: 'wall',        variant: 'medium', symSet: 'gold',    covered: 6, maxStaging: 3 },
-	{ layout: 'helix',       variant: 'small',  symSet: 'dark',    covered: 6, maxStaging: 3 },
-	{ layout: 'fortress',    variant: 'large',  symSet: 'default', covered: 6, maxStaging: 3 },
-	{ layout: 'pyramid',     variant: 'large',  symSet: 'red',     covered: 7, maxStaging: 3 },
-	{ layout: 'pyramid_half', variant: 'medium', symSet: 'green',  covered: 7, maxStaging: 3 },
-	{ layout: 'labyrinth',   variant: 'medium', symSet: 'blue',    covered: 7, maxStaging: 2 },
-	{ layout: 'pyramid_half', variant: 'large', symSet: 'gold',    covered: 8, maxStaging: 2 },
-	{ layout: 'pyramid_half', variant: 'xl',     symSet: 'dark',    covered: 8, maxStaging: 2 },
-	{ layout: 'wall',        variant: 'large',  symSet: 'dark',    covered: 8, maxStaging: 2 },
-	{ layout: 'wall',        variant: 'xl',     symSet: 'default', covered: 8, maxStaging: 2 }
+	{ layout: 'pyramid',     variant: 'small',  symSet: 'green',   covered: 2, maxStaging: 4 },
+	{ layout: 'turtle',      variant: 'small',  symSet: 'blue',    covered: 2, maxStaging: 4 },
+	{ layout: 'checker',     variant: 'small',  symSet: 'gold',    covered: 4, maxStaging: 4 },
+	{ layout: 'halfcover',   variant: 'small',  symSet: 'dark',    covered: 4, maxStaging: 3 },
+	{ layout: 'diamond',     variant: 'small',  symSet: 'default', covered: 4, maxStaging: 3 },
+	{ layout: 'cross',       variant: 'medium', symSet: 'red',     covered: 6, maxStaging: 3 },
+	{ layout: 'pyramid_half', variant: 'small', symSet: 'green',   covered: 6, maxStaging: 3 },
+	{ layout: 'dragon',      variant: 'medium', symSet: 'blue',    covered: 6, maxStaging: 3 },
+	{ layout: 'labyrinth',   variant: 'small',  symSet: 'gold',    covered: 8, maxStaging: 3 },
+	{ layout: 'bridge',      variant: 'small',  symSet: 'dark',    covered: 8, maxStaging: 3 },
+	{ layout: 'pyramid',     variant: 'medium', symSet: 'default', covered: 8, maxStaging: 3 },
+	{ layout: 'spiral',      variant: 'small',  symSet: 'red',     covered: 10, maxStaging: 3 },
+	{ layout: 'turtle',      variant: 'medium', symSet: 'green',   covered: 10, maxStaging: 3 },
+	{ layout: 'diamond',     variant: 'medium', symSet: 'blue',    covered: 10, maxStaging: 3 },
+	{ layout: 'wall',        variant: 'medium', symSet: 'gold',    covered: 12, maxStaging: 3 },
+	{ layout: 'helix',       variant: 'small',  symSet: 'dark',    covered: 12, maxStaging: 3 },
+	{ layout: 'fortress',    variant: 'large',  symSet: 'default', covered: 12, maxStaging: 3 },
+	{ layout: 'pyramid',     variant: 'large',  symSet: 'red',     covered: 14, maxStaging: 3 },
+	{ layout: 'pyramid_half', variant: 'medium', symSet: 'green',  covered: 14, maxStaging: 3 },
+	{ layout: 'labyrinth',   variant: 'medium', symSet: 'blue',    covered: 14, maxStaging: 2 },
+	{ layout: 'pyramid_half', variant: 'large', symSet: 'gold',    covered: 16, maxStaging: 2 },
+	{ layout: 'pyramid_half', variant: 'xl',     symSet: 'dark',    covered: 16, maxStaging: 2 },
+	{ layout: 'wall',        variant: 'large',  symSet: 'dark',    covered: 16, maxStaging: 2 },
+	{ layout: 'wall',        variant: 'xl',     symSet: 'default', covered: 16, maxStaging: 2 }
 ];
 
 /* Holds the level definition last generated — game.js reads
@@ -918,26 +920,19 @@ function generateLevel(levelIndex) {
 	return lastBest;
 }
 
-/* Cover numPairs random pairs of tiles (memory mechanic) */
+/* Cover numPairs SINGLE tiles (memory mechanic).
+   IMPORTANT: only ONE tile per pair is covered — the twin stays
+   face-up. This way a covered tile can match with its uncovered
+   twin (or with another covered tile of the same symbol). */
 function applyFaceDown(tiles, numPairs) {
 	var done = 0;
 	var guard = 0;
-	while (done < numPairs && guard < 50) {
+	while (done < numPairs && guard < 100) {
 		guard++;
 		var idx = Math.floor(Math.random() * tiles.length);
 		if (tiles[idx].faceDown) continue;
-		var sym = tiles[idx].symbol;
-		var pairIdx = -1;
-		for (var i = 0; i < tiles.length; i++) {
-			if (i !== idx && tiles[i].symbol === sym && !tiles[i].faceDown) {
-				pairIdx = i;
-				break;
-			}
-		}
-		if (pairIdx !== -1) {
-			tiles[idx].faceDown = true;
-			tiles[pairIdx].faceDown = true;
-			done++;
-		}
+		/* Only cover the selected tile; the matching tile remains visible. */
+		tiles[idx].faceDown = true;
+		done++;
 	}
 }
