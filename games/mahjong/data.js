@@ -410,51 +410,63 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'wall': {
+		/* FISICA: ogni tile a z>0 è FULL e poggia su una FULL tile
+		   direttamente sotto (z-1, stessa x, stessa y). Piani pieni
+		   che si restringono di 2 colonne/2 righe — niente half-cover,
+		   niente tile sospese. */
 		'medium': function () {
-			/* Muro con finestre: griglia a scacchiera con buchi
-			   (celle (x+y) dispari vuote) + mattoni sfalsati sopra. */
 			var pts = [];
-			for (var y = 0; y < 5; y++) {
-				for (var x = 0; x < 6; x++) {
-					if ((x + y) % 2 === 0) pts.push({ z: 0, x: x * 2, y: y });
-				}
+			/* base piena 5×6 (x 0..8, y 0..5) */
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			for (var y1 = 0; y1 < 3; y1++) {
-				for (var x1 = 0; x1 < 4; x1++) pts.push({ z: 1, x: x1 * 2 + 2, y: y1 + 1 });
+			/* piano 1: full 3×4 (x 2,4,6; y 1..4) */
+			for (var y1 = 1; y1 < 5; y1++) {
+				for (var x1 = 2; x1 <= 6; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			pts.push({ z: 2, x: 4, y: 1 }, { z: 2, x: 6, y: 1 }, { z: 2, x: 8, y: 1 });
-			return evenTrim(pts); // 15+12+3 = 30
+			/* piano 2: full 1×2 (x 4; y 2..3) */
+			for (var y2 = 2; y2 < 4; y2++) pts.push({ z: 2, x: 4, y: y2 });
+			/* vertice */
+			pts.push({ z: 3, x: 4, y: 3 });
+			return evenTrim(pts); // 30+12+2+1 = 45
 		},
 		'large': function () {
 			var pts = [];
+			/* base piena 6×7 (x 0..10, y 0..6) */
 			for (var y = 0; y < 7; y++) {
-				for (var x = 0; x < 6; x++) {
-					if ((x + y) % 2 === 0) pts.push({ z: 0, x: x * 2, y: y });
-				}
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			for (var y1 = 0; y1 < 5; y1++) {
-				for (var x1 = 0; x1 < 4; x1++) pts.push({ z: 1, x: x1 * 2 + 2, y: y1 + 1 });
+			/* piano 1: full 4×5 (x 2,4,6,8; y 1..5) */
+			for (var y1 = 1; y1 < 6; y1++) {
+				for (var x1 = 2; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			for (var y2 = 1; y2 < 4; y2++) {
-				for (var x2 = 2; x2 < 4; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
+			/* piano 2: full 2×3 (x 4,6; y 2..4) */
+			for (var y2 = 2; y2 < 5; y2++) {
+				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
 			}
-			return evenTrim(pts); // 21+20+4 = 45 → 44
+			/* vertice */
+			pts.push({ z: 3, x: 6, y: 3 });
+			return evenTrim(pts); // 42+20+6+1 = 69
 		},
 		'xl': function () {
 			var pts = [];
+			/* base piena 6×9 (x 0..10, y 0..8) */
 			for (var y = 0; y < 9; y++) {
-				for (var x = 0; x < 6; x++) {
-					if ((x + y) % 2 === 0) pts.push({ z: 0, x: x * 2, y: y });
-				}
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			for (var y1 = 0; y1 < 7; y1++) {
-				for (var x1 = 0; x1 < 4; x1++) pts.push({ z: 1, x: x1 * 2 + 2, y: y1 + 1 });
+			/* piano 1: full 5×7 (x 0,2,4,6,8; y 1..7) */
+			for (var y1 = 1; y1 < 8; y1++) {
+				for (var x1 = 0; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			for (var y2 = 1; y2 < 5; y2++) {
-				for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
+			/* piano 2: full 3×5 (x 2,4,6; y 2..6) */
+			for (var y2 = 2; y2 < 7; y2++) {
+				for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: y2 });
 			}
-			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 6, y: 2 }, { z: 3, x: 6, y: 3 });
-			return evenTrim(pts); // 27+28+6+3 = 64
+			/* piano 3: full 1×3 (x 4; y 3..5) */
+			for (var y3 = 3; y3 < 6; y3++) pts.push({ z: 3, x: 4, y: y3 });
+			/* vertice */
+			pts.push({ z: 4, x: 4, y: 4 });
+			return evenTrim(pts); // 54+35+15+3+1 = 108
 		}
 	},
 
@@ -825,6 +837,16 @@ function generateLevel(levelIndex) {
 	LAST_LEVEL_DEF = level;
 	var chosen = LAYOUT_BUILDERS[level.layout][level.variant]();
 	var layout = chosen.filter(function (p) { return p.y >= 0; });
+	/* PHYSICS CHECK: every tile above layer 0 must have support below.
+	   Logs offenders to console — the board still loads, but the
+	   developer sees exactly which tiles were built floating. */
+	if (typeof validateSupport === 'function') {
+		var badSupport = validateSupport(layout);
+		if (badSupport.length) {
+			console.warn('[mahjong] ' + level.layout + '/' + level.variant +
+				' has ' + badSupport.length + ' unsupported tiles:', badSupport);
+		}
+	}
 	var fullSize = layout.length;
 
 	/* IMPORTANT (v0.4.0 rebalance): use the FULL layout every time.

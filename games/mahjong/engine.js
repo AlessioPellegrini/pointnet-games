@@ -53,6 +53,37 @@ function isFree(board, tile) {
 	return !(hasLeft && hasRight);
 }
 
+/* PHYSICS RULE: every tile at z>0 MUST have support below.
+   - A FULL tile (x,y) requires a FULL tile directly at (z-1, x, y).
+   - A HALF tile (x,y) requires 4 FULL tiles at (x±1,y) and (x±1,y+1)
+     on the layer below.
+   Returns array of offending tile positions (empty = all valid). */
+function validateSupport(layout) {
+	var has = {};
+	for (var i = 0; i < layout.length; i++) {
+		var p = layout[i];
+		var k = p.z + ',' + p.x + ',' + p.y;
+		has[k] = p;
+	}
+	var bad = [];
+	for (var j = 0; j < layout.length; j++) {
+		var t = layout[j];
+		if (t.z <= 0) continue;
+		if (t.isHalf) {
+			var ok = has[t.z - 1 + ',' + (t.x - 1) + ',' + t.y] &&
+			         has[t.z - 1 + ',' + (t.x + 1) + ',' + t.y] &&
+			         has[t.z - 1 + ',' + (t.x - 1) + ',' + (t.y + 1)] &&
+			         has[t.z - 1 + ',' + (t.x + 1) + ',' + (t.y + 1)];
+			if (!ok) bad.push('half ' + t.z + '/' + t.x + '/' + t.y);
+		} else {
+			if (!has[t.z - 1 + ',' + t.x + ',' + t.y]) {
+				bad.push('full ' + t.z + '/' + t.x + '/' + t.y);
+			}
+		}
+	}
+	return bad;
+}
+
 var SOLVER_NODE_BUDGET = 120000;  // abort search after this many nodes
 /* Returns true (solvable), false (provably unsolvable) or
    null (node budget hit → unknown; caller may use a heuristic). */
@@ -139,8 +170,8 @@ var SIDE_R = 2;                 // right face (px)
 var SIDE_B = 3;                 // bottom face (px)
 var STEP_X = 22;                // horizontal pitch between x-cells (2 cells = 44px)
 var STEP_Y = 61;                // vertical pitch between rows
-var Z_OFFSET_X = 2;             // horizontal plane shift (dx per plane)
-var Z_OFFSET_Y = 3;             // small upward plane shift (dy per plane)
+var Z_OFFSET_X = 5;             // horizontal plane shift (dx per plane) — slight right shift
+var Z_OFFSET_Y = 8;             // upward plane shift (dy per plane) — slight up shift
 var PAD = 8;                    // breathing room around the board
 var TOP_PAD_EXTRA = 2;          // extra top clearance — LOWER = board sits higher
 
@@ -174,7 +205,9 @@ function layoutPos(t, m) {
 	var shiftY = t.isHalf ? Math.round(STEP_Y / 2) : t.z * Z_OFFSET_Y;
 	return {
 		x: PAD + (t.x - m.minX) * STEP_X + shiftX,
-		y: PAD + topPad + (t.y - m.minY) * STEP_Y - shiftY
+		y: PAD + topPad + (t.y - m.minY) * STEP_Y - shiftY,
+		/* translateZ neutral — tiles perfectly stacked. */
+		tz: 0
 	};
 }
 

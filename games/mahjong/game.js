@@ -82,6 +82,7 @@
 			var pos = layoutPos(t, app._metrics);
 			el.style.setProperty('--tx', pos.x + 'px');
 			el.style.setProperty('--ty', pos.y + 'px');
+			el.style.setProperty('--tz', pos.tz + 'px');
 			boardEl.appendChild(el);
 			app.tileEls[idx] = el;
 		}
@@ -117,9 +118,13 @@
 
 		boardEl.style.width = size.w + 'px';
 		boardEl.style.height = size.h + 'px';
+		/* transform-origin is center center → position board at the wrap
+		   center, then scale + slight 3D rotateX for pseudo-3D depth. */
+		boardEl.style.left = '50%';
+		boardEl.style.top = '50%';
+		boardEl.style.marginLeft = (-size.w / 2) + 'px';
+		boardEl.style.marginTop = (-size.h / 2 + 8) + 'px';
 		boardEl.style.transform = 'scale(' + s + ')';
-		boardEl.style.left = Math.round((wrapW - size.w * s) / 2) + 'px';
-		boardEl.style.top = Math.round((wrapH - size.h * s) / 2) + 'px';
 	}
 
 	/* ============================================================
@@ -140,6 +145,7 @@
 		_metrics: null,
 		_boardSize: null,
 		_scale: 1,
+		_tilt: 8,
 		autoMatching: false
 	};
 

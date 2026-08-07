@@ -110,7 +110,7 @@ html, body {
 	position: absolute;
 	top: 0;
 	left: 0;
-	transform-origin: top left;
+	transform-origin: center center;
 	touch-action: none;
 }
 
@@ -130,19 +130,19 @@ html, body {
 	background: linear-gradient(180deg, #f7f9fc 0%, #e9edf2 100%);
 	color: #1e293b;
 	box-shadow:
-		1px 0 0 0 rgba(71, 85, 105, 0.30),                /* right face (soft 3D)  */
-		0 3px 0 0 rgb(28, 28, 28),                        /* bottom face (dark)    */
-		1px 3px 0 0 rgba(71, 85, 105, 0.25),              /* bottom-right corner   */
-		rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,       /* deep ambient shadow   */
-		rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,            /* tight dark shadow     */
-		rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;     /* face top inner edge   */
+		-1px 0 0 0 rgba(40, 50, 70, 0.35),                /* LEFT face — in shadow 🡐 */
+		0 3px 0 0 rgb(55, 58, 65),                        /* BOTTOM face — soft dark 🡑 */
+		-1px 3px 0 0 rgba(45, 55, 70, 0.28),              /* bottom-left corner shadow */
+		1px 0 0 0 rgba(71, 85, 105, 0.22),                /* RIGHT face — grazing light */
+		0 6px 14px rgba(0, 0, 0, 0.22),                   /* projected shadow — lifts off */
+		rgba(10, 37, 64, 0.28) 0px -2px 4px 0px inset;    /* top inner edge highlight */
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-weight: 800;
 	cursor: pointer;
 	transition: transform 0.12s ease;
-	transform: translate(var(--tx), var(--ty));
+	transform: perspective(700px) translate3d(var(--tx), var(--ty), var(--tz));
 	will-change: transform;
 }
 
@@ -201,7 +201,7 @@ html, body {
 .tile.face-down.blocked:hover .tile-overlay { opacity: 0; }
 .tile.face-down.blocked:hover { opacity: 1; }
 
-.tile:hover { transform: translate(var(--tx), var(--ty)) scale(1.05); }
+.tile:hover { transform: perspective(700px) translate3d(var(--tx), var(--ty), var(--tz)) scale(1.05); }
 
 .tile-overlay {
 	position: absolute;
@@ -225,7 +225,7 @@ html, body {
 .tile.z1.blocked:not(.face-down) {
 	background: linear-gradient(180deg, #e0e3e7 0%, #cdd1d6 100%);
 }
-.tile.blocked:hover { transform: translate(var(--tx), var(--ty)); }
+.tile.blocked:hover { transform: perspective(700px) translate3d(var(--tx), var(--ty), var(--tz)); }
 .tile.blocked:hover .tile-overlay { opacity: 0; }
 
 .tile.removed { visibility: hidden; pointer-events: none; }
@@ -242,11 +242,11 @@ html, body {
 	transition: none;
 	touch-action: none;
 	cursor: grabbing;
-	transform: translate(var(--tx), var(--ty));
+	transform: perspective(700px) translate3d(var(--tx), var(--ty), var(--tz));
 }
 .tile.dragging .tile-overlay { opacity: 0; }
 
-.tile-sym { font-size: 20px; line-height: 1; }
+.tile-sym { font-size: 26px; line-height: 1; }
 
 .plane-badge {
 	position: absolute;
