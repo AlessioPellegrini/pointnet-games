@@ -490,40 +490,82 @@ var LAYOUT_BUILDERS = {
 
 	'pyramid_half': {
 		'small': function () {
-			/* PIRAMIDE: base 5 colonne × 6 righe piena + half-cover a
-			   piramide 3-2-1 su y=1,2,3 (MAI su y=0). REGOLA: l'half a
-			   (x,y) si disegna 31px PIÙ IN ALTO (shiftY=STEP_Y/2), quindi
-			   su y=0 sforerebbe Sopra il tabellone. Le half vanno solo
-			   su y≥1, con base che si estende a y+1 per dare supporto. */
+			/* PIRAMIDE EGIZIANA: piani full centrati che si restringono
+			   5×6 → 3×4 → 1×2 → vertice. Ogni piano poggia su quello sotto. */
 			var pts = [];
-			/* base piena 5 colonne × 6 righe (x 0..8, y 0..5) */
+			/* base piena 5×6 (x 0..8, y 0..5) */
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* half-cover piramidale su y=1,2,3 (3-2-1): un half a (x,y)
-			   richiede supporto a (x±1, y) e (x±1, y+1) → OGNI half ha
-			   supporto completo perché la base arriva a y=5. NIENTE
-			   tile fuori griglia né fuori schermo. */
-			pts.push({ z: 1, x: 3, y: 1, isHalf: true }, { z: 1, x: 5, y: 1, isHalf: true },
-			          { z: 1, x: 7, y: 1, isHalf: true },   // riga 1: 3
-			          { z: 1, x: 3, y: 2, isHalf: true }, { z: 1, x: 5, y: 2, isHalf: true },
-			          { z: 1, x: 3, y: 3, isHalf: true });  // righe 2-3: 2,1
-			/* vertice come FULL tile (x=4 pari sarebbe invalido come half) */
-			pts.push({ z: 2, x: 4, y: 3 });
-			return evenTrim(pts); // 30+6+1 = 37 → 36
+			/* piano 1: 3×4 (x 2,4,6; y 1..4) */
+			for (var y1 = 1; y1 < 5; y1++) {
+				for (var x1 = 2; x1 <= 6; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
+			}
+			/* piano 2: 1×2 (x 4; y 2..3) */
+			for (var y2 = 2; y2 < 4; y2++) pts.push({ z: 2, x: 4, y: y2 });
+			/* vertice (x 4, y 3) */
+			pts.push({ z: 3, x: 4, y: 3 });
+			return evenTrim(pts); // 30+12+2+1 = 45
 		},
 		'medium': function () {
+			/* PIRAMIDE EGIZIANA 4 piani: 6×7 → 4×5 → 2×3 → vertice. */
 			var pts = [];
-			/* gradoni [7,5,3,1] */
-			for (var x0 = 0; x0 < 7; x0++) pts.push({ z: 0, x: x0 * 2, y: 0 });
-			for (var x1 = 1; x1 < 6; x1++) pts.push({ z: 0, x: x1 * 2, y: 1 });
-			for (var x2 = 2; x2 < 5; x2++) pts.push({ z: 0, x: x2 * 2, y: 2 });
-			pts.push({ z: 0, x: 6, y: 3 });
-			/* half-cover a scacchiera sui gradoni */
-			pts.push({ z: 1, x: 3, y: 1 }, { z: 1, x: 5, y: 1 },
-			          { z: 1, x: 7, y: 1 }, { z: 1, x: 3, y: 2 },
-			          { z: 1, x: 5, y: 2 }, { z: 1, x: 3, y: 3 });
-			return pts; // 7+5+3+1+6 = 22
+			/* base piena 6×7 (x 0..10, y 0..6) */
+			for (var y = 0; y < 7; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* piano 1: 4×5 (x 2,4,6,8; y 1..5) */
+			for (var y1 = 1; y1 < 6; y1++) {
+				for (var x1 = 2; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
+			}
+			/* piano 2: 2×3 (x 4,6; y 2..4) */
+			for (var y2 = 2; y2 < 5; y2++) {
+				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
+			}
+			/* vertice (x 6, y 3) */
+			pts.push({ z: 3, x: 6, y: 3 });
+			return evenTrim(pts); // 42+20+6+1 = 69
+		},
+		'large': function () {
+			/* PIRAMIDE EGIZIANA 4 piani: 6×8 → 4×6 → 2×4 → vertice. */
+			var pts = [];
+			/* base piena 6×8 (x 0..10, y 0..7) */
+			for (var y = 0; y < 8; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* piano 1: 4×6 (x 2,4,6,8; y 1..6) */
+			for (var y1 = 1; y1 < 7; y1++) {
+				for (var x1 = 2; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
+			}
+			/* piano 2: 2×4 (x 4,6; y 2..5) */
+			for (var y2 = 2; y2 < 6; y2++) {
+				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
+			}
+			/* vertice (x 6, y 4) */
+			pts.push({ z: 3, x: 6, y: 4 });
+			return evenTrim(pts); // 48+24+8+1 = 81
+		},
+		'xl': function () {
+			/* PIRAMIDE EGIZIANA 5 piani: 6×9 → 5×7 → 3×5 → 1×3 → vertice.
+			   Dal più largo al più stretto, centrato, fino alla punta. */
+			var pts = [];
+			/* base piena 6×9 (x 0..10, y 0..8) */
+			for (var y = 0; y < 9; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* piano 1: 5×7 (x 0,2,4,6,8; y 1..7) */
+			for (var y1 = 1; y1 < 8; y1++) {
+				for (var x1 = 0; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
+			}
+			/* piano 2: 3×5 (x 2,4,6; y 2..6) */
+			for (var y2 = 2; y2 < 7; y2++) {
+				for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: y2 });
+			}
+			/* piano 3: 1×3 (x 4; y 3..5) */
+			for (var y3 = 3; y3 < 6; y3++) pts.push({ z: 3, x: 4, y: y3 });
+			/* vertice (x 4, y 4) */
+			pts.push({ z: 4, x: 4, y: 4 });
+			return evenTrim(pts); // 54+35+15+3+1 = 108
 		}
 	},
 
@@ -715,7 +757,7 @@ function buildStepRanges(count) {
 	return ranges;
 }
 
-var STEP_RANGES = buildStepRanges(25);
+var STEP_RANGES = buildStepRanges(26);
 
 var ORDERED_STEPS = [
 	{ layout: 'dragon',      variant: 'small',  symSet: 'default', covered: 0, maxStaging: 4 },
@@ -738,9 +780,10 @@ var ORDERED_STEPS = [
 	{ layout: 'helix',       variant: 'small',  symSet: 'dark',    covered: 6, maxStaging: 3 },
 	{ layout: 'fortress',    variant: 'large',  symSet: 'default', covered: 6, maxStaging: 3 },
 	{ layout: 'pyramid',     variant: 'large',  symSet: 'red',     covered: 7, maxStaging: 3 },
-	{ layout: 'cross',       variant: 'xl',     symSet: 'green',   covered: 7, maxStaging: 3 },
+	{ layout: 'pyramid_half', variant: 'medium', symSet: 'green',  covered: 7, maxStaging: 3 },
 	{ layout: 'labyrinth',   variant: 'medium', symSet: 'blue',    covered: 7, maxStaging: 2 },
-	{ layout: 'pyramid',     variant: 'xl',     symSet: 'gold',    covered: 8, maxStaging: 2 },
+	{ layout: 'pyramid_half', variant: 'large', symSet: 'gold',    covered: 8, maxStaging: 2 },
+	{ layout: 'pyramid_half', variant: 'xl',     symSet: 'dark',    covered: 8, maxStaging: 2 },
 	{ layout: 'wall',        variant: 'large',  symSet: 'dark',    covered: 8, maxStaging: 2 },
 	{ layout: 'wall',        variant: 'xl',     symSet: 'default', covered: 8, maxStaging: 2 }
 ];
