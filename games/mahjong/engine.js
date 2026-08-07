@@ -170,7 +170,7 @@ var SIDE_R = 1;                 // right face (px)
 var SIDE_B = 3;                 // bottom face (px)
 var STEP_X = 25;                // horizontal pitch between x-cells (2 cells = 50px)
 var STEP_Y = 69;                // vertical pitch between rows
-var Z_OFFSET_X = 0;             // horizontal plane shift (dx per plane) — none, perfectly centered
+var Z_OFFSET_X = 3;             // horizontal plane shift (dx per plane) — upper planes shift RIGHT (3D look)
 var Z_OFFSET_Y = 8;             // upward plane shift (dy per plane) — slight up shift
 var PAD = 4;                    // breathing room around the board
 var TOP_PAD_EXTRA = 2;          // extra top clearance — LOWER = board sits higher
@@ -193,10 +193,6 @@ function computeMetrics(tiles) {
    cut off by overflow:hidden in every previous version.) */
 function layoutPos(t, m) {
 	var topPad = m.maxZ * Z_OFFSET_Y + TOP_PAD_EXTRA;
-	/* Half-cover tiles (isHalf) sit exactly on the crossing of
-	   FOUR base tiles below: grid x is at a half-step (x*STEP_X
-	   is already the midpoint), and y is pushed DOWN by half the
-	   row pitch so it straddles two base rows perfectly. */
 	var shiftX = t.isHalf ? 0 : t.z * Z_OFFSET_X;
 	/* Full tiles on upper planes shift slightly UP (shiftY positive
 	   → y subtracts z*Z_OFFSET_Y), so stacked tiles sit just above
@@ -214,6 +210,8 @@ function layoutPos(t, m) {
 function boardSize(m) {
 	var topPad = m.maxZ * Z_OFFSET_Y + TOP_PAD_EXTRA;
 	return {
+		/* The right shift of upper planes (maxZ * Z_OFFSET_X) is included
+		   in the width so the board stays exactly centered. */
 		w: PAD + (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + SIDE_R + PAD,
 		h: PAD + topPad + (m.maxY - m.minY) * STEP_Y + TILE_H + SIDE_B + PAD
 	};
