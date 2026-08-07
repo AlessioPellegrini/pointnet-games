@@ -472,31 +472,54 @@ var LAYOUT_BUILDERS = {
 
 	'labyrinth': {
 		'small': function () {
-			/* Serpentina: 5 righe piene alternate + corridoi ai lati. */
+			/* LABIRINTO: base piena (supporto universale) + MURO
+			   PERIMETRALE rialzato + muri interni con aperture
+			   → corridoi di un labirinto ben visibili in 3D. */
 			var pts = [];
-			for (var x0 = 0; x0 < 6; x0++) pts.push({ z: 0, x: x0 * 2, y: 0 });
-			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 0, y: 2 });
-			for (var x2 = 0; x2 < 6; x2++) pts.push({ z: 0, x: x2 * 2, y: 3 });
-			pts.push({ z: 0, x: 10, y: 4 }, { z: 0, x: 10, y: 5 });
-			for (var x5 = 0; x5 < 6; x5++) pts.push({ z: 0, x: x5 * 2, y: 6 });
-			/* copertura sopra i corridoi */
-			for (var x1 = 2; x1 < 11; x1 += 2) pts.push({ z: 1, x: x1, y: 0 });
-			for (var y2 = 1; y2 < 3; y2++) pts.push({ z: 1, x: 2, y: y2 }, { z: 1, x: 4, y: y2 });
-			for (var x3 = 2; x3 < 10; x3 += 2) pts.push({ z: 1, x: x3, y: 3 });
-			return evenTrim(pts); // 22 base + 13 = 35 → 34
+			/* layer 0: base piena 6×7 (x 0..10, y 0..6) */
+			for (var by = 0; by < 7; by++) {
+				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
+			}
+			/* layer 1: muro perimetrale rialzato */
+			for (var x0 = 0; x0 <= 10; x0 += 2) {
+				pts.push({ z: 1, x: x0, y: 0 });
+				pts.push({ z: 1, x: x0, y: 6 });
+			}
+			for (var y1 = 1; y1 < 6; y1++) {
+				pts.push({ z: 1, x: 0, y: y1 });
+				pts.push({ z: 1, x: 10, y: y1 });
+			}
+			/* layer 2: muri interni sfalsati con aperture (corridoio a S) */
+			for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: 2 });
+			for (var x3 = 4; x3 <= 8; x3 += 2) pts.push({ z: 2, x: x3, y: 4 });
+			/* layer 3: pilastri interni per profondità */
+			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 6, y: 4 }, { z: 3, x: 8, y: 3 });
+			return evenTrim(pts); // 42 + 24 perim + 6 mura + 3 pill = 75 → 74
 		},
 		'medium': function () {
+			/* LABIRINTO grande: base piena 6×8 + perimetro + più corridoi. */
 			var pts = [];
-			for (var x0 = 0; x0 < 6; x0++) pts.push({ z: 0, x: x0 * 2, y: 0 });
-			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 0, y: 2 });
-			for (var x2 = 0; x2 < 6; x2++) pts.push({ z: 0, x: x2 * 2, y: 3 });
-			pts.push({ z: 0, x: 10, y: 4 }, { z: 0, x: 10, y: 5 });
-			for (var x5 = 0; x5 < 6; x5++) pts.push({ z: 0, x: x5 * 2, y: 6 });
-			/* layer 1 sopra la serpentina */
-			for (var x1 = 2; x1 < 11; x1 += 2) pts.push({ z: 1, x: x1, y: 0 });
-			for (var y2 = 1; y2 < 3; y2++) pts.push({ z: 1, x: 2, y: y2 }, { z: 1, x: 4, y: y2 });
-			for (var x3 = 2; x3 < 10; x3 += 2) pts.push({ z: 1, x: x3, y: 3 });
-			return evenTrim(pts); // 22 base + 13 = 35 → 34
+			/* layer 0: base piena 6×8 (x 0..10, y 0..7) */
+			for (var by = 0; by < 8; by++) {
+				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
+			}
+			/* layer 1: perimetro rialzato */
+			for (var x0 = 0; x0 <= 10; x0 += 2) {
+				pts.push({ z: 1, x: x0, y: 0 });
+				pts.push({ z: 1, x: x0, y: 7 });
+			}
+			for (var y1 = 1; y1 < 7; y1++) {
+				pts.push({ z: 1, x: 0, y: y1 });
+				pts.push({ z: 1, x: 10, y: y1 });
+			}
+			/* layer 2: muri interni alternati (S allargata) */
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 2, x: x2, y: 2 });
+			for (var x3 = 2; x3 <= 6; x3 += 2) pts.push({ z: 2, x: x3, y: 4 });
+			for (var x4 = 4; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 6 });
+			/* layer 3: muri verticali di collegamento */
+			for (var y5 = 3; y5 < 6; y5++) pts.push({ z: 3, x: 8, y: y5 });
+			for (var y6 = 3; y6 < 6; y6++) pts.push({ z: 3, x: 2, y: y6 });
+			return evenTrim(pts); // 48 + 28 + 12 + 6 = 94
 		}
 	},
 
@@ -664,89 +687,110 @@ var LAYOUT_BUILDERS = {
 
 	'spiral': {
 		'small': function () {
-			/* Spirito GUIDATO dall'utente: base piena 6×6 su layer 0
-			   (supporto universale) + percorso a spirale disegnato sui
-			   layer 1-2 con tile rialzate → la figura spicca in 3D. */
+			/* SPIRALE VERA: base piena 6×6 + anelli rialzati con
+			   APERTURE che collegano i giri verso il centro. */
 			var pts = [];
 			/* layer 0: base piena 6×6 */
 			for (var by = 0; by < 6; by++) {
 				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* layer 1: anello esterno a spirale (perimetro 6×6) */
-			for (var x0 = 0; x0 < 6; x0++) pts.push({ z: 1, x: x0 * 2, y: 0 });
-			for (var y1 = 1; y1 < 6; y1++) {
-				pts.push({ z: 1, x: 0, y: y1 }, { z: 1, x: 10, y: y1 });
+			/* layer 1: anello esterno con GAP in basso a destra.
+			   Top completo, sx completo, bottom da sx, dx dall'alto. */
+			for (var x0 = 0; x0 <= 10; x0 += 2) pts.push({ z: 1, x: x0, y: 0 });
+			for (var y1 = 1; y1 < 6; y1++) pts.push({ z: 1, x: 0, y: y1 });
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 1, x: x2, y: 5 });
+			for (var y3 = 1; y3 < 5; y3++) pts.push({ z: 1, x: 10, y: y3 });
+			/* layer 2: giro interno con GAP in alto a sinistra */
+			for (var x4 = 2; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 1 });
+			for (var y5 = 2; y5 < 5; y5++) pts.push({ z: 2, x: 8, y: y5 });
+			for (var x6 = 6; x6 >= 2; x6 -= 2) pts.push({ z: 2, x: x6, y: 4 });
+			for (var y7 = 2; y7 < 4; y7++) pts.push({ z: 2, x: 2, y: y7 });
+			/* layer 3: centro rialzato (blocco 2×2) */
+			for (var y8 = 2; y8 < 4; y8++) {
+				pts.push({ z: 3, x: 4, y: y8 }, { z: 3, x: 6, y: y8 });
 			}
-			/* giro interno a spirale (perimetro 4×4) */
-			for (var x2 = 2; x2 < 10; x2 += 2) pts.push({ z: 1, x: x2, y: 5 });
-			/* layer 2: giro interno 3×3 + centro */
-			for (var x3 = 2; x3 < 8; x3 += 2) pts.push({ z: 2, x: x3, y: 1 });
-			for (var y4 = 2; y4 < 5; y4++) {
-				pts.push({ z: 2, x: 2, y: y4 }, { z: 2, x: 6, y: y4 });
-			}
-			/* centro rialzato layer 3 */
-			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 4, y: 3 });
-			return evenTrim(pts); // 36 base + 20 anello + 4 giro2 + 10 + 2 = 72
+			return evenTrim(pts); // 36 + 17 + 11 + 4 = 68
 		},
 		'medium': function () {
+			/* SPIRALE grande: base piena 6×8 + tre giri di anelli con gap. */
 			var pts = [];
-			/* anello esterno */
-			for (var x0 = 0; x0 < 5; x0++) pts.push({ z: 0, x: x0 * 2, y: 0 });
-			for (var y1 = 1; y1 < 8; y1++) pts.push({ z: 0, x: 8, y: y1 });
-			for (var x2 = 4; x2 >= 0; x2--) pts.push({ z: 0, x: x2 * 2, y: 7 });
-			for (var y2 = 6; y2 >= 1; y2--) pts.push({ z: 0, x: 0, y: y2 });
-			/* secondo giro */
-			for (var x3 = 2; x3 < 6; x3 += 2) pts.push({ z: 0, x: x3, y: 1 });
-			for (var y3 = 2; y3 < 7; y3++) pts.push({ z: 0, x: 6, y: y3 });
-			for (var x4 = 4; x4 >= 2; x4 -= 2) pts.push({ z: 0, x: x4, y: 6 });
-			/* terzo giro parziale + centro */
-			for (var y4 = 5; y4 >= 2; y4--) pts.push({ z: 0, x: 2, y: y4 });
-			pts.push({ z: 0, x: 4, y: 3 });
-			/* layer superiore al centro */
-			for (var y5 = 2; y5 < 4; y5++) pts.push({ z: 1, x: 4, y: y5 });
-			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 }, { z: 2, x: 4, y: 2 });
-			return evenTrim(pts); // 32 layer0 + 5 = 37 → 36
+			/* layer 0: base piena 6×8 (y 0..7) */
+			for (var by = 0; by < 8; by++) {
+				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
+			}
+			/* layer 1: anello esterno con gap in basso a destra */
+			for (var x0 = 0; x0 <= 10; x0 += 2) pts.push({ z: 1, x: x0, y: 0 });
+			for (var y1 = 1; y1 < 8; y1++) pts.push({ z: 1, x: 0, y: y1 });
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 1, x: x2, y: 7 });
+			for (var y3 = 1; y3 < 7; y3++) pts.push({ z: 1, x: 10, y: y3 });
+			/* layer 2: giro medio con gap a sinistra */
+			for (var x4 = 2; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 1 });
+			for (var y5 = 2; y5 < 7; y5++) pts.push({ z: 2, x: 8, y: y5 });
+			for (var x6 = 6; x6 >= 2; x6 -= 2) pts.push({ z: 2, x: x6, y: 6 });
+			for (var y7 = 2; y7 < 6; y7++) pts.push({ z: 2, x: 2, y: y7 });
+			/* layer 3: centro rialzato */
+			for (var y8 = 3; y8 < 5; y8++) {
+				pts.push({ z: 3, x: 4, y: y8 }, { z: 3, x: 6, y: y8 });
+			}
+			pts.push({ z: 4, x: 4, y: 4 });
+			return evenTrim(pts); // 48 + 24 + 20 + 5 = 97 → 96
 		}
 	},
 
 	'helix': {
 		'small': function () {
-			/* X-CROCE DENSA: colonna verticale larga 2 × 7 righe +
-			   riga orizzontale larga 2 × 7 colonne, incrociate al centro.
-			   Tutte le tile si toccano → forma "+" immediatamente visibile. */
+			/* ELICA/DOPPIA X: base piena + due BANDE DIAGONALI rialzate
+			   che si incrociano → doppia elica vista dall'alto. */
 			var pts = [];
-			/* colonna verticale (x=4,6; y 0..6) */
-			for (var y = 0; y < 7; y++) {
-				pts.push({ z: 0, x: 4, y: y }, { z: 0, x: 6, y: y });
+			/* layer 0: base piena 6×7 (y 0..6) */
+			for (var by = 0; by < 7; by++) {
+				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* riga orizzontale (x 0..12 a step 2; y=2,4) */
-			for (var x = 0; x < 7; x++) {
-				pts.push({ z: 0, x: x * 2, y: 2 }, { z: 0, x: x * 2, y: 4 });
+			/* layer 1: banda ↘ (gradini + riempitivi, spessa) */
+			for (var i = 0; i < 5; i++) {
+				pts.push({ z: 1, x: i * 2, y: i });
+				pts.push({ z: 1, x: i * 2, y: i + 1 });
+				pts.push({ z: 1, x: (i + 1) * 2, y: i + 1 });
 			}
-			/* centro rialzato (layer 1-2) per dare profondità alla X */
-			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
-			return evenTrim(pts); // 14 + 14 = 28
+			/* layer 1: banda ↗ (speculare) */
+			for (var j = 0; j < 5; j++) {
+				pts.push({ z: 1, x: j * 2, y: 6 - j });
+				pts.push({ z: 1, x: j * 2, y: 5 - j });
+				pts.push({ z: 1, x: (j + 1) * 2, y: 5 - j });
+			}
+			/* supporto per l'incrocio centrale (x=6, y=3) */
+			pts.push({ z: 1, x: 6, y: 3 });
+			/* layer 2-3: incrocio centrale marcato */
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			pts.push({ z: 3, x: 6, y: 3 });
+			return evenTrim(pts); // 42 + 31 + 3 = 76
 		},
 		'medium': function () {
+			/* ELICA grande: base piena 6×9 + bande diagonali lunghe. */
 			var pts = [];
-			/* diagonale ↘ estesa */
-			for (var i = 0; i < 7; i++) pts.push({ z: 0, x: i * 2, y: i });
-			/* diagonale ↗ estesa */
-			for (var j = 0; j < 7; j++) pts.push({ z: 0, x: j * 2, y: 6 - j });
-			/* braccia secondarie per dare spessore alla X */
-			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 1, y: 0 },
-			          { z: 0, x: 6, y: 1 }, { z: 0, x: 7, y: 0 });
-			pts.push({ z: 0, x: 0, y: 5 }, { z: 0, x: 1, y: 6 },
-			          { z: 0, x: 6, y: 5 }, { z: 0, x: 7, y: 6 });
-			/* nodi half-cover agli incroci interni */
-			for (var hy = 1; hy < 6; hy++) {
-				for (var hx = 1; hx < 8; hx += 2) {
-					if ((hx + hy) % 2 === 0) pts.push({ z: 1, x: hx, y: hy, isHalf: true });
-				}
+			/* layer 0: base piena 6×9 (y 0..8) */
+			for (var by = 0; by < 9; by++) {
+				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* centro a doppio strato */
-			pts.push({ z: 1, x: 6, y: 3 }, { z: 2, x: 6, y: 3 });
-			return evenTrim(pts); // 22 layer0 + 9 + 2 = 33 → 32
+			/* layer 1: banda ↘ estesa (6 gradini + riempitivi) */
+			for (var i = 0; i < 6; i++) {
+				pts.push({ z: 1, x: i * 2, y: i });
+				pts.push({ z: 1, x: i * 2, y: i + 1 });
+				pts.push({ z: 1, x: (i + 1) * 2, y: i + 1 });
+				pts.push({ z: 1, x: i * 2, y: i + 2 });
+			}
+			/* layer 1: banda ↗ estesa */
+			for (var j = 0; j < 6; j++) {
+				pts.push({ z: 1, x: j * 2, y: 8 - j });
+				pts.push({ z: 1, x: j * 2, y: 7 - j });
+				pts.push({ z: 1, x: (j + 1) * 2, y: 7 - j });
+				pts.push({ z: 1, x: j * 2, y: 6 - j });
+			}
+			/* layer 2-3: incrocio centrale */
+			pts.push({ z: 2, x: 4, y: 4 }, { z: 2, x: 6, y: 4 });
+			pts.push({ z: 2, x: 4, y: 5 }, { z: 2, x: 6, y: 5 });
+			pts.push({ z: 3, x: 6, y: 4 });
+			return evenTrim(pts); // 54 + 48 + 5 = 107 → 106
 		}
 	}
 };
