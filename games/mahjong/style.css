@@ -1,0 +1,352 @@
+:root {
+	--bg: #0f172a;
+	--bg-panel: #1e293b;
+	--text: #e2e8f0;
+	--accent: #38bdf8;
+	--success: #22c55e;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+	height: 100%;
+	overflow: hidden;
+	background: var(--bg);
+	color: var(--text);
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.game-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding: 8px;
+	gap: 8px;
+}
+
+.game-header { text-align: center; flex-shrink: 0; }
+
+.game-title {
+	font-size: 1.3rem;
+	font-weight: 800;
+	background: linear-gradient(135deg, var(--accent), #f472b6);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	letter-spacing: -0.5px;
+}
+
+.status-bar {
+	display: flex;
+	justify-content: center;
+	gap: 20px;
+	background: var(--bg-panel);
+	border-radius: 10px;
+	padding: 6px 14px;
+	flex-shrink: 0;
+	font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.status-item { display: flex; align-items: center; gap: 5px; font-size: 0.9rem; font-weight: 700; }
+.status-value { color: var(--accent); min-width: 24px; text-align: center; }
+.status-value.pairs { color: var(--success); }
+
+/* ----------------------------------------------------------
+   STAGING BOX — 4 slots where clicked tiles are held.
+   Two matching tiles in the box automatically match.
+   4 tiles without a match = game over.
+   ---------------------------------------------------------- */
+.staging-box {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	padding: 8px 14px;
+	background: var(--bg-panel);
+	border-radius: 10px;
+	flex-shrink: 0;
+	min-height: 60px;
+	align-items: center;
+}
+
+.staging-slot {
+	width: 38px;
+	height: 48px;
+	border: 2px dashed rgba(148, 163, 184, 0.35);
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
+	opacity: 0.5;
+	position: relative;
+}
+
+.staging-slot.filled {
+	border-style: solid;
+	border-color: rgba(56, 189, 248, 0.5);
+	background: linear-gradient(180deg, #f7f9fc 0%, #e9edf2 100%);
+	box-shadow:
+		1px 0 0 0 rgba(71, 85, 105, 0.30),
+		0 3px 0 0 rgba(71, 85, 105, 0.25),
+		1px 3px 0 0 rgba(71, 85, 105, 0.25),
+		3px 5px 8px rgba(15, 23, 42, 0.25);
+	opacity: 1;
+}
+
+.board-wrap {
+	flex: 1;
+	position: relative;
+	overflow: hidden;
+	min-height: 0;
+	background: radial-gradient(circle at 50% 42%, #1e293b 0%, #0b1220 100%);
+	border-radius: 14px;
+}
+
+#board {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transform-origin: top left;
+	touch-action: none;
+}
+
+/* ----------------------------------------------------------
+   TILE — every tile is pixel-identical. Rounded corners,
+   soft semi-transparent side faces, subtle gradient face,
+   uniform drop shadow (same blur on all sides: cannot
+   create the asymmetric edge illusion).
+   ---------------------------------------------------------- */
+.tile {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 42px;
+	height: 56px;
+	border-radius: 4px;
+	background: linear-gradient(180deg, #f7f9fc 0%, #e9edf2 100%);
+	color: #1e293b;
+	box-shadow:
+		1px 0 0 0 rgba(71, 85, 105, 0.30),                /* right face (soft 3D)  */
+		0 3px 0 0 rgb(28, 28, 28),                        /* bottom face (dark)    */
+		1px 3px 0 0 rgba(71, 85, 105, 0.25),              /* bottom-right corner   */
+		rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,       /* deep ambient shadow   */
+		rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,            /* tight dark shadow     */
+		rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;     /* face top inner edge   */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	cursor: pointer;
+	transition: transform 0.12s ease;
+	transform: translate(var(--tx), var(--ty));
+	will-change: transform;
+}
+
+.tile.z0 { z-index: 1; }
+.tile.z1 {
+	z-index: 2;
+	background: linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%);
+}
+.tile.z2 { z-index: 3; background: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%); }
+.tile.z3 { z-index: 4; background: linear-gradient(180deg, #fbfcff 0%, #e9eef5 100%); }
+.tile.z4 { z-index: 5; background: linear-gradient(180deg, #f8fafe 0%, #e4eaf2 100%); }
+.tile.z5 { z-index: 6; background: linear-gradient(180deg, #f5f8fd 0%, #e0e7f0 100%); }
+.tile.z6 { z-index: 7; }
+.tile.z7 { z-index: 8; }
+.tile.z8 { z-index: 9; }
+.tile.z9 { z-index: 10; }
+.status-value.level-value { color: #f472b6; font-weight: 800; }
+
+/* Face-down (covered) tiles — memory mechanic.
+   Symbol is HIDDEN: the sym element is invisible and the
+   tile shows a plain back. Always fully opaque, even when
+   blocked (no peeking through semi-transparency). */
+.tile.face-down {
+	background: linear-gradient(135deg, #1e3a5f 0%, #0f2742 100%);
+	color: #e2e8f0;
+	opacity: 1;
+}
+.tile.face-down .tile-sym { visibility: hidden; }
+.tile.face-down::after {
+	content: '?';
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
+	font-weight: 900;
+	color: rgba(226, 232, 240, 0.45);
+	pointer-events: none;
+}
+
+/* Blocked face-down tiles: cannot be dimmed (would reveal the
+   underlay through transparency), so use a red "lock" cue instead. */
+.tile.face-down.blocked {
+	box-shadow:
+		1px 0 0 0 rgba(71, 85, 105, 0.30),
+		0 3px 0 0 rgba(71, 85, 105, 0.25),
+		1px 3px 0 0 rgba(71, 85, 105, 0.25),
+		0 0 0 2px rgba(239, 68, 68, 0.65) inset;
+}
+.tile.face-down.blocked::after {
+	content: '🔒';
+	font-size: 14px;
+	color: rgba(239, 68, 68, 0.85);
+}
+.tile.face-down.blocked:hover .tile-overlay { opacity: 0; }
+.tile.face-down.blocked:hover { opacity: 1; }
+
+.tile:hover { transform: translate(var(--tx), var(--ty)) scale(1.05); }
+
+.tile-overlay {
+	position: absolute;
+	inset: 0;
+	border-radius: 4px;
+	opacity: 0;
+	transition: opacity 0.12s ease;
+	background: rgba(255, 255, 255, 0.55);
+	box-shadow: 0 0 0 2px var(--accent) inset;
+	pointer-events: none;
+}
+.tile:hover .tile-overlay { opacity: 1; }
+
+/* Blocked tiles: NO opacity — dimmed via darker face color
+   instead. Fully opaque, never shows tiles beneath. */
+.tile.blocked:not(.face-down) {
+	opacity: 1;
+	cursor: default;
+	background: linear-gradient(180deg, #c9cfd7 0%, #aeb6bf 100%);
+}
+.tile.z1.blocked:not(.face-down) {
+	background: linear-gradient(180deg, #e0e3e7 0%, #cdd1d6 100%);
+}
+.tile.blocked:hover { transform: translate(var(--tx), var(--ty)); }
+.tile.blocked:hover .tile-overlay { opacity: 0; }
+
+.tile.removed { visibility: hidden; pointer-events: none; }
+
+/* Tiles inside the staging box disappear from the board */
+.tile.in-staging { visibility: hidden; pointer-events: none; }
+
+.tile.selected { outline: 3px solid var(--accent); outline-offset: 2px; z-index: 3; }
+.tile.hinted { outline: 3px solid var(--success); outline-offset: 2px; z-index: 3; }
+
+/* Dragging (peek): lift over everything, no transition lag */
+.tile.dragging {
+	z-index: 100;
+	transition: none;
+	touch-action: none;
+	cursor: grabbing;
+	transform: translate(var(--tx), var(--ty));
+}
+.tile.dragging .tile-overlay { opacity: 0; }
+
+.tile-sym { font-size: 20px; line-height: 1; }
+
+.plane-badge {
+	position: absolute;
+	top: 3px;
+	left: 4px;
+	font-size: 8px;
+	font-weight: 900;
+	line-height: 1;
+	padding: 2px 4px;
+	border-radius: 5px;
+	color: #fff;
+	background: #475569;
+}
+.plane-badge.p2 { background: #2563eb; }
+.plane-badge.half-badge { background: #9333ea; }
+
+.num-badge {
+	position: absolute;
+	top: 3px;
+	right: 4px;
+	font-size: 8px;
+	font-weight: 900;
+	line-height: 1;
+	padding: 2px 4px;
+	border-radius: 5px;
+	color: #fff;
+	background: rgba(30, 41, 59, 0.55);
+}
+
+.action-bar {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.btn {
+	padding: 8px 20px;
+	border-radius: 999px;
+	border: none;
+	font-size: 0.9rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-family: inherit;
+	background: var(--bg-panel);
+	color: var(--text);
+}
+.btn:hover { background: #3b4c66; }
+.btn:active { transform: scale(0.96); }
+
+.btn-level-input {
+	width: 56px;
+	padding: 8px 6px;
+	border-radius: 999px;
+	border: 1px solid #334155;
+	background: #0f172a;
+	color: var(--text);
+	font-size: 0.9rem;
+	font-weight: 700;
+	text-align: center;
+	font-family: inherit;
+}
+.btn-level-input:focus { outline: 2px solid var(--accent); }
+
+.overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.7);
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+.overlay.show { display: flex; }
+
+.modal {
+	background: var(--bg-panel);
+	padding: 24px 40px;
+	border-radius: 16px;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	align-items: center;
+}
+.modal h2 { font-size: 1.6rem; }
+.modal p { color: #94a3b8; font-weight: 600; }
+
+/* ----------------------------------------------------------
+   MOBILE — maximise board space on small screens
+   ---------------------------------------------------------- */
+@media (max-width: 480px) {
+	.game-container { padding: 4px; gap: 4px; }
+	.status-bar { padding: 4px 10px; gap: 12px; }
+	.staging-box { padding: 4px 8px; gap: 6px; min-height: 50px; }
+	.staging-slot { width: 32px; height: 42px; font-size: 16px; }
+	.btn { padding: 6px 14px; font-size: 0.8rem; }
+	.game-title { font-size: 1.1rem; }
+	.status-item { font-size: 0.8rem; }
+	.tile-sym { font-size: 18px; }
+	.board-wrap { border-radius: 10px; }
+}

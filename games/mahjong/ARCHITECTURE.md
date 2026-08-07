@@ -4,7 +4,7 @@ Design document for the vanilla JavaScript engine. Written from scratch, inspire
 
 ## Design Principles
 
-1. **Zero dependencies** — single self-contained `index.html` file
+1. **Zero dependencies** — plain HTML/CSS/JS files, no build step, no frameworks
 2. **Mobile-first, no pan/zoom** — the board always fits the viewport; tiles scale
 3. **Progression by parameters** — difficulty comes from generator parameters, not artistic complexity
 4. **Solvability guaranteed by regeneration** — we control the generator, so we can afford to re-roll
@@ -14,14 +14,21 @@ Design document for the vanilla JavaScript engine. Written from scratch, inspire
 
 ```
 games/mahjong/
-├── index.html          ← single self-contained entry (engine + UI + styles)
+├── index.html          ← shell HTML (markup + script/css loads)
+├── style.css           ← all CSS (tiles, 3D, responsive, staging)
+├── data.js             ← symbols, layout builders, level progression
+├── engine.js           ← board model, solver, geometry math
+├── game.js             ← UI, DOM, staging, drag, timer, bootstrap
 ├── manifest.json       ← plugin registration
 ├── ARCHITECTURE.md     ← this document
-├── README.md           ← roadmap + changelog
-└── [tests/]            ← optional dev-only unit tests (not shipped)
+└── README.md           ← roadmap + changelog
 ```
 
-All code lives in `index.html` as `<script>` blocks (no build step). For maintainability the script uses a single `Mahjong` namespace with `'use strict'`.
+Since v0.4.0 the code is split into 5 files (was a single self-contained `index.html`):
+- **data.js** — pure data (symbols, layouts, ORDERED_STEPS) + level generator
+- **engine.js** — DOM-free logic: board, solver, pixel geometry
+- **game.js** — everything user-facing: rendering, events, state, persistence
+- Load order: `data.js` → `engine.js` → `game.js` (dependencies flow downward)
 
 ## Core Data Model
 
@@ -288,13 +295,13 @@ The parameters table is data — the engine is level-agnostic.
 
 | Aspect | ffalt/mah | Mahjong Arcade |
 |---|---|---|
-| Build | Angular 22 + TS | Vanilla JS, single HTML |
+| Build | Angular 22 + TS | Vanilla JS, 5 static files |
 | Runtime deps | rxjs, ngx-translate, confetti, zzfx | None |
 | Solver | Backtracking + randomSolve + sureSolve + pairing classes | DFS + pruning; re-roll on failure |
-| Generator | 8 shapes + mirror + overhangs + optimize | 4 shapes, no mirror, no overhangs, parameterised |
-| Tile count | Fixed 144 | 36 → 144 (per level) |
+| Generator | 8 shapes + mirror + overhangs + optimize | 15 layouts + XL variants, no mirror, no overhangs, parameterised |
+| Tile count | Fixed 144 | 12 → 130 (per level) |
 | Pan/zoom | Required (36×16 grid) | None (board fits viewport) |
-| Difficulty | Not applicable (free game) | Progressive via level params |
+| Difficulty | Not applicable (free game) | Progressive via level params (25 steps) |
 | Persistence | localStorage | localStorage + plugin API |
 | Licensing | MIT | GPL-2.0+ (our implementation) |
 

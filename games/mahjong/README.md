@@ -131,7 +131,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Technical Notes
 
-- **Engine**: vanilla JavaScript, single self-contained HTML file (no build step)
+- **Engine**: vanilla JavaScript, 5 static files (index.html + style.css + data.js + engine.js + game.js), no build step
 - **No runtime dependencies**: static HTML + JS + CSS served via iframe
 - **No pan/zoom**: the board always fits the viewport, tiles scale responsively
 - **API integration**: `window.pointnetGamesAPI.submitScore()` for leaderboard (Phase 4)
@@ -139,12 +139,15 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.4.0 — 15 layouts & difficulty rebalance (current)
+### v0.4.0 — 15 layouts, difficulty rebalance & 5-file split (current)
+- Code split into 5 files: `index.html` (shell) + `style.css` + `data.js` + `engine.js` + `game.js` (was a single self-contained HTML)
 - New layouts: diamond, wall, labyrinth, pyramid_half, checker, bridge, spiral, helix (15 total)
 - XL variants for cross, pyramid and fortress — grids up to 6×9 (max 6 columns, 9 rows on mobile)
+- Symbol sets expanded to 70 emoji per theme (up to 65 pairs without recycling)
 - 25-step progression: 100 levels with progressive tile counts (12 → 130), face-down pairs (0 → 8) and reduced staging slots on high levels (4 → 2)
 - Level 100 is now a wall XL board with 130 tiles, 8 covered pairs and 2 staging slots — substantially harder
 - Board vertical centering fix (TOP_PAD_EXTRA = 2, board sits higher)
+- Staging box size is now per-level (4 slots early → 3 → 2 on high levels)
 
 ### v0.3.0 — Half-cover & polish
 - Half-cover tiles: geometrically centered on the crossing of 4 base tiles (both axes)
