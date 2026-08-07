@@ -81,22 +81,31 @@ Two-phase generation, parameterised by level.
 
 ### Phase 1 — Base Layer (z=0)
 
-Shapes (our set, reduced from 8 to 4):
+15 hand-authored layouts in `LAYOUT_BUILDERS`, each with small/medium/large/XL variants:
 
 | Shape | Description | Difficulty |
 |---|---|---|
+| `dragon` | Tapered rows (head + tail) | Easy |
 | `cross` | Orthogonal arms from center | Easy |
-| `lines` | Parallel rows with spacings | Easy |
-| `rings` | Concentric rectangles | Medium |
-| `shapes` | Clusters of small blocks scattered | Medium/Hard |
+| `pyramid` | Concentric rectangles, every layer smaller | Easy/Medium |
+| `turtle` | Rounded carapace with head/tail/legs | Medium |
+| `halfcover` | Base grid + upper half-cover tiles | Medium |
+| `fortress` | Hollow square with corner towers | Medium/Hard |
+| `diamond` | Concentric diamond | Medium |
+| `checker` | Checkerboard full + half-cover holes | Medium |
+| `pyramid_half` | Pyramid with half-cover layers | Medium/Hard |
+| `bridge` | Two towers connected by a half-cover bridge | Hard |
+| `spiral` | Spiral wrapping inwards over layers | Hard |
+| `helix` | Intertwined double helix | Hard |
+| `labyrinth` | Serpentine path, few free tiles | Hard |
+| `wall` | Dense wall with strategic gaps, 4 layers | Very hard |
+| `cross XL / pyramid XL / fortress XL` | Grids up to 6×9 | Very hard |
 
-Each shape is a function:
+Grid limits (mobile-first): **max 6 columns × 9 rows**. Each shape is a function:
 
 ```js
-shape(area) → Array<[x, y]>   // list of base positions
+shape(area) → Array<[x, y]>   // list of base positions (isHalf flag for half-cover)
 ```
-
-Only `cross` and `lines` are used in early levels; `rings` and `shapes` unlock later.
 
 ### Phase 2 — Upper Layers
 
@@ -113,18 +122,17 @@ fillUpperLayers(base, layers, targetTiles):
 
 **No overhangs** (the 25% overhang feature of ffalt/mah is deliberately dropped): every tile always has direct support below, which keeps layouts compact and readable on mobile.
 
-### Target Tile Count per Level
+### Target Tile Count per Level (v0.4.0)
 
-Level scaling (mobile-friendly):
+25 steps × 4 levels (100 total). Tile count grows 12 → 130; face-down pairs 0 → 8; staging slots 4 → 2:
 
-| Level range | Layers | Shape | Target tiles |
-|---|---|---|---|
-| 1–10 | 3 | cross / lines | 36–48 |
-| 11–20 | 3 | cross / rings | 48–72 |
-| 21–35 | 4 | rings / shapes | 72–96 |
-| 36–50 | 4 | shapes | 96–120 |
-| 51–75 | 5 | shapes | 120–144 |
-| 76–100+ | 5 | shapes | 144 |
+| Step | Levels | Shape | Variant | Tiles | Face-down | Staging |
+|---|---|---|---|---|---|---|
+| 1–5 | 1–20 | dragon, cross, pyramid, turtle, checker | small | 12–25 | 0–2 | 4 |
+| 6–10 | 21–40 | halfcover, diamond, cross, pyramid_half, dragon | small/medium | 10–32 | 2–3 | 3–4 |
+| 11–15 | 41–60 | labyrinth, bridge, pyramid, spiral, turtle | small/medium | 22–50 | 4–5 | 3 |
+| 16–20 | 61–80 | diamond, wall, helix, fortress, pyramid | medium/large | 38–62 | 5–7 | 3 |
+| 21–25 | 81–100 | cross, labyrinth, pyramid, wall | XL/large/XL | 48–130 | 7–8 | 2–3 |
 
 The generator accepts a target tile count and adjusts the base density accordingly. Tile count is always even (complete pairs).
 

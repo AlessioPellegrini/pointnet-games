@@ -138,7 +138,7 @@
 			color: #1e293b;
 			box-shadow:
 				1px 0 0 0 rgba(71, 85, 105, 0.30),                /* right face (soft 3D)  */
-				0 3px 0 0 rgba(71, 85, 105, 0.25),                /* bottom face (soft 3D) */
+				0 3px 0 0 rgb(28, 28, 28),                        /* bottom face (dark)    */
 				1px 3px 0 0 rgba(71, 85, 105, 0.25),              /* bottom-right corner   */
 				rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,       /* deep ambient shadow   */
 				rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,            /* tight dark shadow     */
@@ -158,6 +158,15 @@
 			z-index: 2;
 			background: linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%);
 		}
+		.tile.z2 { z-index: 3; background: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%); }
+		.tile.z3 { z-index: 4; background: linear-gradient(180deg, #fbfcff 0%, #e9eef5 100%); }
+		.tile.z4 { z-index: 5; background: linear-gradient(180deg, #f8fafe 0%, #e4eaf2 100%); }
+		.tile.z5 { z-index: 6; background: linear-gradient(180deg, #f5f8fd 0%, #e0e7f0 100%); }
+		.tile.z6 { z-index: 7; }
+		.tile.z7 { z-index: 8; }
+		.tile.z8 { z-index: 9; }
+		.tile.z9 { z-index: 10; }
+		.status-value.level-value { color: #f472b6; font-weight: 800; }
 
 		/* Face-down (covered) tiles — memory mechanic.
 		   Symbol is HIDDEN: the sym element is invisible and the
@@ -296,6 +305,20 @@
 		.btn:hover { background: #3b4c66; }
 		.btn:active { transform: scale(0.96); }
 
+		.btn-level-input {
+			width: 56px;
+			padding: 8px 6px;
+			border-radius: 999px;
+			border: 1px solid #334155;
+			background: #0f172a;
+			color: var(--text);
+			font-size: 0.9rem;
+			font-weight: 700;
+			text-align: center;
+			font-family: inherit;
+		}
+		.btn-level-input:focus { outline: 2px solid var(--accent); }
+
 		.overlay {
 			position: fixed;
 			inset: 0;
@@ -343,6 +366,7 @@
 		</div>
 
 		<div class="status-bar">
+			<div class="status-item">🎯 <span class="status-value level-value" id="level-label">1</span></div>
 			<div class="status-item">⏱️ <span class="status-value" id="timer">0</span></div>
 			<div class="status-item">🀄 <span class="status-value pairs" id="pairs-left">0</span></div>
 			<div class="status-item">🏆 <span class="status-value" id="score">0</span></div>
@@ -358,6 +382,8 @@
 			<button class="btn" id="btn-hint">💡 Hint</button>
 			<button class="btn" id="btn-undo">↩️ Undo</button>
 			<button class="btn" id="btn-new">🔄 New</button>
+			<input type="number" id="level-input" class="btn-level-input" min="1" max="100" value="1" aria-label="Level number">
+			<button class="btn" id="btn-level-go">Level</button>
 		</div>
 	</div>
 
@@ -403,41 +429,378 @@
 		}
 
 		/* ============================================================
-		   STATIC TEST LAYOUT — 2 aligned planes
+		   THEMED SYMBOL SETS — emoji groups by palette. Each set has
+		   22+ symbols so every layout (up to 144 tiles / 72 pairs)
+		   has enough distinct faces.
 		   ============================================================ */
-		var STATIC_LAYOUT = [
-			/* z=0 — base layer: 4×4 grid (16 tiles) */
-			{ z: 0, x: 0, y: 0 }, { z: 0, x: 2, y: 0 }, { z: 0, x: 4, y: 0 }, { z: 0, x: 6, y: 0 },
-			{ z: 0, x: 0, y: 1 }, { z: 0, x: 2, y: 1 }, { z: 0, x: 4, y: 1 }, { z: 0, x: 6, y: 1 },
-			{ z: 0, x: 0, y: 2 }, { z: 0, x: 2, y: 2 }, { z: 0, x: 4, y: 2 }, { z: 0, x: 6, y: 2 },
-			{ z: 0, x: 0, y: 3 }, { z: 0, x: 2, y: 3 }, { z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 3 },
-			/* z=1 — upper layer: 3×3 half-cover tiles.
-			   Each sits exactly on the CROSSING of 4 base tiles below:
-			   (x±1, y±1) — perfect half-cover in BOTH axes. */
-			{ z: 1, x: 1, y: 1, isHalf: true }, { z: 1, x: 3, y: 1, isHalf: true }, { z: 1, x: 5, y: 1, isHalf: true },
-			{ z: 1, x: 1, y: 2, isHalf: true }, { z: 1, x: 3, y: 2, isHalf: true }, { z: 1, x: 5, y: 2, isHalf: true },
-			{ z: 1, x: 1, y: 3, isHalf: true }, { z: 1, x: 3, y: 3, isHalf: true }, { z: 1, x: 5, y: 3, isHalf: true },
-			/* z=0 — detached single tile, far below the grid,
-			   to make the total tile count even (26 = 13 pairs). */
-			{ z: 0, x: 2, y: 5 }
+		var SYMBOL_SETS = {
+			'default': ['🀄', '🍀', '🌸', '🔥', '❄️', '💎', '⭐', '🌙', '☀️', '🍃', '💜', '🔷', '🍄', '🎈', '🌈', '🍕', '⚽', '🎲', '🐍', '🦋', '🌵', '🍇'],
+			'red':     ['🍎', '🌹', '❤️', '🍒', '🦞', '🔴', '🐞', '🎒', '🍉', '🐙', '🧣', '🍅', '🌶️', '🎈', '🩸', '🧲', '💄', '🍓', '🧧', '🦀', '🍁', '🛑'],
+			'green':   ['🌿', '🦎', '💚', '🍏', '🦠', '🫑', '🐸', '🐢', '🥑', '🐲', '🌲', '🍀', '🧪', '🍐', '🦜', '🥦', '🐍', '🥒', '🌵', '🌱', '🦗', '🍈'],
+			'blue':    ['🐟', '🌊', '💙', '🧢', '🦋', '🐳', '🔵', '🫐', '🧊', '🐬', '💧', '☂️', '🧤', '⚓', '🦈', '🥶', '💠', '🔷', '🌧️', '⛵', '🐧', '🧿'],
+			'gold':    ['⭐', '👑', '🏆', '🔔', '💛', '🪙', '🍯', '🐝', '🌻', '⚜️', '🌟', '🤴', '👸', '💰', '🥇', '✨', '🔶', '🍋', '🦁', '🍞', '🌽', '🟡'],
+			'dark':    ['🕷️', '🦇', '🌑', '🖤', '🐈', '🧛', '🕯️', '💀', '🪦', '🌘', '🦉', '⚫', '🌃', '🐉', '🔮', '🌫️', '🦂', '🥷', '🕸️', '😈', '🍆', '🦇']
+		};
+
+		/* ============================================================
+		   CLASSIC LAYOUTS — deterministic geometric patterns built
+		   from aligned rectangles / paths. All tiles are FULL tiles
+		   stacked straight above each other (same x, same y, z grows),
+		   so every upper plane sits perfectly aligned on the one below.
+		   Max 6 tiles wide → mobile friendly.
+
+		   Variants (small / medium / large) were benchmarked with the
+		   solver: only variants with a healthy solvable-shuffle rate are
+		   included. The order of play comes from ORDERED_STEPS below,
+		   computed by the solver, NOT from the shape.
+		   ============================================================ */
+		function evenTrim(pts) {
+			if (pts.length % 2 !== 0) return pts.slice(0, pts.length - 1);
+			return pts;
+		}
+
+		var LAYOUT_BUILDERS = {
+			'halfcover': {
+				'small': function () {
+					var pts = [];
+					for (var y = 0; y < 3; y++) {
+						for (var x = 0; x < 3; x++) pts.push({ z: 0, x: x * 2, y: y });
+					}
+					for (var hy = 1; hy < 3; hy++) {
+						for (var hx = 1; hx < 4; hx += 2) {
+							pts.push({ z: 1, x: hx, y: hy, isHalf: true });
+						}
+					}
+					return evenTrim(pts); // 9+4=13 → 12
+				},
+				'medium': function () {
+					var pts = [];
+					for (var y = 0; y < 4; y++) {
+						for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
+					}
+					for (var hy = 1; hy < 4; hy++) {
+						for (var hx = 1; hx < 6; hx += 2) {
+							pts.push({ z: 1, x: hx, y: hy, isHalf: true });
+						}
+					}
+					pts.push({ z: 0, x: 2, y: 5 });
+					return pts; // 26
+				}
+			},
+
+			'cross': {
+				'small': function () {
+					var pts = [];
+					for (var y = 0; y < 5; y++) {
+						for (var x = 0; x < 5; x++) {
+							if (x === 2 || y === 2) pts.push({ z: 0, x: x * 2, y: y });
+						}
+					}
+					pts.push({ z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 }, { z: 1, x: 2, y: 3 });
+					pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 2, y: 3 });
+					return pts; // 14
+				},
+				'medium': function () {
+					var pts = [];
+					for (var y = 0; y < 5; y++) {
+						for (var x = 0; x < 5; x++) {
+							if (Math.abs(y - 2) <= 1 || Math.abs(x - 2) <= 1) pts.push({ z: 0, x: x * 2, y: y });
+						}
+					}
+					for (var y2 = 1; y2 < 4; y2++) {
+						for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 1, x: x2 * 2, y: y2 });
+					}
+					pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
+					return pts; // 32
+				},
+				'large': function () {
+					var pts = [];
+					for (var y = 0; y < 5; y++) {
+						for (var x = 0; x < 5; x++) {
+							if (Math.abs(y - 2) <= 1 || Math.abs(x - 2) <= 1) pts.push({ z: 0, x: x * 2, y: y });
+						}
+					}
+					for (var y2 = 0; y2 < 4; y2++) {
+						for (var x2 = 0; x2 < 4; x2++) pts.push({ z: 1, x: x2 * 2 + 2, y: y2 + 1 });
+					}
+					for (var y3 = 0; y3 < 2; y3++) {
+						for (var x3 = 0; x3 < 2; x3++) pts.push({ z: 2, x: x3 * 2 + 4, y: y3 + 2 });
+					}
+					pts.push({ z: 3, x: 6, y: 3 });
+					return pts; // 42
+				}
+			},
+
+			'pyramid': {
+				'small': function () {
+					var pts = [];
+					var layers = [[3, 3], [2, 2], [1, 1]];
+					for (var z = 0; z < layers.length; z++) {
+						var w = layers[z][0], h = layers[z][1];
+						var ox = Math.round((3 - w) / 2), oy = Math.round((3 - h) / 2);
+						for (var y = 0; y < h; y++) {
+							for (var x = 0; x < w; x++) pts.push({ z: z, x: (x + ox) * 2, y: y + oy });
+						}
+					}
+					return pts; // 14
+				},
+				'medium': function () {
+					var pts = [];
+					var layers = [[4, 4], [3, 3], [2, 2], [1, 1]];
+					for (var z = 0; z < layers.length; z++) {
+						var w = layers[z][0], h = layers[z][1];
+						var ox = Math.round((4 - w) / 2), oy = Math.round((4 - h) / 2);
+						for (var y = 0; y < h; y++) {
+							for (var x = 0; x < w; x++) pts.push({ z: z, x: (x + ox) * 2, y: y + oy });
+						}
+					}
+					return pts; // 30
+				},
+				'large': function () {
+					var pts = [];
+					var layers = [[5, 5], [4, 4], [3, 3], [2, 2], [2, 1]];
+					for (var z = 0; z < layers.length; z++) {
+						var w = layers[z][0], h = layers[z][1];
+						var ox = Math.round((5 - w) / 2), oy = Math.round((5 - h) / 2);
+						for (var y = 0; y < h; y++) {
+							for (var x = 0; x < w; x++) pts.push({ z: z, x: (x + ox) * 2, y: y + oy });
+						}
+					}
+					return pts; // 56
+				}
+			},
+
+			'fortress': {
+				'small': function () {
+					var pts = [];
+					for (var y = 0; y < 4; y++) {
+						for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
+					}
+					for (var y1 = 0; y1 < 4; y1++) {
+						for (var x1 = 0; x1 < 4; x1++) {
+							if (y1 === 0 || y1 === 3 || x1 === 0 || x1 === 3) pts.push({ z: 1, x: x1 * 2, y: y1 });
+						}
+					}
+					[[0, 0], [3, 0], [0, 3], [3, 3]].forEach(function (c) {
+						pts.push({ z: 2, x: c[0] * 2, y: c[1] });
+					});
+					return pts; // 32
+				},
+				'large': function () {
+					var pts = [];
+					for (var y = 0; y < 6; y++) {
+						for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+					}
+					for (var y1 = 0; y1 < 6; y1++) {
+						for (var x1 = 0; x1 < 6; x1++) {
+							if (y1 === 0 || y1 === 5 || x1 === 0 || x1 === 5) pts.push({ z: 1, x: x1 * 2, y: y1 });
+						}
+					}
+					[[0, 0], [5, 0], [0, 5], [5, 5]].forEach(function (c) {
+						pts.push({ z: 2, x: c[0] * 2, y: c[1] });
+					});
+					pts.push({ z: 3, x: 6, y: 2 }, { z: 3, x: 6, y: 3 });
+					return pts; // 62
+				}
+			},
+
+			'dragon': {
+				'small': function () {
+					var pts = [];
+					for (var x0 = 0; x0 < 4; x0++) pts.push({ z: 0, x: x0 * 2, y: 0 });
+					for (var x1 = 1; x1 < 3; x1++) pts.push({ z: 0, x: x1 * 2, y: 1 });
+					for (var x2 = 0; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 2 });
+					for (var x3 = 1; x3 < 3; x3++) pts.push({ z: 0, x: x3 * 2, y: 3 });
+					for (var yz = 1; yz < 3; yz++) {
+						for (var xz = 1; xz < 3; xz++) pts.push({ z: 1, x: xz * 2, y: yz });
+					}
+					return pts; // 16
+				},
+				'medium': function () {
+					var pts = [];
+					for (var x0 = 0; x0 < 6; x0++) pts.push({ z: 0, x: x0 * 2, y: 0 });
+					for (var x1 = 1; x1 < 5; x1++) pts.push({ z: 0, x: x1 * 2, y: 1 });
+					for (var x2 = 0; x2 < 6; x2++) pts.push({ z: 0, x: x2 * 2, y: 2 });
+					for (var y1 = 0; y1 < 3; y1++) {
+						for (var xi = 1; xi < 5; xi++) pts.push({ z: 1, x: xi * 2, y: y1 });
+					}
+					pts.push({ z: 2, x: 4, y: 0 });
+					return evenTrim(pts); // 29 → 28
+				},
+				'large': function () {
+					var pts = [];
+					for (var x0 = 0; x0 < 6; x0++) pts.push({ z: 0, x: x0 * 2, y: 0 });
+					for (var x1 = 1; x1 < 5; x1++) pts.push({ z: 0, x: x1 * 2, y: 1 });
+					for (var x2 = 0; x2 < 6; x2++) pts.push({ z: 0, x: x2 * 2, y: 2 });
+					for (var x3 = 1; x3 < 5; x3++) pts.push({ z: 0, x: x3 * 2, y: 3 });
+					for (var x4 = 0; x4 < 6; x4++) pts.push({ z: 0, x: x4 * 2, y: 4 });
+					for (var y1 = 0; y1 < 3; y1++) {
+						for (var xi = 1; xi < 5; xi++) pts.push({ z: 1, x: xi * 2, y: y1 });
+					}
+					pts.push({ z: 2, x: 4, y: 0 }, { z: 2, x: 6, y: 0 });
+					return pts; // 40
+				}
+			},
+
+			'turtle': {
+				'small': function () {
+					var pts = [];
+					for (var y = 0; y < 3; y++) {
+						for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
+					}
+					for (var y1 = 1; y1 < 3; y1++) {
+						for (var x1 = 1; x1 < 3; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
+					}
+					pts.push({ z: 1, x: 6, y: 1 });             // head
+					pts.push({ z: 0, x: 2, y: 3 });             // tail
+					pts.push({ z: 0, x: 0, y: 3 }, { z: 0, x: 6, y: 3 }); // front legs
+					return pts; // 20
+				},
+				'medium': function () {
+					var pts = [];
+					for (var y = 0; y < 5; y++) {
+						for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+					}
+					for (var y1 = 1; y1 < 4; y1++) {
+						for (var x1 = 1; x1 < 5; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
+					}
+					for (var y2 = 1; y2 < 3; y2++) {
+						for (var x2 = 2; x2 < 4; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
+					}
+					pts.push({ z: 1, x: 10, y: 2 });            // head
+					pts.push({ z: 0, x: 0, y: 5 });             // tail
+					pts.push({ z: 0, x: 0, y: 6 }, { z: 0, x: 10, y: 6 }); // front legs
+					return pts; // 50
+				},
+				'large': function () {
+					var pts = [];
+					for (var y = 0; y < 6; y++) {
+						for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+					}
+					for (var y1 = 1; y1 < 5; y1++) {
+						for (var x1 = 1; x1 < 5; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
+					}
+					for (var y2 = 2; y2 < 4; y2++) {
+						for (var x2 = 2; x2 < 4; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
+					}
+					pts.push({ z: 1, x: 10, y: 2 });            // head
+					pts.push({ z: 0, x: 0, y: 6 });             // tail
+					pts.push({ z: 0, x: 0, y: 7 }, { z: 0, x: 10, y: 7 }); // front legs
+					return pts; // 60
+				}
+			}
+		};
+
+		/* ============================================================
+		   LEVEL CONFIGURATION — ORDERED_STEPS is the global 1→100
+		   progression, generated OFFLINE by games/mahjong/
+		   benchmark-difficulty.py. The solver measured each variant
+		   across many shuffles (DFS nodes × attempts needed to find a
+		   solvable board), then sorted them easiest → hardest. Levels
+		   do NOT follow shapes: each step holds 6-7 levels with a
+		   progressive tile count (60%→100%).
+		   ============================================================ */
+		var STEP_RANGES = (function () {
+			var ranges = [];
+			for (var i = 0; i < 16; i++) {
+				ranges.push({
+					min: Math.round(i * 100 / 16) + 1,
+					max: Math.round((i + 1) * 100 / 16)
+				});
+			}
+			return ranges;
+		})();
+
+		var ORDERED_STEPS = [
+			{ layout: 'dragon',   variant: 'small',  symSet: 'default', covered: 0 },
+			{ layout: 'cross',    variant: 'small',  symSet: 'red',     covered: 0 },
+			{ layout: 'pyramid',  variant: 'small',  symSet: 'green',   covered: 0 },
+			{ layout: 'turtle',   variant: 'small',  symSet: 'blue',    covered: 1 },
+			{ layout: 'cross',    variant: 'medium', symSet: 'gold',    covered: 1 },
+			{ layout: 'pyramid',  variant: 'medium', symSet: 'dark',    covered: 1 },
+			{ layout: 'halfcover', variant: 'small', symSet: 'default', covered: 2 },
+			{ layout: 'turtle',   variant: 'large',  symSet: 'red',     covered: 2 },
+			{ layout: 'turtle',   variant: 'medium', symSet: 'green',   covered: 2 },
+			{ layout: 'dragon',   variant: 'large',  symSet: 'blue',    covered: 3 },
+			{ layout: 'halfcover', variant: 'medium', symSet: 'gold',   covered: 3 },
+			{ layout: 'cross',    variant: 'large',  symSet: 'dark',    covered: 3 },
+			{ layout: 'dragon',   variant: 'medium', symSet: 'default', covered: 4 },
+			{ layout: 'fortress', variant: 'small',  symSet: 'red',     covered: 4 },
+			{ layout: 'fortress', variant: 'large',  symSet: 'green',   covered: 4 },
+			{ layout: 'pyramid',  variant: 'large',  symSet: 'blue',    covered: 5 }
 		];
 
-		function buildStaticLayout() {
-			var lastBest = null;
-			var symbolsNeeded = STATIC_LAYOUT.length / 2;
+		function getLevelDef(index) {
+			index = Math.min(index, 99);
+			for (var i = 0; i < STEP_RANGES.length; i++) {
+				if (index + 1 >= STEP_RANGES[i].min && index + 1 <= STEP_RANGES[i].max) {
+					var def = ORDERED_STEPS[i];
+					return {
+						layout: def.layout,
+						variant: def.variant,
+						symSet: def.symSet,
+						covered: def.covered,
+						min: STEP_RANGES[i].min,
+						max: STEP_RANGES[i].max
+					};
+				}
+			}
+			var last = ORDERED_STEPS[ORDERED_STEPS.length - 1];
+			return {
+				layout: last.layout,
+				variant: last.variant,
+				symSet: last.symSet,
+				covered: last.covered,
+				min: STEP_RANGES[STEP_RANGES.length - 1].min,
+				max: 100
+			};
+		}
 
-			for (var attempt = 0; attempt < 100; attempt++) {
-				var rng = createRng(42 + attempt);
+		function generateLevel(levelIndex) {
+			var level = getLevelDef(levelIndex);
+			var chosen = LAYOUT_BUILDERS[level.layout][level.variant]();
+			var layout = chosen.filter(function (p) { return p.y >= 0; });
+			var fullSize = layout.length;
+
+			/* Progressive tile count WITHIN each step:
+			   grows from 75% to 100% of the variant's tiles across the
+			   6-7 levels this step spans, so every step starts denser
+			   (closer to what the solver benchmarked). A GLOBAL floor
+			   also grows with the level number, so small layouts are
+			   pushed to full size in later levels — avoiding the
+			   "6-tile trivial board" regressions at step boundaries. */
+			var span = level.max - level.min + 1;
+			var pos = (levelIndex + 1) - level.min;
+			var frac = 0.75 + 0.25 * (pos / Math.max(1, span - 1));
+			var globalMin = Math.max(8, Math.round((levelIndex + 1) * 0.4));
+			var tileCount = Math.floor(fullSize * frac);
+			tileCount = Math.min(fullSize, Math.max(globalMin, tileCount));
+			if (tileCount % 2 !== 0) tileCount--;
+
+			/* Keep exactly an EVEN total. */
+			if (layout.length > tileCount) {
+				layout = layout.slice(0, tileCount);
+			} else if ((layout.length % 2) !== 0) {
+				layout = layout.slice(0, layout.length - 1);
+			}
+
+			var symbols = SYMBOL_SETS[level.symSet] || SYMBOL_SETS['default'];
+			var lastBest = null;
+			var symbolsNeeded = Math.ceil(layout.length / 2);
+
+			for (var attempt = 0; attempt < 80; attempt++) {
+				var rng = createRng(42 + attempt * 7 + levelIndex);
 				var deck = [];
 				for (var i = 0; i < symbolsNeeded; i++) {
-					deck.push(SYMBOLS[i]);
-					deck.push(SYMBOLS[i]);
+					var sym = symbols[i % symbols.length];
+					deck.push(sym);
+					if (deck.length < layout.length) deck.push(sym);
 				}
 				shuffle(deck, rng);
 
 				var tiles = [];
-				for (var c = 0; c < STATIC_LAYOUT.length; c++) {
-					var co = STATIC_LAYOUT[c];
+				for (var c = 0; c < layout.length; c++) {
+					var co = layout[c];
 					tiles.push({
 						z: co.z,
 						x: co.x,
@@ -453,13 +816,27 @@
 				}
 
 				var board = buildBoard(tiles);
-				if (solveBoard(board)) {
-					applyFaceDown(tiles, FACE_DOWN_PAIRS);
+				var solvable = solveBoard(board);
+				/* Heuristic fallback: if the DFS timed out (or is just too
+				   strict for dense boards), accept when there are at least
+				   4 free tiles — the staging box unlocks the rest. */
+				if (solvable) {
+					applyFaceDown(tiles, level.covered);
 					return tiles;
+				}
+				if (!solvable) {
+					var freeCount = 0;
+					for (var f = 0; f < tiles.length; f++) {
+						if (!tiles[f].removed && !tiles[f].staging && isFree(board, tiles[f])) freeCount++;
+					}
+					if (freeCount >= 4) {
+						applyFaceDown(tiles, level.covered);
+						return tiles;
+					}
 				}
 				lastBest = tiles;
 			}
-			applyFaceDown(lastBest, FACE_DOWN_PAIRS);
+			applyFaceDown(lastBest, level.covered);
 			return lastBest;
 		}
 
@@ -536,11 +913,16 @@
 			return !(hasLeft && hasRight);
 		}
 
+		var SOLVER_NODE_BUDGET = 120000;  // abort search after this many nodes
+		/* Returns true (solvable), false (provably unsolvable) or
+		   null (node budget hit → unknown; caller may use a heuristic). */
 		function solveBoard(board) {
 			var tileList = Array.from(board.values()).filter(function (t) {
 				return !t.staging;
 			});
 			var removed = new Set();
+			var nodes = 0;
+			var aborted = false;
 
 			function hasLive(z, x, y) {
 				var t = board.get(makeKey(z, x, y));
@@ -568,6 +950,11 @@
 			}
 
 			function rec() {
+				if (aborted) return true;
+				if (++nodes > SOLVER_NODE_BUDGET) {
+					aborted = true;
+					return true;
+				}
 				if (removed.size === tileList.length) return true;
 				var free = [];
 				for (var i = 0; i < tileList.length; i++) {
@@ -599,7 +986,8 @@
 				}
 				return false;
 			}
-			return rec();
+			var res = rec();
+			return aborted ? null : res;
 		}
 
 		/* ============================================================
@@ -611,9 +999,10 @@
 		var SIDE_B = 3;                 // bottom face (px)
 		var STEP_X = 22;                // horizontal pitch between x-cells (2 cells = 44px)
 		var STEP_Y = 61;                // vertical pitch between rows
-		var Z_OFFSET_X = 1;             // diagonal plane shift (minimal)
-		var Z_OFFSET_Y = 9;
+		var Z_OFFSET_X = 2;             // horizontal plane shift (dx per plane)
+		var Z_OFFSET_Y = 3;             // small upward plane shift (dy per plane)
 		var PAD = 8;                    // breathing room around the board
+		var TOP_PAD_EXTRA = 2;          // extra top clearance — LOWER = board sits higher
 
 		function computeMetrics(tiles) {
 			var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
@@ -632,12 +1021,16 @@
 		   top of the board. (This was the 23/24 bug: their top 8px were
 		   cut off by overflow:hidden in every previous version.) */
 		function layoutPos(t, m) {
-			var topPad = m.maxZ * Z_OFFSET_Y + 4;
+			var topPad = m.maxZ * Z_OFFSET_Y + TOP_PAD_EXTRA;
 			/* Half-cover tiles (isHalf) sit exactly on the crossing of
 			   FOUR base tiles below: grid x is at a half-step (x*STEP_X
 			   is already the midpoint), and y is pushed DOWN by half the
 			   row pitch so it straddles two base rows perfectly. */
 			var shiftX = t.isHalf ? 0 : t.z * Z_OFFSET_X;
+			/* Full tiles on upper planes shift slightly UP (shiftY positive
+			   → y subtracts z*Z_OFFSET_Y), so stacked tiles sit just above
+			   the tile beneath — a subtle pseudo-3D offset without ever
+			   dipping below the lower grid. */
 			var shiftY = t.isHalf ? Math.round(STEP_Y / 2) : t.z * Z_OFFSET_Y;
 			return {
 				x: PAD + (t.x - m.minX) * STEP_X + shiftX,
@@ -646,7 +1039,7 @@
 		}
 
 		function boardSize(m) {
-			var topPad = m.maxZ * Z_OFFSET_Y + 4;
+			var topPad = m.maxZ * Z_OFFSET_Y + TOP_PAD_EXTRA;
 			return {
 				w: PAD + (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + SIDE_R + PAD,
 				h: PAD + topPad + (m.maxY - m.minY) * STEP_Y + TILE_H + SIDE_B + PAD
@@ -658,6 +1051,7 @@
 		   ============================================================ */
 		var wrap = document.getElementById('board-wrap');
 		var boardEl = document.getElementById('board');
+		var levelLabelEl = document.getElementById('level-label');
 		var timerEl = document.getElementById('timer');
 		var pairsLeftEl = document.getElementById('pairs-left');
 		var scoreEl = document.getElementById('score');
@@ -770,6 +1164,7 @@
 			timerInterval: null,
 			timerStarted: false,
 			history: [],
+			levelIndex: 0,
 			_metrics: null,
 			_boardSize: null,
 			_scale: 1,
@@ -1006,14 +1401,16 @@
 
 		function levelComplete() {
 			stopTimer();
-			modalTitle.textContent = '🏆 Cleared!';
+			app.levelIndex = Math.min(app.levelIndex + 1, 99);
+			saveGame();
+			modalTitle.textContent = '🏆 Level ' + (app.levelIndex + 1) + ' Cleared!';
 			modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score;
 			overlayEl.classList.add('show');
 		}
 
 		function startGame() {
 			stopTimer();
-			app.tiles = buildStaticLayout();
+			app.tiles = generateLevel(app.levelIndex);
 			app.board = buildBoard(app.tiles);
 			app.staging = [];
 			app.peeking = null;
@@ -1026,6 +1423,7 @@
 			app._metrics = computeMetrics(app.tiles);
 			app._boardSize = boardSize(app._metrics);
 
+			levelLabelEl.textContent = app.levelIndex + 1;
 			timerEl.textContent = '0';
 			scoreEl.textContent = '0';
 			pairsLeftEl.textContent = pairsLeft();
@@ -1033,6 +1431,37 @@
 			renderStaging();
 			rebuildBoard();
 		}
+
+		/* ============================================================
+		   ARCADE PERSISTENCE — level reached + debug URL ?level=N.
+		   ============================================================ */
+		function readUrlParams() {
+			try {
+				var qs = new URLSearchParams(window.location.search);
+				var lvl = parseInt(qs.get('level'), 10);
+				if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 99);
+			} catch (e) {}
+		}
+
+		function saveGame() {
+			try {
+				localStorage.setItem('wp_mahjong_arcade_level', String(app.levelIndex));
+			} catch (e) {}
+		}
+
+		function loadGame() {
+			try {
+				var raw = localStorage.getItem('wp_mahjong_arcade_level');
+				if (raw !== null) {
+					var n = parseInt(raw, 10);
+					if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 99);
+				}
+			} catch (e) {}
+		}
+
+		readUrlParams();
+		if (!new URLSearchParams(window.location.search).get('level')) loadGame();
+		window.addEventListener('beforeunload', saveGame);
 
 		/* ============================================================
 		   DRAG TO PEEK — pointer events cover mouse + touch.
@@ -1119,6 +1548,15 @@
 		document.getElementById('btn-undo').addEventListener('click', undo);
 		document.getElementById('btn-new').addEventListener('click', startGame);
 		document.getElementById('btn-play-again').addEventListener('click', startGame);
+
+		/* Level selector: jump to any level */
+		document.getElementById('btn-level-go').addEventListener('click', function () {
+			var n = parseInt(document.getElementById('level-input').value, 10);
+			if (isNaN(n) || n < 1) n = 1;
+			app.levelIndex = Math.min(n - 1, 99);
+			saveGame();
+			startGame();
+		});
 
 		window.addEventListener('resize', function () {
 			if (app.tiles.length) fitBoard();

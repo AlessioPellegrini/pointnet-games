@@ -213,6 +213,31 @@ window.addEventListener('message', function (event) {
 });
 ```
 
+#### 🎬 `pointnet-games:start` — avvio immediato del gioco
+
+Quando il gioco è embeddato in una pagina WordPress, il plugin può
+inviare all'iframe il messaggio **`pointnet-games:start`** (ad esempio
+dal pulsante mobile "GIOCA" che appare sopra l'iframe su schermi piccoli).
+
+Il gioco **dovrebbe** gestirlo così:
+
+```javascript
+window.addEventListener('message', function (event) {
+    var msg = event.data;
+    if (msg && msg.type === 'pointnet-games:start') {
+        // 1. Nascondi la splash screen (se presente)
+        // 2. Avvia una nuova partita
+        // 3. Richiedi il fullscreen
+    }
+});
+```
+
+> 💡 **Nota**: se il tuo gioco ha una splash screen con pulsante 🎮 GIOCA,
+> aggiungi SEMPRE questo listener. In questo modo il pulsante "GIOCA" del
+> plugin (sopra l'iframe su mobile) e il pulsante PLAY della splash
+> fanno la stessa cosa: nascondono la splash, avviano la partita e
+> richiedono il fullscreen.
+
 ---
 
 ## 5. Buone Pratiche
