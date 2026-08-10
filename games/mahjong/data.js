@@ -105,6 +105,29 @@ var LAYOUT_BUILDERS = {
 			}
 			pts.push({ z: 0, x: 2, y: 5 });
 			return pts; // 30
+		},
+		'large': function () {
+			/* v0.6.0 — base piena 6×8 + mezza copertura 5×7 sopra.
+			   Ogni mezza tile sta sull'incrocio di 4 tile piene. */
+			var pts = [];
+			for (var y = 0; y < 8; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			for (var hy = 0; hy < 7; hy++) {
+				for (var hx = 1; hx <= 9; hx += 2) pts.push({ z: 1, x: hx, y: hy, isHalf: true });
+			}
+			return evenTrim(pts); // 48 + 35 = 83 → 82
+		},
+		'xl': function () {
+			/* v0.6.0 — base piena 6×9 (max righe) + mezza copertura 5×8. */
+			var pts = [];
+			for (var y = 0; y < 9; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			for (var hy = 0; hy < 8; hy++) {
+				for (var hx = 1; hx <= 9; hx += 2) pts.push({ z: 1, x: hx, y: hy, isHalf: true });
+			}
+			return evenTrim(pts); // 54 + 40 = 94
 		}
 	},
 
@@ -138,36 +161,40 @@ var LAYOUT_BUILDERS = {
 			return pts; // 32
 		},
 		'large': function () {
+			/* v0.6.0 — z1 3 righe (y1..3) e non 4: la riga 4 (x8)
+			   non aveva supporto nella base a croce. */
 			var pts = [];
 			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 5; x++) {
 					if (Math.abs(y - 2) <= 1 || Math.abs(x - 2) <= 1) pts.push({ z: 0, x: x * 2, y: y });
 				}
 			}
-			for (var y2 = 0; y2 < 4; y2++) {
+			for (var y2 = 0; y2 < 3; y2++) {
 				for (var x2 = 0; x2 < 4; x2++) pts.push({ z: 1, x: x2 * 2 + 2, y: y2 + 1 });
 			}
 			for (var y3 = 0; y3 < 2; y3++) {
 				for (var x3 = 0; x3 < 2; x3++) pts.push({ z: 2, x: x3 * 2 + 4, y: y3 + 2 });
 			}
 			pts.push({ z: 3, x: 6, y: 3 });
-			return pts; // 42
+			return evenTrim(pts); // 21+12+4+1 = 38
 		},
 		'xl': function () {
+			/* CROCE XL rimbalzata: z1 solo sulle righe piene della base
+			   (y2..3), z2 ridotta, vertice unico — zero tile sospese. */
 			var pts = [];
 			for (var y = 0; y < 9; y++) {
 				for (var x = 0; x < 6; x++) {
 					if (x === 2 || x === 3 || y === 2 || y === 3) pts.push({ z: 0, x: x * 2, y: y });
 				}
 			}
-			for (var y2 = 2; y2 < 6; y2++) {
+			for (var y2 = 2; y2 < 4; y2++) {
 				for (var x2 = 1; x2 < 5; x2++) pts.push({ z: 1, x: x2 * 2, y: y2 });
 			}
-			for (var y3 = 3; y3 < 5; y3++) {
+			for (var y3 = 2; y3 < 4; y3++) {
 				for (var x3 = 2; x3 < 4; x3++) pts.push({ z: 2, x: x3 * 2, y: y3 });
 			}
-			pts.push({ z: 3, x: 6, y: 3 }, { z: 3, x: 6, y: 4 });
-			return pts; // 26+16+4+2 = 48
+			pts.push({ z: 3, x: 6, y: 3 });
+			return evenTrim(pts); // 26+8+4+1 = 39 → 38
 		}
 	},
 
@@ -272,8 +299,11 @@ var LAYOUT_BUILDERS = {
 			[[0, 0], [5, 0], [0, 7], [5, 7]].forEach(function (c) {
 				pts.push({ z: 2, x: c[0] * 2, y: c[1] });
 			});
-			pts.push({ z: 2, x: 2, y: 3 }, { z: 2, x: 8, y: 3 }, { z: 2, x: 2, y: 4 }, { z: 2, x: 8, y: 4 });
-			return pts; // 48+20+8 = 76
+			/* v0.6.0: le 4 torri interne (x2/x8, y3/y4) erano a z2
+			   senza z1 sotto → sospese. Le metto a z1 (supportate
+			   dalla base piena) così il disegno resta ma la fisica è valida. */
+			pts.push({ z: 1, x: 2, y: 3 }, { z: 1, x: 8, y: 3 }, { z: 1, x: 2, y: 4 }, { z: 1, x: 8, y: 4 });
+			return pts; // 48+20+4+4 = 76
 		}
 	},
 
@@ -823,18 +853,20 @@ var LAYOUT_BUILDERS = {
 			for (var by = 0; by < 9; by++) {
 				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* layer 1: banda ↘ estesa (6 gradini + riempitivi) */
+			/* layer 1: banda ↘ estesa (6 gradini + riempitivi).
+			   v0.6.0: (i+1)*2 va in x=12 a i=5 → fuori griglia.
+			   L'ultimo gradino aggiunge solo la riga verticale x=10. */
 			for (var i = 0; i < 6; i++) {
 				pts.push({ z: 1, x: i * 2, y: i });
 				pts.push({ z: 1, x: i * 2, y: i + 1 });
-				pts.push({ z: 1, x: (i + 1) * 2, y: i + 1 });
+				if (i < 5) pts.push({ z: 1, x: (i + 1) * 2, y: i + 1 });
 				pts.push({ z: 1, x: i * 2, y: i + 2 });
 			}
-			/* layer 1: banda ↗ estesa */
+			/* layer 1: banda ↗ estesa (stesso fix: niente x=12) */
 			for (var j = 0; j < 6; j++) {
 				pts.push({ z: 1, x: j * 2, y: 8 - j });
 				pts.push({ z: 1, x: j * 2, y: 7 - j });
-				pts.push({ z: 1, x: (j + 1) * 2, y: 7 - j });
+				if (j < 5) pts.push({ z: 1, x: (j + 1) * 2, y: 7 - j });
 				pts.push({ z: 1, x: j * 2, y: 6 - j });
 			}
 			/* layer 2-3: incrocio centrale */
@@ -1389,47 +1421,95 @@ function computeDifficulty(layout, covered) {
 }
 
 /* ============================================================
-   PROGRESSIONE AUTOMATICA (v0.5.0) — genera fino a 300 livelli.
-   Per ogni livello: partiamo dagli step esistenti (ordine soft di
-   difficoltà) e li ri-usiamo a difficoltà crescente, schedulando
-   prima i più facili e aumentando covered/close fino al massimo.
+   PROGRESSIONE AUTOMATICA (v0.6.0) — genera fino a 300 livelli
+   con una vera curva di difficoltà.
+   - Pool: TUTTE le combinazioni layout×variante, ognuna con lo
+     score base di computeDifficulty(layout, 0).
+   - Il pool è ordinato per score crescente.
+   - La finestra di scelta scivola dal basso verso l'alto col
+     livello: i primi livelli prendono i layout piccoli, gli
+     ultimi i layout grandi (tile count e maxZ crescenti).
+   - Half-cover: ogni 7 livelli (dove il layout lo consente) si
+     forzano i veri half-cover (halfcover / checker), pescando da
+     una lista anch'essa scorrevole così che ci siano half piccoli
+     e half grandi in tutta la progressione.
+   - covered: proporzionale al livello e alla dimensione del layout
+     (mai oltre ~1 coppia ogni 6 tile).
+   - maxStaging: 4 all'inizio, scende a 3 poi 2 col livello.
+   - Quads: solo da livello 200+ e solo su layout ≥ 60 tile opz.
    ============================================================ */
 function buildProgression(count) {
 	var out = [];
-	/* pool: ogni step esistente, ripetuto più volte con difficoltà (covered) crescente */
+	/* pool di tutte le combinazioni layout×variante */
 	var pool = [];
-	for (var i = 0; i < ORDERED_STEPS.length; i++) {
-		var def = ORDERED_STEPS[i];
-		for (var rep = 0; rep < 6; rep++) {
+	Object.keys(LAYOUT_BUILDERS).forEach(function (layout) {
+		Object.keys(LAYOUT_BUILDERS[layout]).forEach(function (variant) {
+			var b = LAYOUT_BUILDERS[layout][variant]();
+			var nb = b.filter(function (p) { return p.y >= 0; });
+			var tc = nb.length;
+			if (tc % 2 !== 0) tc -= 1;
 			pool.push({
-				layout: def.layout,
-				variant: def.variant,
-				symSet: def.symSet,
-				maxStaging: def.maxStaging || 4,
-				quads: !!def.quads,
-				coveredIdx: rep,
-				slot: i
+				layout: layout,
+				variant: variant,
+				tiles: tc,
+				score: computeDifficulty(nb, 0),
+				isHalf: nb.some(function (t) { return t.isHalf; })
 			});
-		}
-	}
-	/* copriamo i livelli facendo girare il pool: i livelli 0..99 usano
-	   coveredIdx 0..3, i successivi up a 5. */
+		});
+	});
+	pool.sort(function (a, b) { return a.score - b.score || a.tiles - b.tiles; });
+
+	/* sotto-pool degli half-cover veri, ordinato per score crescente */
+	var halfPool = pool.filter(function (p) { return p.isHalf; });
+
+	var symSets = ['default', 'red', 'green', 'blue', 'gold', 'dark', 'classic', 'classic-dark'];
+	var lastPick = 0;
+
 	for (var n = 0; n < count; n++) {
-		var item = pool[n % pool.length];
-		/* covered: cresce col livello ma mai oltre il 40% delle coppie */
-		var maxPairs = 8;
-		var cov = Math.min(maxPairs, Math.floor((n / count) * maxPairs));
-		var symSets = ['default', 'red', 'green', 'blue', 'gold', 'dark', 'classic', 'classic-dark'];
-		var sym = symSets[(n + item.slot) % symSets.length];
-		/* alterna alcune volte quad mode per livelli alti */
-		if (n >= 250) item = { layout: item.layout, variant: item.variant, symSet: item.symSet, maxStaging: item.maxStaging, quads: !item.quads, slot: item.slot };
+		var progress = n / count;
+		/* posizione TARGET monotona sul pool ordinato: il difficulty
+		   cresce solo in avanti (mai indietro) */
+		var target = progress * (pool.length - 1);
+		/* piccola varietà locale ±2 attorno al target — la difficoltà
+		   resta nello stesso "livello zona", non oscilla */
+		var pick = Math.max(0, Math.min(pool.length - 1, Math.round(target + (n % 5) - 2)));
+		if (pick < lastPick - 2) pick = lastPick - 2;   /* non tornare mai indietro di più di 2 */
+		lastPick = pick;
+		var item = pool[pick];
+
+		/* half-cover ogni 7 livelli: scegli l'half la cui zona difficoltà
+		   corrisponde a quella del livello (progress*halfPool). Così i
+		   primi livelli hanno half piccoli, gli ultimi half giganti. */
+		var forceHalf = ((n + 1) % 7 === 0);
+		if (forceHalf && halfPool.length) {
+			var hTarget = progress * (halfPool.length - 1);
+			var hIdx = Math.max(0, Math.min(halfPool.length - 1, Math.round(hTarget)));
+			/* alterna un po' per varietà ma resta nella zona giusta */
+			if (hIdx < halfPool.length - 1 && (n % 2 === 1)) hIdx++;
+			item = halfPool[hIdx];
+		}
+
+		/* covered: cresce col livello ma mai oltre floor(tiles/6) coppie */
+		var maxCov = Math.max(2, Math.min(8, Math.floor(item.tiles / 6)));
+		var cov = Math.min(maxCov, Math.floor(progress * maxCov * 1.3));
+
+		/* maxStaging: 4 → 3 → 2 con l'avanzare */
+		var staging = n < 100 ? 4 : (n < 200 ? 3 : 2);
+
+		/* quads: solo livelli ≥ 200, layout ≥ 60 tile, divisibili per 4 */
+		var qt = item.tiles;
+		if (qt % 4 !== 0) qt -= (qt % 4);
+		var quads = n >= 199 && qt >= 60 && (n % 2 === 0);
+
+		var sym = symSets[(n + Math.floor(progress * 8)) % symSets.length];
+
 		out.push({
 			layout: item.layout,
 			variant: item.variant,
 			symSet: sym,
 			covered: cov,
-			maxStaging: item.maxStaging,
-			quads: item.quads,
+			maxStaging: staging,
+			quads: quads,
 			index: n + 1
 		});
 	}
