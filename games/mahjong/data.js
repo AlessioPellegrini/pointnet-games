@@ -694,18 +694,19 @@ var LAYOUT_BUILDERS = {
 			return pts; // 36 + 8 = 44
 		},
 		'medium': function () {
+			/* v0.6.0: base PIENA 6×7 (una mezza tile a z1 richiede 4
+			   tile piene sotto nell'incrocio — la scacchiera era troppo
+			   rada e 15 mezze restavano sospese). */
 			var pts = [];
 			for (var y = 0; y < 7; y++) {
-				for (var x = 0; x < 6; x++) {
-					if ((x + y) % 2 === 0) pts.push({ z: 0, x: x * 2, y: y });
-				}
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
 			for (var y1 = 0; y1 < 6; y1++) {
 				for (var x1 = 1; x1 < 10; x1 += 2) {
 					if ((x1 + y1) % 2 === 0) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
 				}
 			}
-			return evenTrim(pts); // 21 layer0 + 12 layer1 = 33 → 32
+			return evenTrim(pts); // 42 base + 15 mezze = 57 → 56
 		}
 	},
 
@@ -751,8 +752,11 @@ var LAYOUT_BUILDERS = {
 				for (var x2b = 4; x2b < 6; x2b++) pts.push({ z: 2, x: x2b * 2, y: y2 });
 			}
 			for (var xm = 2; xm < 5; xm++) pts.push({ z: 1, x: xm * 2, y: 1 });
+			/* v0.6.0: piloni sotto il ponte centrale — z2 x4/x6 a y2
+			   non avevano z1 sotto (solo x8 era supportata). */
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
 			for (var xm2 = 2; xm2 < 5; xm2++) pts.push({ z: 2, x: xm2 * 2, y: 2 });
-			return pts; // 24 base + 12 torri + 8 torri2 + 3 ponte + 3 ponte2 = 50
+			return pts; // 24 base + 12 torri + 8 torri2 + 5 piloni + 3 ponte + 3 ponte2 = 50+2 = 52
 		}
 	},
 
@@ -1421,22 +1425,21 @@ function computeDifficulty(layout, covered) {
 }
 
 /* ============================================================
-   PROGRESSIONE AUTOMATICA (v0.6.0) — genera fino a 300 livelli
-   con una vera curva di difficoltà.
-   - Pool: TUTTE le combinazioni layout×variante, ognuna con lo
+   PROGRESSIONE AUTOMATICA (v0.6.0) — genera 300 livelli con
+   massima VARIETÀ e curva di difficoltà reale.
+   - Pool: TUTTE le combinazioni layout×variante, ordinate per
      score base di computeDifficulty(layout, 0).
-   - Il pool è ordinato per score crescente.
-   - La finestra di scelta scivola dal basso verso l'alto col
-     livello: i primi livelli prendono i layout piccoli, gli
-     ultimi i layout grandi (tile count e maxZ crescenti).
-   - Half-cover: ogni 7 livelli (dove il layout lo consente) si
-     forzano i veri half-cover (halfcover / checker), pescando da
-     una lista anch'essa scorrevole così che ci siano half piccoli
-     e half grandi in tutta la progressione.
-   - covered: proporzionale al livello e alla dimensione del layout
-     (mai oltre ~1 coppia ogni 6 tile).
-   - maxStaging: 4 all'inizio, scende a 3 poi 2 col livello.
-   - Quads: solo da livello 200+ e solo su layout ≥ 60 tile opz.
+   - Il pool è diviso in 4 ZONE di difficoltà (quartili di score).
+   - Dentro ogni zona il pick è ROUND-ROBIN: ogni livello prende
+     la combo successiva della zona → MAI due layout uguali di
+     fila e nessuna struttura ripetuta per 5-6 livelli.
+   - La zona avanza col livello: livelli 1-75 zona facile,
+     226-300 zona difficile (spirali/labirinti/piramidi).
+   - Half-cover ogni 7 livelli: half nella stessa zona di
+     difficoltà (i primi half piccoli, gli ultimi half giganti).
+   - covered: proporzionale al livello e alla dimensione del layout.
+   - maxStaging: 4 → 3 → 2 con l'avanzare.
+   - Quads: da livello 200+, layout ≥ 60 tile, alternati.
    ============================================================ */
 function buildProgression(count) {
 	var out = [];
@@ -1459,34 +1462,51 @@ function buildProgression(count) {
 	});
 	pool.sort(function (a, b) { return a.score - b.score || a.tiles - b.tiles; });
 
-	/* sotto-pool degli half-cover veri, ordinato per score crescente */
+	/* 4 zone di difficoltà (quartili del pool ordinato) */
+	var zones = [[], [], [], []];
+	for (var zi = 0; zi < pool.length; zi++) {
+		zones[Math.min(3, Math.floor(zi / pool.length * 4))].push(pool[zi]);
+	}
+	/* shuffle iniziale per zona: varia l'ordine di partenza */
+	var rng = createRng(1234);
+	for (var zi2 = 0; zi2 < zones.length; zi2++) shuffle(zones[zi2], rng);
+
+	/* half-cover veri, ordinati per score (per la zona giusta) */
 	var halfPool = pool.filter(function (p) { return p.isHalf; });
+	var halfCount = 0;
 
 	var symSets = ['default', 'red', 'green', 'blue', 'gold', 'dark', 'classic', 'classic-dark'];
-	var lastPick = 0;
+	/* contatori round-robin per zona */
+	var rr = [0, 0, 0, 0];
+	var prevLayout = null;
 
 	for (var n = 0; n < count; n++) {
 		var progress = n / count;
-		/* posizione TARGET monotona sul pool ordinato: il difficulty
-		   cresce solo in avanti (mai indietro) */
-		var target = progress * (pool.length - 1);
-		/* piccola varietà locale ±2 attorno al target — la difficoltà
-		   resta nello stesso "livello zona", non oscilla */
-		var pick = Math.max(0, Math.min(pool.length - 1, Math.round(target + (n % 5) - 2)));
-		if (pick < lastPick - 2) pick = lastPick - 2;   /* non tornare mai indietro di più di 2 */
-		lastPick = pick;
-		var item = pool[pick];
+		/* zona corrente (mai indietro) */
+		var zoneIdx = Math.min(3, Math.floor(progress * 4));
+		var zc = zones[zoneIdx];
+		if (!zc.length) { zc = zones[3]; zoneIdx = 3; }
 
-		/* half-cover ogni 7 livelli: scegli l'half la cui zona difficoltà
-		   corrisponde a quella del livello (progress*halfPool). Così i
-		   primi livelli hanno half piccoli, gli ultimi half giganti. */
+		/* round-robin: combo successiva nella zona — se coincide col
+		   layout appena giocato, avanzo ancora (mai 2 uguali di fila) */
+		var item = zc[rr[zoneIdx] % zc.length];
+		var guard = 0;
+		while (item.layout === prevLayout && guard < zc.length) {
+			rr[zoneIdx]++;
+			item = zc[rr[zoneIdx] % zc.length];
+			guard++;
+		}
+		rr[zoneIdx]++;
+		prevLayout = item.layout;
+
+		/* half-cover ogni 7 livelli: half nella stessa zona di difficoltà */
 		var forceHalf = ((n + 1) % 7 === 0);
 		if (forceHalf && halfPool.length) {
 			var hTarget = progress * (halfPool.length - 1);
-			var hIdx = Math.max(0, Math.min(halfPool.length - 1, Math.round(hTarget)));
-			/* alterna un po' per varietà ma resta nella zona giusta */
-			if (hIdx < halfPool.length - 1 && (n % 2 === 1)) hIdx++;
+			var hIdx = Math.max(0, Math.min(halfPool.length - 1, Math.round(hTarget + ((halfCount % 3) - 1))));
 			item = halfPool[hIdx];
+			halfCount++;
+			prevLayout = item.layout;
 		}
 
 		/* covered: cresce col livello ma mai oltre floor(tiles/6) coppie */
@@ -1496,12 +1516,12 @@ function buildProgression(count) {
 		/* maxStaging: 4 → 3 → 2 con l'avanzare */
 		var staging = n < 100 ? 4 : (n < 200 ? 3 : 2);
 
-		/* quads: solo livelli ≥ 200, layout ≥ 60 tile, divisibili per 4 */
+		/* quads: solo livelli ≥ 200, layout ≥ 60 tile, alternati */
 		var qt = item.tiles;
 		if (qt % 4 !== 0) qt -= (qt % 4);
 		var quads = n >= 199 && qt >= 60 && (n % 2 === 0);
 
-		var sym = symSets[(n + Math.floor(progress * 8)) % symSets.length];
+		var sym = symSets[(n + Math.floor(progress * 8) + zoneIdx) % symSets.length];
 
 		out.push({
 			layout: item.layout,
@@ -1573,6 +1593,18 @@ function generateLevel(levelIndex) {
 	}
 
 	var symbols = SYMBOL_SETS[level.symSet] || SYMBOL_SETS['default'];
+	/* v0.6.0: i set tematici contengono simboli DUPLICATI (es. "gold"
+	   ha 🦁 due volte). In quad mode servono pochi simboli (max ~32),
+	   quindi un duplicato produrrebbe 4+4=8 copie dello stesso simbolo
+	   invece di 4. Dedup: usiamo solo i simboli unici del set. */
+	var uniqueSymbols = [];
+	var seenSym = {};
+	for (var u = 0; u < symbols.length; u++) {
+		if (!seenSym[symbols[u]]) {
+			seenSym[symbols[u]] = 1;
+			uniqueSymbols.push(symbols[u]);
+		}
+	}
 	/* SVG tile sets: map the symbol to the bundled SVG file under
 	   assets/regular (white tiles) or assets/black (dark tiles). */
 	var svgDir = null;
@@ -1585,7 +1617,7 @@ function generateLevel(levelIndex) {
 		var rng = createRng(42 + attempt * 7 + levelIndex);
 		var deck = [];
 		for (var i = 0; i < symbolsNeeded; i++) {
-			var sym = symbols[i % symbols.length];
+			var sym = uniqueSymbols[i % uniqueSymbols.length];
 			for (var copy = 0; copy < copiesPerSymbol; copy++) {
 				if (deck.length < layout.length) deck.push(sym);
 			}
