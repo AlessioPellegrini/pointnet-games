@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.5.0** — 23 layout raffigurativi (pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica** e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.7.0** — 28 layout figure (lotus, sphinx, crown, galaxy, totem, pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica**, combo chain, shuffle power-up, valutazione a stelle e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## Attribution
 
@@ -35,6 +35,23 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 - **2nd click** on the revealed tile → sends it to the staging box
 - If a revealed tile's match is already in the staging box → **auto-match** instantly
 
+### Combo Chain (v0.7.0)
+- Match entro **3 secondi** dal precedente → la combo aumenta: ×1 → ×2 → ×3 → ×4 → ×5
+- Ogni match durante una combo vale `100 × combo` punti (combo ×5 = 500 punti)
+- Indicatore 🔥 con conteggio combo nella barra di stato; la combo **si resetta** se passano più di 3s
+
+### Shuffle Power-Up (v0.7.0)
+- **3 usi per livello** (pulsante 🔀 in alto a destra, contatore ×3)
+- Rimescola i simboli delle tile rimanenti (non in staging, non rimosse) mantenendo il **multiset** — le coppie restano sempre complete e risolvibili
+- Resetta la combo e ricopre temporaneamente i tile rivelati (peek)
+- Usalo quando il tabellone sembra bloccato o per sbloccare situazioni difficili
+
+### Star Rating (v0.7.0)
+- **1★** — completare il livello
+- **2★** — completare sotto il par tempo (2s per coppia rimasta, minimo 10s)
+- **3★** — completare senza usare **undo**
+- Il miglior punteggio a stelle per livello è salvato in `localStorage` e mostrato nel modal di completamento
+
 ### Drag-to-Peek
 - Grab any free tile with mouse or finger → lift it above the stack
 - See what's underneath, release → it snaps back with a soft animation
@@ -50,14 +67,14 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 
 ## Roadmap
 
-### Phase 1 — Core engine ✅ (mostly complete)
+### Phase 1 — Core engine ✅
 - [x] Study `ffalt/mah` algorithms (board, solver, random-layout)
 - [x] Design vanilla JS engine: tile model, board layers, matching rules
 - [x] Implement solver (DFS + pruning, solvability check)
 - [x] Playable UI: DOM tiles with 3D styling
 - [x] `manifest.json` + `index.html` registering the game in the plugin
 - [x] Half-cover tiles: geometric centering + blocking of 4 tiles below
-- [ ] Implement procedural layout generator (shapes, layers, difficulty curve)
+- [x] Procedural layout generator: 28 builders (shapes, layers, difficulty curve)
 
 ### Phase 2 — Tiles & Hints ✅ (mostly done)
 - [x] Hint feature: highlight two matching tiles
@@ -69,14 +86,14 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 - [x] Vanilla CSS, no dependencies
 - [ ] 3-4 selectable tile back variants (classic, flowers, bamboo, animals)
 
-### Phase 3 — Arcade Levels & Scoring
+### Phase 3 — Arcade Levels & Scoring ✅
 - [x] 300 levels with automatic difficulty curve (`buildProgression`)
-- [x] Progressive parameters: covered pairs (0→8), quads alternati su livelli alti, stagging per-livello
-- [ ] Undo/hint limits per level (5→0)
+- [x] Progressive parameters: covered pairs (0→8), quads su livelli alti, staging per-livello
+- [x] Undo/hint limits: hint attivo, undo limitato, 3★ richiede zero undo
 - [ ] Staging box size variation (3 slots early → 6 slots late)
-- [ ] Score system: removed tiles × time bonus, penalty for hints/undo
-- [ ] Splash + level bar UI (same style as minesweeper-arcade)
-- [ ] **No pan/zoom**: board resizes to fit the viewport ✅
+- [x] Score system: combo chain (×1..×5) + star rating (par time, no undo)
+- [x] Splash + level bar UI (same style as minesweeper-arcade)
+- [x] **No pan/zoom**: board resizes to fit the viewport ✅
 
 ### Phase 4 — Registered User Persistence
 - [ ] Save progress via `submitScore()` for leaderboard
@@ -93,7 +110,19 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 
 ## Level Design
 
-**v0.5.0**: la progressione è ora **automatica** — `buildProgression(300)` genera 300 livelli dal pool di 50 step esistenti, ripetuti a valori crescenti di `covered` (0 → 8 coppie) con simboli a rotazione e quad-mode nei livelli alti. La tabella storica qui sotto documenta l'ordine "soft difficulty" degli step originali (1..100).
+**v0.6.0+**: `buildProgression(300)` genera 300 livelli dal pool di **~67 combinazioni layout×variante**, ordinate per `computeDifficulty()` (0..100) e divise in **4 zone** di difficoltà:
+
+| Zone | Levels | Difficulty |
+|---|---|---|
+| 1 | 1–75 | facile |
+| 2 | 76–150 | media |
+| 3 | 151–225 | grande |
+| 4 | 226–300 | molto grande |
+
+- **Round-robin** dentro ogni zona: mai due livelli consecutivi con lo stesso layout
+- `covered` (coppie coperte) cresce in modo proporzionale alla zona; `maxStaging` scende 4 → 3 → 2
+- **Quad-mode** dal livello ~200 sui layout con ≥60 tile (4 copie per simbolo invece di 2)
+- La tabella storica qui sotto documenta l'ordine "soft difficulty" degli step originali v0.4.0 (1..100)
 
 | Step | Levels | Layout | Variant | Tiles | Face-down pairs | Staging slots |
 |---|---|---|---|---|---|---|
@@ -139,7 +168,23 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.5.0 — 300 livelli automatici, nuovi layout figura (current)
+### v0.7.0 — Combo chain, shuffle power-up & star ratings (current)
+- **Combo Chain**: match entro 3s dal precedente → moltiplicatore ×1..×5, ogni match vale `100 × combo` punti, badge 🔥 animato nella barra di stato, reset oltre 3s
+- **Shuffle Power-Up**: pulsante 🔀 con 3 usi per livello; rimescola i simboli delle tile rimanenti mantenendo il multiset (coppie sempre complete e risolvibili), resetta la combo e ricopre i tile rivelati
+- **Star Rating**: 1★ clear, 2★ sotto il par tempo (2s/coppia, minimo 10s), 3★ senza undo; miglior risultato salvato in `localStorage` e mostrato nel modal di completamento
+- `undo()` ora incrementa `undoUsed` e può negare la 3★; `computeStars()` calcola le stelle al completamento
+- 5 nuovi layout figura: **lotus, sphinx, crown, galaxy, totem** (totale 28)
+
+### v0.6.1 — 5 nuovi layout figura
+- Nuovi layout: **lotus** (44/56), **sphinx** (48), **crown** (54), **galaxy** (60/78), **totem** (40/50)
+- Tutti verificati con script: zero tile sospese, parità pari, zero duplicati
+
+### v0.6.0 — Round-robin progression, quads fix & physics fixes
+- Progressione **round-robin**: ~67 combinazioni layout×variante ordinate per difficoltà, divise in 4 zone (1–75, 76–150, 151–225, 226–300); mai due layout uguali di fila
+- Fix **quads mode**: simboli duplicati nei set tematici (es. 🦁×3 in "gold") ora vengono deduplicati → 4 copie esatte per simbolo (40/40)
+- Fix fisica: `checker/medium` 15 mezzetile sospese → base piena; `bridge/medium` 2 tile ponte senza piloni → supporti Z1
+
+### v0.5.0 — 300 livelli automatici, nuovi layout figura
 - Progressione riscritta: `buildProgression(300)` con difficoltà automatica (covered 0→8, quads nei livelli alti) al posto della lista manuale di 100
 - Cap livelli alzato a 300 in `game.js` (4 punti) + selettore livello max 300 in `index.html`
 - `computeDifficulty()`: punteggio 0..100 per ogni combinazione layout×variante (tile, layer, covered, densità)
