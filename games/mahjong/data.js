@@ -1299,6 +1299,172 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 3, x: 4, y: 0 }, { z: 3, x: 4, y: 4 });
 			return pts; // 25 + 19 + 6 + 2 = 52
 		}
+	},
+
+	/* ---- NEW v0.6.0 FIGURE LAYOUTS (lotus, sphinx, crown, galaxy, totem) ----
+	   Tutte le tile sono FULL e ogni tile a z>0 poggia su una tile piena
+	   alla stessa (x,y) a z-1 (conteggi sempre pari). */
+
+	'lotus': {
+		/* LOTO: base piena 6×5 + corolla di petali rialzati attorno
+		   al centro + cuore rialzato (2×2). */
+		'small': function () {
+			var pts = [];
+			/* z0: base 6×5 (x 0..10, y 0..4) = 30 */
+			for (var y = 0; y < 5; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: petali corona + centro */
+			[[2, 1], [4, 1], [6, 1], [2, 2], [6, 2], [2, 3], [6, 3], [2, 4], [4, 4], [6, 4], [4, 2], [4, 3]].forEach(function (c) {
+				pts.push({ z: 1, x: c[0], y: c[1] });
+			});
+			/* z2: cuore */
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
+			return pts; // 30 + 12 + 2 = 44
+		},
+		'medium': function () {
+			var pts = [];
+			/* z0: base 6×6 = 36 */
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: corolla doppia (16) */
+			[[2, 0], [6, 0], [2, 1], [4, 1], [6, 1], [2, 2], [6, 2], [2, 3], [6, 3], [2, 4], [4, 4], [6, 4], [2, 5], [6, 5], [4, 2], [4, 3]].forEach(function (c) {
+				pts.push({ z: 1, x: c[0], y: c[1] });
+			});
+			/* z2: cuore doppio (4) — v0.6.1: x=3 dispari non ha supporto
+			   in z1 (tile solo su x pari). Usiamo le 4 celle intorno
+			   al centro che esistono in z1: (2,2),(6,2),(2,3),(6,3). */
+			pts.push({ z: 2, x: 2, y: 2 }, { z: 2, x: 6, y: 2 }, { z: 2, x: 2, y: 3 }, { z: 2, x: 6, y: 3 });
+			return evenTrim(pts); // 36 + 16 + 4 = 56
+		}
+	},
+
+	'sphinx': {
+		/* SFINGE: corpo base + zampa-sfondo rialzato + testa che si
+		   innalza al centro. */
+		'small': function () {
+			var pts = [];
+			/* z0: base 6×6 = 36 */
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: "zampe" + corpo centrale */
+			[[2, 1], [8, 1], [2, 4], [8, 4], [4, 2], [4, 3], [6, 2], [6, 3]].forEach(function (c) {
+				pts.push({ z: 1, x: c[0], y: c[1] });
+			});
+			/* z2: torace */
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
+			/* z3: testa */
+			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 4, y: 3 });
+			return pts; // 36 + 8 + 2 + 2 = 48
+		}
+	},
+
+	'crown': {
+		/* CORONA: base piena 6×6 + punte alternate su due file. */
+		'small': function () {
+			var pts = [];
+			/* z0: base 6×6 = 36 */
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: punte file 0 e 5 (6 ciascuna = 12) */
+			for (var x1 = 0; x1 < 6; x1++) {
+				pts.push({ z: 1, x: x1 * 2, y: 0 });
+				pts.push({ z: 1, x: x1 * 2, y: 5 });
+			}
+			/* z2: punte intermedie (3+3 = 6) */
+			pts.push({ z: 2, x: 2, y: 0 }, { z: 2, x: 6, y: 0 }, { z: 2, x: 10, y: 0 });
+			pts.push({ z: 2, x: 2, y: 5 }, { z: 2, x: 6, y: 5 }, { z: 2, x: 10, y: 5 });
+			return pts; // 36 + 12 + 6 = 54
+		}
+	},
+
+	'galaxy': {
+		/* GALASSIA: base piena + ammassi di stelle rialzati in gruppi
+		   separati + nucleo centrale su più livelli. */
+		'small': function () {
+			var pts = [];
+			/* z0: base 6×7 = 42 */
+			for (var y = 0; y < 7; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: ammassi */
+			[[2, 1], [4, 1], [2, 2], [4, 2], [6, 4], [8, 4], [6, 5], [8, 5], [4, 3], [6, 3]].forEach(function (c) {
+				pts.push({ z: 1, x: c[0], y: c[1] });
+			});
+			/* z2: centri ammassi + supporti nucleo (v0.6.1: z3 deve
+			   poggiare su z2 — aggiunti (4,3),(6,3)). */
+			pts.push({ z: 2, x: 2, y: 1 }, { z: 2, x: 4, y: 1 }, { z: 2, x: 8, y: 4 }, { z: 2, x: 8, y: 5 });
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			/* z3: nucleo (supportato da z2) */
+			pts.push({ z: 3, x: 4, y: 3 }, { z: 3, x: 6, y: 3 });
+			return pts; // 42 + 10 + 6 + 2 = 60
+		},
+		'medium': function () {
+			var pts = [];
+			/* z0: base 6×8 = 48 */
+			for (var y = 0; y < 8; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: ammassi estesi + bracci */
+			var b1 = [[2, 1], [4, 1], [2, 2], [4, 2], [6, 3], [8, 3], [6, 4], [8, 4],
+			         [2, 5], [4, 5], [2, 6], [4, 6], [4, 3], [6, 5], [6, 2], [4, 4]];
+			b1.forEach(function (c) {
+				pts.push({ z: 1, x: c[0], y: c[1] });
+			});
+			/* z2: centri + bracci interni */
+			var b2 = [[2, 1], [4, 1], [6, 3], [8, 4], [2, 6], [4, 6], [4, 3], [6, 4]];
+			b2.forEach(function (c) {
+				pts.push({ z: 2, x: c[0], y: c[1] });
+			});
+			/* z2 extra: (4,4) serve per supportare il nucleo,
+			   (8,3) aggiunge simmetria e rende il totale pari (78) */
+			var b3 = [[4, 4], [8, 3]];
+			b3.forEach(function (c) {
+				pts.push({ z: 2, x: c[0], y: c[1] });
+			});
+			/* z3: nucleo doppio (supportato da z2) */
+			pts.push({ z: 3, x: 4, y: 3 }, { z: 3, x: 6, y: 4 }, { z: 3, x: 4, y: 4 }, { z: 3, x: 6, y: 3 });
+			return pts; // 48 + 16 + 10 + 4 = 78
+		}
+	},
+
+	'totem': {
+		/* TOTEM: base piena + colonna centrale a 3 livelli. */
+		'small': function () {
+			var pts = [];
+			/* z0: base 5×6 = 30 */
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: colonna larga 3×2 */
+			[[2, 2], [4, 2], [6, 2], [2, 3], [4, 3], [6, 3]].forEach(function (c) {
+				pts.push({ z: 1, x: c[0], y: c[1] });
+			});
+			/* z2: colonna stretta 1×2 */
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
+			/* z3: vertice doppio */
+			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 4, y: 3 });
+			return pts; // 30 + 6 + 2 + 2 = 40
+		},
+		'medium': function () {
+			var pts = [];
+			/* z0: base 6×6 = 36 */
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: colonna larga 3×3 + basi laterali */
+			[[0, 1], [1 * 1, 1], [2, 2], [4, 2], [6, 2], [2, 3], [4, 3], [6, 3], [2, 4], [4, 4], [6, 4]].forEach(function (c) {
+				pts.push({ z: 1, x: c[0] * (c[0] === 1 ? 2 : 1), y: c[1] });
+			});
+			/* z2: colonna stretta 1×2 */
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
+			/* z3: vertice doppio */
+			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 4, y: 3 });
+			return evenTrim(pts); // 36 + 11 + 2 + 2 = 51 → 50
+		}
 	}
 };
 
