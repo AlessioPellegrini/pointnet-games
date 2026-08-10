@@ -24,9 +24,13 @@
 	var timerEl = document.getElementById('timer');
 	var pairsLeftEl = document.getElementById('pairs-left');
 	var scoreEl = document.getElementById('score');
+	var comboEl = document.getElementById('combo');
+	var shuffleBtn = document.getElementById('btn-shuffle');
+	var shuffleCountEl = document.getElementById('shuffle-count');
 	var overlayEl = document.getElementById('overlay');
 	var modalTitle = document.getElementById('modal-title');
 	var modalStats = document.getElementById('modal-stats');
+	var modalStars = document.getElementById('modal-stars');
 	var stagingBoxEl = document.getElementById('staging-box');
 	var splashEl = document.getElementById('splash');
 	var splashPlayBtn = document.getElementById('splash-play');
@@ -197,6 +201,11 @@
 		timerInterval: null,
 		timerStarted: false,
 		history: [],
+		combo: 0,             // consecutive fast matches multiplier
+		lastMatchTime: 0,
+		shufflesLeft: 3,      // shuffle power-up uses per level
+		stars: 0,             // star rating earned on this level
+		undoUsed: 0,
 		levelIndex: 0,
 		_metrics: null,
 		_boardSize: null,
@@ -289,8 +298,26 @@
 					return t !== prev && t !== tile;
 				});
 				app.history.push([prev, tile]);
-				app.score += 100;
+				/* COMBO CHAIN (v0.7.0): a match within 3s of the previous
+				   one raises the multiplier (x1 → x2 → x3 … x5 max). */
+				var now = Date.now();
+				if (app.combo > 0 && now - app.lastMatchTime <= 3000) {
+					app.combo = Math.min(5, app.combo + 1);
+				} else {
+					app.combo = 1;
+				}
+				app.lastMatchTime = now;
+				var gained = 100 * app.combo;
+				app.score += gained;
 				scoreEl.textContent = app.score;
+				if (comboEl) {
+					if (app.combo >= 2) {
+						comboEl.textContent = '🔥 x' + app.combo;
+						comboEl.classList.add('show');
+					} else {
+						comboEl.classList.remove('show');
+					}
+				}
 				matched = true;
 				break;
 			}
@@ -423,8 +450,12 @@
 		/* Kept for downstream compat — matches are automatic in staging. */
 	}
 
+	/* ============================================================
+	   UNDO (v0.7.0: using undo costs the 3★ rating)
+	   ============================================================ */
 	function undo() {
 		if (app.history.length === 0) return;
+		app.undoUsed++;
 		var pair = app.history.pop();
 		pair[0].removed = false;
 		pair[1].removed = false;
@@ -461,12 +492,70 @@
 		}
 	}
 
+	/* ============================================================
+	   SHUFFLE POWER-UP (v0.7.0) — 3 uses per level.
+	   Re-assigns symbols among the REMAINING (removed=false, not in
+	   staging) tiles, keeping the exact same multiset so pairs still
+	   exist. Resets the combo and re-covers peeking tiles.
+	   ============================================================ */
+	function shuffleBoard() {
+		if (app.shufflesLeft <= 0) return;
+		var remaining = [];
+		app.tiles.forEach(function (t) {
+			if (!t.removed && !t.staging) {
+				remaining.push(t);
+				t.memoShuffleIdx = remaining.length - 1;
+			}
+		});
+		if (remaining.length < 4) return;
+
+		var syms = remaining.map(function (t) { return t.symbol; });
+		var rng = createRng(Math.floor(Math.random() * 1e9));
+		shuffle(syms, rng);
+
+		remaining.forEach(function (t) {
+			t.symbol = syms[t.memoShuffleIdx];
+			t.faceDown = false;
+		});
+		app.peeking = null;
+		app.combo = 0;
+		app.lastMatchTime = 0;
+		if (comboEl) comboEl.classList.remove('show');
+
+		app.shufflesLeft--;
+		if (shuffleCountEl) shuffleCountEl.textContent = 'x' + app.shufflesLeft;
+		if (shuffleBtn && app.shufflesLeft <= 0) shuffleBtn.disabled = true;
+		updateStates();
+	}
+
+	/* ============================================================
+	   STAR RATING (v0.7.0): 1★ any clear, 2★ faster than par,
+	   3★ no undo used. Par = 2s per remaining pair at start.
+	   ============================================================ */
+	function computeStars() {
+		var pairs = pairsLeftAtStart || 1;
+		var parTime = pairs * 2;
+		var s = 1;
+		if (app.elapsed <= Math.max(10, parTime)) s++;
+		if (app.undoUsed === 0) s++;
+		return s;
+	}
+
 	function levelComplete() {
 		stopTimer();
-		app.levelIndex = Math.min(app.levelIndex + 1, 299);
+		app.stars = computeStars();
+		var levelNum = app.levelIndex + 1;
+		saveStars(levelNum, app.stars);
+		app.levelIndex = Math.min(levelNum, 299);
 		saveGame();
-		modalTitle.textContent = '🏆 Level ' + (app.levelIndex + 1) + ' Cleared!';
-		modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score;
+		modalTitle.textContent = '🏆 Level ' + levelNum + ' Cleared!';
+		if (modalStars) {
+			var starStr = '';
+			for (var si = 0; si < 3; si++) starStr += (si < app.stars) ? '⭐' : '☆';
+			modalStars.textContent = starStr;
+		}
+		modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score +
+			'   ·   Best: ' + (bestStars[levelNum] || 0) + '⭐';
 		overlayEl.classList.add('show');
 	}
 
@@ -482,6 +571,12 @@
 		app.score = 0;
 		app.elapsed = 0;
 		app.history = [];
+		app.combo = 0;
+		app.lastMatchTime = 0;
+		app.shufflesLeft = 3;
+		app.stars = 0;
+		app.undoUsed = 0;
+		pairsLeftAtStart = pairsLeft();
 		app.timerStarted = false;
 
 		app._metrics = computeMetrics(app.tiles);
@@ -491,6 +586,9 @@
 		timerEl.textContent = '0';
 		scoreEl.textContent = '0';
 		pairsLeftEl.textContent = pairsLeft();
+		if (comboEl) comboEl.classList.remove('show');
+		if (shuffleCountEl) shuffleCountEl.textContent = 'x' + app.shufflesLeft;
+		if (shuffleBtn) shuffleBtn.disabled = false;
 		overlayEl.classList.remove('show');
 		renderStaging();
 		rebuildBoard();
@@ -528,8 +626,31 @@
 		} catch (e) {}
 	}
 
+	/* ============================================================
+	   STAR RATING PERSISTENCE (v0.7.0) — best stars per level.
+	   ============================================================ */
+	var bestStars = {};
+	var pairsLeftAtStart = 1;
+
+	function loadStars() {
+		try {
+			var raw = localStorage.getItem('wp_mahjong_arcade_stars');
+			if (raw) bestStars = JSON.parse(raw) || {};
+		} catch (e) { bestStars = {}; }
+	}
+
+	function saveStars(levelNum, stars) {
+		if (!bestStars[levelNum] || stars > bestStars[levelNum]) {
+			bestStars[levelNum] = stars;
+		}
+		try {
+			localStorage.setItem('wp_mahjong_arcade_stars', JSON.stringify(bestStars));
+		} catch (e) {}
+	}
+
 	readUrlParams();
 	if (!new URLSearchParams(window.location.search).get('level')) loadGame();
+	loadStars();
 	window.addEventListener('beforeunload', saveGame);
 
 	/* ============================================================
@@ -615,6 +736,7 @@
 
 	document.getElementById('btn-hint').addEventListener('click', hint);
 	document.getElementById('btn-undo').addEventListener('click', undo);
+	if (shuffleBtn) shuffleBtn.addEventListener('click', shuffleBoard);
 	document.getElementById('btn-new').addEventListener('click', startGame);
 	document.getElementById('btn-play-again').addEventListener('click', startGame);
 

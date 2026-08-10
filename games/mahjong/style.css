@@ -55,6 +55,25 @@ html, body {
 .status-value { color: var(--accent); min-width: 24px; text-align: center; }
 .status-value.pairs { color: var(--success); }
 
+/* COMBO CHAIN (v0.7.0) — animated badge on fast consecutive matches.
+   Hidden by default, gets .show from game.js. */
+#combo {
+	display: none;
+	background: linear-gradient(135deg, #f97316, #ef4444);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	font-size: 1rem;
+	font-weight: 900;
+	animation: combo-pulse 0.8s ease-in-out infinite;
+}
+#combo.show { display: flex; }
+
+@keyframes combo-pulse {
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.15); }
+}
+
 /* ----------------------------------------------------------
    STAGING BOX — 4 slots where clicked tiles are held.
    Two matching tiles in the box automatically match.
@@ -379,6 +398,9 @@ html, body {
 }
 .modal h2 { font-size: 1.6rem; }
 .modal p { color: #94a3b8; font-weight: 600; }
+
+/* STAR RATING (v0.7.0) — modal stars row */
+#modal-stars { font-size: 2.2rem; letter-spacing: 6px; margin: 6px 0; }
 
 /* ----------------------------------------------------------
    MOBILE — maximise board space on small screens

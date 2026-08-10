@@ -144,7 +144,7 @@
 	<div id="splash">
 		<div class="splash-inner">
 			<div class="splash-emoji">🀄</div>
-			<h1 class="splash-title">Mahjong Arcade<sup class="splash-version">v0.5.0</sup></h1>
+			<h1 class="splash-title">Mahjong Arcade<sup class="splash-version">v0.7.0</sup></h1>
 			<p class="splash-subtitle">Match identical tiles to clear the board. Free tiles go to the tray — two of the same symbol auto-match!</p>
 			<button id="splash-play" class="splash-play">🎮 PLAY</button>
 			<p class="splash-hint">Tap a free tile to lift it · tap again to send it to the tray</p>
@@ -164,6 +164,7 @@
 			<div class="status-item">⏱️ <span class="status-value" id="timer">0</span></div>
 			<div class="status-item">🀄 <span class="status-value pairs" id="pairs-left">0</span></div>
 			<div class="status-item">🏆 <span class="status-value" id="score">0</span></div>
+			<div class="status-item" id="combo">🔥 <span class="status-value">x0</span></div>
 		</div>
 
 		<div class="staging-box" id="staging-box"></div>
@@ -175,6 +176,7 @@
 		<div class="action-bar">
 			<button class="btn" id="btn-hint">💡 Hint</button>
 			<button class="btn" id="btn-undo">↩️ Undo</button>
+			<button class="btn" id="btn-shuffle">🔀 Shuffle <span id="shuffle-count">x3</span></button>
 			<button class="btn" id="btn-new">🔄 New</button>
 			<input type="number" id="level-input" class="btn-level-input" min="1" max="300" value="1" aria-label="Level number">
 			<button class="btn" id="btn-level-go">Level</button>
@@ -184,6 +186,7 @@
 	<div class="overlay" id="overlay">
 		<div class="modal">
 			<h2 id="modal-title">🏆 Cleared!</h2>
+			<p id="modal-stars"></p>
 			<p id="modal-stats"></p>
 			<button class="btn" id="btn-play-again">🔄 Play again</button>
 		</div>
