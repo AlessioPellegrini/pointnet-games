@@ -31,6 +31,22 @@ function shuffle(arr, rng) {
    65 pairs) has enough distinct faces without recycling.
    ============================================================ */
 var SYMBOL_SETS = {
+	/* SVG tile sets (riichi-mahjong-tiles). The "symbols" are the
+	   base SVG filenames (Man1..Sou9, Ton/ Nan/Shaa/Pei, Chun/Haku/
+	   Hatsu) plus the 4 bonus for flower/season if needed. game.js
+	   renders these as <img> with src assets/<variant>/<name>.svg. */
+	/* SVGs interleaved by family (Man → Pin → Sou → winds → dragons):
+	   in QUAD mode only a few symbols are used per level, so alternating
+	   families keeps the board varied (character tiles alone all look
+	   like "letters" to a western player). */
+	'classic': ['Man1', 'Pin1', 'Sou1', 'Man2', 'Pin2', 'Sou2', 'Man3', 'Pin3', 'Sou3',
+	            'Man4', 'Pin4', 'Sou4', 'Man5', 'Pin5', 'Sou5', 'Man6', 'Pin6', 'Sou6',
+	            'Man7', 'Pin7', 'Sou7', 'Man8', 'Pin8', 'Sou8', 'Man9', 'Pin9', 'Sou9',
+	            'Ton', 'Nan', 'Shaa', 'Pei', 'Chun', 'Haku', 'Hatsu'],
+	'classic-dark': ['Man1', 'Pin1', 'Sou1', 'Man2', 'Pin2', 'Sou2', 'Man3', 'Pin3', 'Sou3',
+	                 'Man4', 'Pin4', 'Sou4', 'Man5', 'Pin5', 'Sou5', 'Man6', 'Pin6', 'Sou6',
+	                 'Man7', 'Pin7', 'Sou7', 'Man8', 'Pin8', 'Sou8', 'Man9', 'Pin9', 'Sou9',
+	                 'Ton', 'Nan', 'Shaa', 'Pei', 'Chun', 'Haku', 'Hatsu'],
 	'default': ['🀄', '🍀', '🌸', '🔥', '❄️', '💎', '⭐', '🌙', '☀️', '🍃', '💜', '🔷', '🍄', '🎈', '🌈', '🍕', '⚽', '🎲', '🐍', '🦋', '🌵', '🍇', '🐙', '🦄', '🍩', '🍪', '🧁', '🍭', '🎯', '🎮', '🎧', '📦', '🔔', '🎁', '🌈', '🦉', '🐢', '🐳', '🦩', '🌺', '🍁', '🌊', '⛰️', '🏝️', '🌋', '🏰', '🚀', '🛸', '⚓', '🎪', '🎨', '🎬', '🏮', '🔮', '⚡', '🌀', '💫', '✨', '☄️', '🪐', '🌌', '🫧', '🍉', '🍓', '🍊', '🥝', '🍌', '🥐', '🧀'],
 	'red':     ['🍎', '🌹', '❤️', '🍒', '🦞', '🔴', '🐞', '🎒', '🍉', '🐙', '🧣', '🍅', '🌶️', '🎈', '🩸', '🧲', '💄', '🍓', '🧧', '🦀', '🍁', '🛑', '🔺', '🐦🔥', '🍑', '❤️‍🔥', '🧡', '🍗', '🥩', '🍷', '🎀', '👠', '🖍️', '🌹', '🌺', '🍄', '🦩', '🐟', '🦐', '🍆', '🍠', '🟥', '🥵', '🔥', '🏮', '🌋', '💖', '💃', '🚨', '🎇', '🧸', '🍬', '🍧', '🍎', '🥊', '♨️', '🍒', '🌸', '🫚', '🫒', '🦞', '🍁', '🫖', '🍇', '🍫', '🍭', '🍩'],
 	'green':   ['🌿', '🦎', '💚', '🍏', '🦠', '🫑', '🐸', '🐢', '🥑', '🐲', '🌲', '🍀', '🧪', '🍐', '🦜', '🥦', '🐍', '🥒', '🌵', '🌱', '🦗', '🍈', '🍃', '🥬', '🌾', '🫛', '🥝', '🥭', '🍃', '🌳', '🎄', '🌴', '🍀', '☘️', '🧿', '🦖', '🦕', '🐊', '🦍', '🦜', '🍉', '🥒', '🍐', '🥦', '🫑', '🥑', '🍏', '🍵', '🥗', '🍃', '🌿', '🌱', '🌲', '🌳', '🌴', '🌵', '🌾', '🍀', '☘️', '🧫', '🦴', '🫘', '🫚', '🍜', '🥠', '🍃', '💶', '🧤', '🟢'],
@@ -51,12 +67,23 @@ function evenTrim(pts) {
 	return pts;
 }
 
+/* Rimuove coordinate duplicate (stessa z,x,y) mantenendo il primo.
+   Usato dai builder le cui figure si sovrappongono (es. helix). */
+function dedupePts(pts) {
+	var seen = {}, out = [];
+	for (var i = 0; i < pts.length; i++) {
+		var k = pts[i].z + ',' + pts[i].x + ',' + pts[i].y;
+		if (!seen[k]) { seen[k] = 1; out.push(pts[i]); }
+	}
+	return out;
+}
+
 var LAYOUT_BUILDERS = {
 	'halfcover': {
 		'small': function () {
-			/* 4×4 base + 3×3 half-cover sopra (pattern completo) */
+			/* 4×5 base + 3×3 half-cover sopra (riga extra per supporto) */
 			var pts = [];
-			for (var y = 0; y < 4; y++) {
+			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
 			for (var hy = 1; hy < 4; hy++) {
@@ -64,11 +91,11 @@ var LAYOUT_BUILDERS = {
 					pts.push({ z: 1, x: hx, y: hy, isHalf: true });
 				}
 			}
-			return evenTrim(pts); // 16+9 = 25 → 24
+			return evenTrim(pts); // 20+9 = 29 → 28
 		},
 		'medium': function () {
 			var pts = [];
-			for (var y = 0; y < 4; y++) {
+			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
 			for (var hy = 1; hy < 4; hy++) {
@@ -77,7 +104,7 @@ var LAYOUT_BUILDERS = {
 				}
 			}
 			pts.push({ z: 0, x: 2, y: 5 });
-			return pts; // 26
+			return pts; // 30
 		}
 	},
 
@@ -95,7 +122,7 @@ var LAYOUT_BUILDERS = {
 				for (var x1 = 1; x1 < 4; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
 			}
 			pts.push({ z: 2, x: 4, y: 2 });
-			return pts; // 21+8+1 = 30
+			return evenTrim(pts); // 21+9+1 = 31 → 30
 		},
 		'medium': function () {
 			var pts = [];
@@ -224,8 +251,13 @@ var LAYOUT_BUILDERS = {
 			[[0, 0], [5, 0], [0, 5], [5, 5]].forEach(function (c) {
 				pts.push({ z: 2, x: c[0] * 2, y: c[1] });
 			});
+			/* base per i pinnacoli centrali (z1, x6) */
+			pts.push({ z: 1, x: 6, y: 2 }, { z: 1, x: 6, y: 3 });
+			/* pinnacoli (z2) */
+			pts.push({ z: 2, x: 6, y: 2 }, { z: 2, x: 6, y: 3 });
+			/* pinnacoli (z3) */
 			pts.push({ z: 3, x: 6, y: 2 }, { z: 3, x: 6, y: 3 });
-			return pts; // 62
+			return pts; // 36+20+2+2+2 = 66
 		},
 		'xl': function () {
 			var pts = [];
@@ -288,24 +320,26 @@ var LAYOUT_BUILDERS = {
 
 	'turtle': {
 		'small': function () {
-			/* Anello 6×6 vuoto al centro + testa + coda + zampe.
-			   Coordinate tutte ≥ 0 (il filter p.y>=0 le mantiene). */
+			/* TARTARUGA pulita: carapace = anello 5×5 (x0..8, y1..5),
+			   interno 2×2 rialzato, testa x10, coda, zampe.
+			   Nessuna tile sospesa, nessun duplicato, bounds ≤ 10×8. */
 			var pts = [];
-			/* carapace = anello (offset y=1 per lasciare spazio sotto) */
-			for (var y = 1; y < 7; y++) {
-				for (var x = 0; x < 6; x++) {
-					if (y === 1 || y === 6 || x === 0 || x === 5) pts.push({ z: 0, x: x * 2, y: y });
+			/* anello: x ogni 2, y 1..5 */
+			for (var y = 1; y < 6; y++) {
+				for (var x = 0; x < 5; x++) {
+					if (y === 1 || y === 5 || x === 0 || x === 4) pts.push({ z: 0, x: x * 2, y: y });
 				}
 			}
-			/* interno: 2×2 centrale su layer 1 */
-			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 3 }, { z: 1, x: 6, y: 4 });
-			/* testa (3 tile a destra) */
-			pts.push({ z: 0, x: 10, y: 2 }, { z: 0, x: 10, y: 3 }, { z: 0, x: 12, y: 3 });
+			/* interno 2×2 (x 4..6, y 2..3): base + colmo */
+			pts.push({ z: 0, x: 4, y: 2 }, { z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 6, y: 3 });
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 2 }, { z: 1, x: 6, y: 3 });
+			/* testa (x10, y2..4) */
+			pts.push({ z: 0, x: 10, y: 2 }, { z: 0, x: 10, y: 3 }, { z: 0, x: 10, y: 4 });
 			/* coda (sopra a sinistra) */
 			pts.push({ z: 0, x: 2, y: 0 });
 			/* zampe in basso */
-			pts.push({ z: 0, x: 2, y: 7 }, { z: 0, x: 8, y: 7 });
-			return evenTrim(pts); // 20 anello+4+3+1+2 = 30
+			pts.push({ z: 0, x: 2, y: 6 }, { z: 0, x: 8, y: 6 });
+			return pts; // 16 anello + 8 interno + 3 testa + 1 coda + 2 zampe = 30
 		},
 		'medium': function () {
 			var pts = [];
@@ -345,9 +379,10 @@ var LAYOUT_BUILDERS = {
 
 	'diamond': {
 		'small': function () {
-			/* Rombo 7×7: 1,3,5,7,5,3,1 + interno 1,3,1 */
+			/* Rombo: righe 1,3,5,6,5,3,1 (max 6 tile = span 0..10).
+			   Interno 1,3,1 sopra; pinnacolo centrato. */
 			var pts = [];
-			var w = [1, 3, 5, 7, 5, 3, 1];
+			var w = [1, 3, 5, 6, 5, 3, 1];
 			for (var y = 0; y < w.length; y++) {
 				var row = w[y];
 				var start = Math.floor((7 - row) / 2);
@@ -360,11 +395,11 @@ var LAYOUT_BUILDERS = {
 				for (var i1 = 0; i1 < row1; i1++) pts.push({ z: 1, x: (start1 + i1) * 2, y: y1 + 2 });
 			}
 			pts.push({ z: 2, x: 6, y: 3 });
-			return evenTrim(pts); // 25+5+1 = 31 → 30
+			return evenTrim(pts); // 24+5+1 = 30
 		},
 		'medium': function () {
 			var pts = [];
-			var base = [[1, 0], [3, 1], [5, 2], [7, 3], [5, 4], [3, 5], [1, 6]];
+			var base = [[1, 0], [3, 1], [5, 2], [6, 3], [5, 4], [3, 5], [1, 6]];
 			for (var b = 0; b < base.length; b++) {
 				var row = base[b][0];
 				var y = base[b][1];
@@ -378,8 +413,8 @@ var LAYOUT_BUILDERS = {
 				var start2 = Math.floor((7 - row2) / 2);
 				for (var i2 = 0; i2 < row2; i2++) pts.push({ z: 1, x: (start2 + i2) * 2, y: y2 });
 			}
-			pts.push({ z: 2, x: 6, y: 2 }, { z: 2, x: 6, y: 3 }, { z: 2, x: 4, y: 3 });
-			return evenTrim(pts); // 25+8+3 = 36 → 36
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			return evenTrim(pts); // 24+8+3 = 35 → 34
 		},
 		'large': function () {
 			var pts = [];
@@ -489,12 +524,16 @@ var LAYOUT_BUILDERS = {
 				pts.push({ z: 1, x: 0, y: y1 });
 				pts.push({ z: 1, x: 10, y: y1 });
 			}
+			/* layer 1: piattaforme sotto i muri interni (supporto) */
+			pts.push({ z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
+			pts.push({ z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 4 }, { z: 1, x: 8, y: 4 });
+			pts.push({ z: 1, x: 8, y: 3 });
 			/* layer 2: muri interni sfalsati con aperture (corridoio a S) */
 			for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: 2 });
 			for (var x3 = 4; x3 <= 8; x3 += 2) pts.push({ z: 2, x: x3, y: 4 });
-			/* layer 3: pilastri interni per profondità */
-			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 6, y: 4 }, { z: 3, x: 8, y: 3 });
-			return evenTrim(pts); // 42 + 24 perim + 6 mura + 3 pill = 75 → 74
+			/* layer 3: pilastri interni per profondità (supportati da z2) */
+			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 6, y: 4 }, { z: 3, x: 8, y: 4 });
+			return evenTrim(pts); // 42 + 24 perim + 7 piatt + 6 mura + 3 pill = 82 → 82
 		},
 		'medium': function () {
 			/* LABIRINTO grande: base piena 6×8 + perimetro + più corridoi. */
@@ -512,14 +551,19 @@ var LAYOUT_BUILDERS = {
 				pts.push({ z: 1, x: 0, y: y1 });
 				pts.push({ z: 1, x: 10, y: y1 });
 			}
+			/* layer 1: piattaforme sotto i muri interni (supporto) */
+			for (var x2 = 2; x2 <= 8; x2 += 2) { pts.push({ z: 1, x: x2, y: 2 }); }
+			for (var x3 = 2; x3 <= 6; x3 += 2) { pts.push({ z: 1, x: x3, y: 4 }); }
+			for (var x4 = 4; x4 <= 8; x4 += 2) { pts.push({ z: 1, x: x4, y: 6 }); }
+			pts.push({ z: 1, x: 8, y: 3 }, { z: 1, x: 8, y: 4 }, { z: 1, x: 8, y: 5 });
+			pts.push({ z: 1, x: 2, y: 3 }, { z: 1, x: 2, y: 4 }, { z: 1, x: 2, y: 5 });
 			/* layer 2: muri interni alternati (S allargata) */
-			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 2, x: x2, y: 2 });
-			for (var x3 = 2; x3 <= 6; x3 += 2) pts.push({ z: 2, x: x3, y: 4 });
-			for (var x4 = 4; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 6 });
-			/* layer 3: muri verticali di collegamento */
-			for (var y5 = 3; y5 < 6; y5++) pts.push({ z: 3, x: 8, y: y5 });
-			for (var y6 = 3; y6 < 6; y6++) pts.push({ z: 3, x: 2, y: y6 });
-			return evenTrim(pts); // 48 + 28 + 12 + 6 = 94
+			for (var x2b = 2; x2b <= 8; x2b += 2) pts.push({ z: 2, x: x2b, y: 2 });
+			for (var x3b = 2; x3b <= 6; x3b += 2) pts.push({ z: 2, x: x3b, y: 4 });
+			for (var x4b = 4; x4b <= 8; x4b += 2) pts.push({ z: 2, x: x4b, y: 6 });
+			return evenTrim(pts); // 48+28+15+12 = 103 → 102
+			/* (rimossi: z2/z3 colonne verticali x8/x2 y3..5 — troppo dense,
+			   il solver andava in timeout su quasi tutti gli shuffle) */
 		}
 	},
 
@@ -606,22 +650,18 @@ var LAYOUT_BUILDERS = {
 
 	'checker': {
 		'small': function () {
-			/* Scacchiera VERA 6×6: layer 0 su celle alternate,
-			   layer 1 half-cover sopra i buchi alternati. */
+			/* SCACCHIERA rialzata: base piena di supporto + celle pari
+			   rialzate (pattern visivo a scacchiera) — tutte supportate. */
 			var pts = [];
 			for (var y = 0; y < 6; y++) {
-				for (var x = 0; x < 6; x++) {
-					if ((x + y) % 2 === 0) pts.push({ z: 0, x: x * 2, y: y });
-				}
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* half-cover sopra ogni buco (alternato). Partono da y=1:
-			   su y=0 sforerebbero sopra il tabellone (shiftY=STEP_Y/2). */
 			for (var y1 = 1; y1 < 5; y1++) {
-				for (var x1 = 1; x1 < 10; x1 += 2) {
-					if ((x1 + y1) % 2 === 0) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
+				for (var x1 = 1; x1 < 5; x1++) {
+					if ((x1 + y1) % 2 === 0) pts.push({ z: 1, x: x1 * 2, y: y1 });
 				}
 			}
-			return evenTrim(pts); // 18 layer0 + 9 layer1 = 27 → 26
+			return pts; // 36 + 8 = 44
 		},
 		'medium': function () {
 			var pts = [];
@@ -659,9 +699,10 @@ var LAYOUT_BUILDERS = {
 			}
 			/* ponte: fila di 5 tile sopra le due torri (layer 2) */
 			for (var x4 = 0; x4 < 5; x4++) pts.push({ z: 2, x: x4 * 2, y: 0 });
-			/* ponte laterale centrale */
+			/* piloni centrali + ponte laterale (supporto incluso) */
+			pts.push({ z: 0, x: 4, y: 0 }, { z: 0, x: 4, y: 1 });
 			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 4, y: 1 });
-			return evenTrim(pts); // 12 base + 8 layer1 + 5 ponte + 2 = 27 → 26
+			return evenTrim(pts); // 12+8+5+4 = 29 → 28
 		},
 		'medium': function () {
 			var pts = [];
@@ -700,16 +741,18 @@ var LAYOUT_BUILDERS = {
 			for (var y1 = 1; y1 < 6; y1++) pts.push({ z: 1, x: 0, y: y1 });
 			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 1, x: x2, y: 5 });
 			for (var y3 = 1; y3 < 5; y3++) pts.push({ z: 1, x: 10, y: y3 });
-			/* layer 2: giro interno con GAP in alto a sinistra */
-			for (var x4 = 2; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 1 });
-			for (var y5 = 2; y5 < 5; y5++) pts.push({ z: 2, x: 8, y: y5 });
-			for (var x6 = 6; x6 >= 2; x6 -= 2) pts.push({ z: 2, x: x6, y: 4 });
-			for (var y7 = 2; y7 < 4; y7++) pts.push({ z: 2, x: 2, y: y7 });
-			/* layer 3: centro rialzato (blocco 2×2) */
-			for (var y8 = 2; y8 < 4; y8++) {
-				pts.push({ z: 3, x: 4, y: y8 }, { z: 3, x: 6, y: y8 });
+			/* piattaforma interna z1 (poggia sulla base, supporta il giro) */
+			for (var py = 1; py < 5; py++) {
+				for (var px = 2; px <= 8; px += 2) pts.push({ z: 1, x: px, y: py });
 			}
-			return evenTrim(pts); // 36 + 17 + 11 + 4 = 68
+			/* layer 2: CORRIDOIO A S (aperto) — niente anello chiuso attorno
+			   al centro. Le tile centrali restano raggiungibili e il livello
+			   diventa risolvibile. Gap reali in (8,3) e (2,2). */
+			for (var x4 = 2; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 1 });
+			pts.push({ z: 2, x: 8, y: 2 }, { z: 2, x: 8, y: 4 });   // gap in (8,3)
+			for (var x6 = 6; x6 >= 2; x6 -= 2) pts.push({ z: 2, x: x6, y: 4 });
+			pts.push({ z: 2, x: 2, y: 3 });                          // gap in (2,2)
+			return evenTrim(pts); // 36+19+16+9 = 80 → 80 (anello aperto)
 		},
 		'medium': function () {
 			/* SPIRALE grande: base piena 6×8 + tre giri di anelli con gap. */
@@ -723,17 +766,25 @@ var LAYOUT_BUILDERS = {
 			for (var y1 = 1; y1 < 8; y1++) pts.push({ z: 1, x: 0, y: y1 });
 			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 1, x: x2, y: 7 });
 			for (var y3 = 1; y3 < 7; y3++) pts.push({ z: 1, x: 10, y: y3 });
-			/* layer 2: giro medio con gap a sinistra */
+			/* piattaforma interna z1 (supporto per il giro) */
+			for (var py = 1; py < 7; py++) {
+				for (var px = 2; px <= 8; px += 2) pts.push({ z: 1, x: px, y: py });
+			}
+			/* layer 2: giro medio */
 			for (var x4 = 2; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 1 });
-			for (var y5 = 2; y5 < 7; y5++) pts.push({ z: 2, x: 8, y: y5 });
+			for (var y5 = 1; y5 < 7; y5++) pts.push({ z: 2, x: 8, y: y5 });
 			for (var x6 = 6; x6 >= 2; x6 -= 2) pts.push({ z: 2, x: x6, y: 6 });
-			for (var y7 = 2; y7 < 6; y7++) pts.push({ z: 2, x: 2, y: y7 });
+			for (var y7 = 1; y7 < 6; y7++) pts.push({ z: 2, x: 2, y: y7 });
+			/* supporto centro (z2 interno, poggia sulla piattaforma z1) */
+			for (var yc = 2; yc < 5; yc++) {
+				pts.push({ z: 2, x: 4, y: yc }, { z: 2, x: 6, y: yc });
+			}
 			/* layer 3: centro rialzato */
-			for (var y8 = 3; y8 < 5; y8++) {
+			for (var y8 = 2; y8 < 5; y8++) {
 				pts.push({ z: 3, x: 4, y: y8 }, { z: 3, x: 6, y: y8 });
 			}
 			pts.push({ z: 4, x: 4, y: 4 });
-			return evenTrim(pts); // 48 + 24 + 20 + 5 = 97 → 96
+			return evenTrim(pts); // 48 + 24 + 20 + 6 + 1 = 99
 		}
 	},
 
@@ -792,6 +843,426 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 3, x: 6, y: 4 });
 			return evenTrim(pts); // 54 + 48 + 5 = 107 → 106
 		}
+	},
+
+	/* ---- NEW v0.5.0 FIGURE LAYOUTS ---- */
+
+	'pagoda': {
+		/* PAGODA: torre a piani convergenti. Ogni piano superiore è
+		   centrato e poggia interamente su quello sotto (nessuna
+		   sporgenza). Solo tile FULL. */
+		'small': function () {
+			var pts = [];
+			/* piano 0: 4×4 (x 0..6, y 0..3) */
+			for (var y = 0; y < 4; y++) {
+				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* piano 1: 4×3 (x 0..6, y 1..3) */
+			for (var y1 = 1; y1 < 4; y1++) {
+				for (var x1 = 0; x1 < 4; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
+			}
+			/* piano 2: 2×2 (x 2..4, y 1..2) */
+			for (var y2 = 1; y2 < 3; y2++) {
+				for (var x2 = 1; x2 < 3; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
+			}
+			/* vertice */
+			pts.push({ z: 3, x: 4, y: 2 });
+			return evenTrim(pts); // 16+12+4+1 = 33 → 32
+		},
+		'medium': function () {
+			var pts = [];
+			for (var y = 0; y < 5; y++) {
+				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			for (var y1 = 1; y1 < 5; y1++) {
+				for (var x1 = 0; x1 < 5; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
+			}
+			for (var y2 = 1; y2 < 4; y2++) {
+				for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
+			}
+			for (var y3 = 2; y3 < 4; y3++) pts.push({ z: 3, x: 4, y: y3 });
+			pts.push({ z: 4, x: 4, y: 3 });
+			return evenTrim(pts); // 25+20+9+2+1 = 57 → 56
+		},
+		'large': function () {
+			var pts = [];
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			for (var y1 = 1; y1 < 6; y1++) {
+				for (var x1 = 1; x1 < 5; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
+			}
+			for (var y2 = 2; y2 < 5; y2++) {
+				for (var x2 = 2; x2 < 4; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
+			}
+			for (var y3 = 3; y3 < 5; y3++) pts.push({ z: 3, x: 4, y: y3 });
+			pts.push({ z: 4, x: 4, y: 4 });
+			return evenTrim(pts); // 36+20+6+2+1 = 65 → 64
+		}
+	},
+
+	'butterfly': {
+		/* FARFALLA: due ali speculari (triangoli che si allargano
+		   verso il basso) + corpo centrale verticale. Solo FULL. */
+		'small': function () {
+			var pts = [];
+			/* Z0: ali (5 righe, simmetriche attorno a x=4) */
+			[[0, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 4, 6, 8], [2, 4, 6]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 0, x: row[i], y: y });
+			});
+			/* Z1: ali interne (4 righe, partono dalla 2a) */
+			[[2, 6], [2, 4, 6], [2, 4, 6]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 1, x: row[i], y: y + 1 });
+			});
+			/* Z2: vertice corpo — poggia su Z1 (4,3) */
+			pts.push({ z: 2, x: 4, y: 3 });
+			return pts; // 19 + 8 + 1 = 28
+		},
+		'medium': function () {
+			var pts = [];
+			/* Z0: ali (6 righe, simmetriche attorno a x=4) */
+			[[0, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 4, 6, 8], [0, 2, 4, 6, 8], [2, 4, 6]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 0, x: row[i], y: y });
+			});
+			/* Z1: ali interne + corpo (4 righe, partono dalla 2a) */
+			[[2, 6], [2, 4, 6], [2, 4, 6], [2, 4, 6]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 1, x: row[i], y: y + 1 });
+			});
+			/* Z2: corpo (2 tile) */
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
+			/* Z3: vertice */
+			pts.push({ z: 3, x: 4, y: 3 });
+			return pts; // 24 + 11 + 2 + 1 = 38
+		}
+	},
+
+	'arrow': {
+		/* FRECCIA: punta verso destra — testa a freccia + asta.
+		   Piani pieni, solo FULL. */
+		'small': function () {
+			var pts = [];
+			var rows0 = [[0, 2, 4, 6, 8], [0, 2, 4, 6, 8, 10], [0, 2, 4, 6, 8]];
+			for (var y = 0; y < rows0.length; y++) {
+				for (var i = 0; i < rows0[y].length; i++) pts.push({ z: 0, x: rows0[y][i], y: y });
+			}
+			var rows1 = [[0, 2, 4], [0, 2, 4, 6], [0, 2, 4]];
+			for (var y1 = 0; y1 < rows1.length; y1++) {
+				for (var i = 0; i < rows1[y1].length; i++) pts.push({ z: 1, x: rows1[y1][i], y: y1 });
+			}
+			return evenTrim(pts); // 16+10 = 26 → 26
+		},
+		'medium': function () {
+			var pts = [];
+			var rows0 = [[0, 2, 4, 6, 8], [0, 2, 4, 6, 8, 10], [0, 2, 4, 6, 8, 10], [0, 2, 4, 6, 8, 10], [0, 2, 4, 6, 8]];
+			for (var y = 0; y < rows0.length; y++) {
+				for (var i = 0; i < rows0[y].length; i++) pts.push({ z: 0, x: rows0[y][i], y: y });
+			}
+			var rows1 = [[0, 2, 4, 6], [0, 2, 4, 6, 8], [0, 2, 4, 6, 8], [0, 2, 4, 6], [0, 2, 4]];
+			for (var y1 = 0; y1 < rows1.length; y1++) {
+				for (var i = 0; i < rows1[y1].length; i++) pts.push({ z: 1, x: rows1[y1][i], y: y1 });
+			}
+			pts.push({ z: 2, x: 2, y: 2 });
+			return evenTrim(pts); // 28+21+1 = 50 → 50
+		}
+	},
+
+	'star': {
+		/* STELLA a 4 punte: due barre incrociate (verticale + orizzontale,
+		   centro NON duplicato) + riempitivi diagonali. Solo FULL. */
+		'small': function () {
+			var pts = [];
+			/* Z0: barra verticale + bracci orizzontali senza duplicati */
+			for (var y = 0; y < 5; y++) pts.push({ z: 0, x: 4, y: y });
+			pts.push({ z: 0, x: 0, y: 2 }, { z: 0, x: 2, y: 2 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 8, y: 2 });
+			/* Z1: punte interne + antenna superiore */
+			pts.push({ z: 1, x: 4, y: 0 });
+			pts.push({ z: 1, x: 4, y: 1 }, { z: 1, x: 4, y: 3 });
+			pts.push({ z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
+			/* Z2: centro */
+			pts.push({ z: 2, x: 4, y: 2 });
+			return pts; // 9 + 6 + 1 = 16
+		},
+		'medium': function () {
+			var pts = [];
+			/* Z0: barra verticale + orizzontale (centro non duplicato) + diagonali */
+			for (var y = 0; y < 7; y++) pts.push({ z: 0, x: 4, y: y });
+			pts.push({ z: 0, x: 0, y: 3 }, { z: 0, x: 2, y: 3 }, { z: 0, x: 6, y: 3 }, { z: 0, x: 8, y: 3 }, { z: 0, x: 10, y: 3 });
+			pts.push({ z: 0, x: 2, y: 1 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 2, y: 5 }, { z: 0, x: 6, y: 5 });
+			/* Z1: bracci interni */
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 4, y: 3 }, { z: 1, x: 4, y: 4 });
+			pts.push({ z: 1, x: 2, y: 3 }, { z: 1, x: 6, y: 3 });
+			/* Z2: centro */
+			pts.push({ z: 2, x: 4, y: 3 });
+			return pts; // 16 + 5 + 1 = 22
+		}
+	},
+
+	'hourglass': {
+		/* CLESSIDRA: due triangoli opposti (uno che si allarga verso il
+		   basso, uno che si restringe) uniti al collo centrale. FULL. */
+		'small': function () {
+			var pts = [];
+			var top = [[4], [2, 4, 6], [0, 2, 4, 6, 8]];
+			for (var y = 0; y < top.length; y++) {
+				for (var i = 0; i < top[y].length; i++) pts.push({ z: 0, x: top[y][i], y: y });
+			}
+			var bot = [[0, 2, 4, 6, 8], [2, 4, 6], [4]];
+			for (var y = 0; y < bot.length; y++) {
+				for (var i = 0; i < bot[y].length; i++) pts.push({ z: 0, x: bot[y][i], y: y + 3 });
+			}
+			var top1 = [[4], [2, 4, 6]];
+			for (var y = 0; y < top1.length; y++) {
+				for (var i = 0; i < top1[y].length; i++) pts.push({ z: 1, x: top1[y][i], y: y + 1 });
+			}
+			var bot1 = [[2, 4, 6], [4]];
+			for (var y = 0; y < bot1.length; y++) {
+				for (var i = 0; i < bot1[y].length; i++) pts.push({ z: 1, x: bot1[y][i], y: y + 4 });
+			}
+			pts.push({ z: 1, x: 4, y: 3 });
+			pts.push({ z: 2, x: 4, y: 3 });
+			return evenTrim(pts); // 18+9+1 = 28 → 28
+		},
+		'medium': function () {
+			var pts = [];
+			var top = [[4], [2, 4, 6], [0, 2, 4, 6, 8], [0, 2, 4, 6, 8, 10]];
+			for (var y = 0; y < top.length; y++) {
+				for (var i = 0; i < top[y].length; i++) pts.push({ z: 0, x: top[y][i], y: y });
+			}
+			var bot = [[0, 2, 4, 6, 8, 10], [0, 2, 4, 6, 8], [2, 4, 6], [4]];
+			for (var y = 0; y < bot.length; y++) {
+				for (var i = 0; i < bot[y].length; i++) pts.push({ z: 0, x: bot[y][i], y: y + 4 });
+			}
+			var top1 = [[4], [2, 4, 6], [2, 4, 6, 8]];
+			for (var y = 0; y < top1.length; y++) {
+				for (var i = 0; i < top1[y].length; i++) pts.push({ z: 1, x: top1[y][i], y: y + 1 });
+			}
+			var bot1 = [[2, 4, 6, 8], [2, 4, 6], [4]];
+			for (var y = 0; y < bot1.length; y++) {
+				for (var i = 0; i < bot1[y].length; i++) pts.push({ z: 1, x: bot1[y][i], y: y + 4 });
+			}
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 4, y: 4 });
+			pts.push({ z: 3, x: 4, y: 4 });
+			return pts; // 30+16+3+1 = 50
+		}
+	},
+
+	'castle': {
+		/* CASTELLO: base piena + mura perimetrali + torrione centrale
+		   che supera le torri d'angolo. Più ricco di fortress:
+		   doppio giro di mura e mastio centrale. Solo FULL. */
+		'small': function () {
+			var pts = [];
+			for (var y = 0; y < 4; y++) {
+				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: anello perimetrale + keep centrale 2×2 */
+			for (var y1 = 0; y1 < 4; y1++) {
+				for (var x1 = 0; x1 < 4; x1++) {
+					if (y1 === 0 || y1 === 3 || x1 === 0 || x1 === 3) pts.push({ z: 1, x: x1 * 2, y: y1 });
+				}
+			}
+			pts.push({ z: 1, x: 2, y: 1 }, { z: 1, x: 4, y: 1 }, { z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 });
+			/* z2: torri d'angolo + keep */
+			[[0, 0], [6, 0], [0, 3], [6, 3]].forEach(function (c) {
+				pts.push({ z: 2, x: c[0], y: c[1] });
+			});
+			pts.push({ z: 2, x: 2, y: 1 }, { z: 2, x: 4, y: 1 }, { z: 2, x: 2, y: 2 }, { z: 2, x: 4, y: 2 });
+			return evenTrim(pts); // 16+16+8 = 40 → 40 (niente z3: troppo rado per il solver)
+		},
+		'medium': function () {
+			var pts = [];
+			for (var y = 0; y < 5; y++) {
+				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: anello + keep 3×3 */
+			for (var y1 = 0; y1 < 5; y1++) {
+				for (var x1 = 0; x1 < 5; x1++) {
+					if (y1 === 0 || y1 === 4 || x1 === 0 || x1 === 4) pts.push({ z: 1, x: x1 * 2, y: y1 });
+				}
+			}
+			for (var y2 = 1; y2 < 4; y2++) {
+				for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 1, x: x2 * 2, y: y2 });
+			}
+			/* z2: torri angolo + keep interno 2×2 */
+			[[0, 0], [8, 0], [0, 4], [8, 4]].forEach(function (c) {
+				pts.push({ z: 2, x: c[0], y: c[1] });
+			});
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 6, y: 2 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			/* z3: torri top + keep top */
+			[[0, 0], [8, 0], [0, 4], [8, 4]].forEach(function (c) {
+				pts.push({ z: 3, x: c[0], y: c[1] });
+			});
+			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 6, y: 2 });
+			return evenTrim(pts); // 25+25+8+6 = 64 → 64
+		},
+		'large': function () {
+			var pts = [];
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: anello (20) + keep 4×4 interno */
+			for (var y1 = 0; y1 < 6; y1++) {
+				for (var x1 = 0; x1 < 6; x1++) {
+					if (y1 === 0 || y1 === 5 || x1 === 0 || x1 === 5) pts.push({ z: 1, x: x1 * 2, y: y1 });
+				}
+			}
+			for (var y2 = 1; y2 < 5; y2++) {
+				for (var x2 = 1; x2 < 5; x2++) pts.push({ z: 1, x: x2 * 2, y: y2 });
+			}
+			/* z2: torri angolo + keep 2×2 */
+			[[0, 0], [10, 0], [0, 5], [10, 5]].forEach(function (c) {
+				pts.push({ z: 2, x: c[0], y: c[1] });
+			});
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 6, y: 2 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			/* z3: torri top + keep top */
+			[[0, 0], [10, 0], [0, 5], [10, 5]].forEach(function (c) {
+				pts.push({ z: 3, x: c[0], y: c[1] });
+			});
+			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 6, y: 2 });
+			/* z4: mastio (supportato da z3) */
+			pts.push({ z: 4, x: 6, y: 2 });
+			return evenTrim(pts); // 36+36+8+6+1 = 87 → 86
+		}
+	},
+
+	'zigzag': {
+		/* ZIG-ZAG (fulmine): fasce sfalsate a destra/sinistra,
+		   con un piano superiore sui tratti larghi. Solo FULL. */
+		'small': function () {
+			var pts = [];
+			/* Z0: fasce alternate */
+			[[0, 2, 4, 6], [4, 6, 8, 10], [0, 2, 4, 6, 8], [2, 4, 6, 8, 10], [0, 2, 4]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 0, x: row[i], y: y });
+			});
+			/* Z1: piano sopra le due righe centrali larghe */
+			[[4, 6], [4, 6], [4, 6]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 1, x: row[i], y: y + 1 });
+			});
+			/* Z2: vertice (poggia su Z1 x4,y2) */
+			pts.push({ z: 2, x: 4, y: 2 });
+			return pts; // 21 + 6 + 1 = 28
+		},
+		'medium': function () {
+			var pts = [];
+			/* Z0: fasce alternate (6 righe) */
+			[[0, 2, 4, 6], [4, 6, 8, 10], [0, 2, 4, 6], [4, 6, 8, 10], [0, 2, 4, 6], [4, 6, 8]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 0, x: row[i], y: y });
+			});
+			/* Z1: piano su tutte le righe interne */
+			[[4, 6], [4, 6], [4, 6], [4, 6]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 1, x: row[i], y: y + 1 });
+			});
+			/* Z2: secondo piano (sopra Z1) */
+			[[4, 6], [4, 6]].forEach(function (row, y) {
+				for (var i = 0; i < row.length; i++) pts.push({ z: 2, x: row[i], y: y + 2 });
+			});
+			/* Z3: vertice (poggia su Z2 x4,y3) */
+			pts.push({ z: 3, x: 4, y: 3 });
+			return pts; // 23 + 8 + 4 + 1 = 36
+		}
+	},
+
+	'rings': {
+		/* DOPPIO ANELLO: due cornici quadrate rialzate (in alto a
+		   sinistra e in basso a destra) su base piena + angoli
+		   marcati. Solo FULL (la base piena dà supporto ovunque). */
+		'small': function () {
+			var pts = [];
+			/* Z0: base solida 4×4 */
+			for (var y = 0; y < 4; y++) {
+				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* Z1: anello A 2×2 (x0..2, y0..1) + anello B 2×2 (x4..6, y2..3) */
+			for (var xa = 0; xa <= 2; xa += 2) {
+				pts.push({ z: 1, x: xa, y: 0 });
+				pts.push({ z: 1, x: xa, y: 1 });
+			}
+			for (var xb = 4; xb <= 6; xb += 2) {
+				pts.push({ z: 1, x: xb, y: 2 });
+				pts.push({ z: 1, x: xb, y: 3 });
+			}
+			/* Z2: angoli marcati */
+			pts.push({ z: 2, x: 0, y: 0 }, { z: 2, x: 6, y: 3 });
+			/* Z3: vertici gemelli (parità pari) */
+			pts.push({ z: 3, x: 0, y: 0 }, { z: 3, x: 6, y: 3 });
+			return pts; // 16 + 8 + 2 + 2 = 28
+		},
+		'medium': function () {
+			var pts = [];
+			/* Z0: base solida 6×6 */
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* Z1: anello A (cornice 3×4, x0..4, y0..3) */
+			for (var xa = 0; xa <= 4; xa += 2) {
+				pts.push({ z: 1, x: xa, y: 0 });
+				pts.push({ z: 1, x: xa, y: 3 });
+			}
+			for (var ya = 1; ya < 3; ya++) {
+				pts.push({ z: 1, x: 0, y: ya });
+				pts.push({ z: 1, x: 4, y: ya });
+			}
+			/* Z1: anello B (cornice 3×4, x6..10, y2..5) */
+			for (var xb = 6; xb <= 10; xb += 2) {
+				pts.push({ z: 1, x: xb, y: 2 });
+				pts.push({ z: 1, x: xb, y: 5 });
+			}
+			for (var yb = 3; yb < 5; yb++) {
+				pts.push({ z: 1, x: 6, y: yb });
+				pts.push({ z: 1, x: 10, y: yb });
+			}
+			/* Z2: angoli marcati */
+			pts.push({ z: 2, x: 0, y: 0 }, { z: 2, x: 10, y: 5 });
+			/* Z3: vertici gemelli (parità pari) */
+			pts.push({ z: 3, x: 0, y: 0 }, { z: 3, x: 10, y: 5 });
+			return pts; // 36 + 20 + 2 + 2 = 60
+		}
+	},
+
+	'temple': {
+		/* TEMPIO: base piena + sala interna rialzata + doppio tetto
+		   spiovente (fronte/retro) con guglia centrale. Solo FULL.
+		   Conteggi pari senza trim: small 38, medium 52. */
+		'small': function () {
+			var pts = [];
+			/* Z0: base solida 5×5 */
+			for (var y = 0; y < 5; y++) {
+				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* Z1: colonne laterali (4) */
+			pts.push({ z: 1, x: 0, y: 1 }, { z: 1, x: 0, y: 3 });
+			pts.push({ z: 1, x: 8, y: 1 }, { z: 1, x: 8, y: 3 });
+			/* Z1: tetti fronte/retro */
+			pts.push({ z: 1, x: 2, y: 0 }, { z: 1, x: 4, y: 0 }, { z: 1, x: 6, y: 0 });
+			pts.push({ z: 1, x: 2, y: 4 }, { z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 4 });
+			/* Z2: tetti superiori */
+			pts.push({ z: 2, x: 4, y: 0 }, { z: 2, x: 4, y: 4 });
+			/* Z3: guglia */
+			pts.push({ z: 3, x: 4, y: 0 });
+			return pts; // 25 + 10 + 2 + 1 = 38
+		},
+		'medium': function () {
+			var pts = [];
+			/* Z0: base solida 5×5 */
+			for (var y = 0; y < 5; y++) {
+				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* Z1: sala interna 3×3 (x2..6, y1..3) */
+			for (var y1 = 1; y1 < 4; y1++) {
+				for (var x1 = 2; x1 <= 6; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
+			}
+			/* Z1: tetti fronte/retro (x0..8 a y0 e y4) */
+			for (var xf = 0; xf <= 8; xf += 2) {
+				pts.push({ z: 1, x: xf, y: 0 });
+				pts.push({ z: 1, x: xf, y: 4 });
+			}
+			/* Z2: tetti superiori (x2..6 a y0 e y4) */
+			pts.push({ z: 2, x: 2, y: 0 }, { z: 2, x: 4, y: 0 }, { z: 2, x: 6, y: 0 });
+			pts.push({ z: 2, x: 2, y: 4 }, { z: 2, x: 4, y: 4 }, { z: 2, x: 6, y: 4 });
+			/* Z3: guglie gemelle */
+			pts.push({ z: 3, x: 4, y: 0 }, { z: 3, x: 4, y: 4 });
+			return pts; // 25 + 19 + 6 + 2 = 52
+		}
 	}
 };
 
@@ -813,68 +1284,177 @@ function buildStepRanges(count) {
 	return ranges;
 }
 
-var STEP_RANGES = buildStepRanges(26);
+var STEP_RANGES = buildStepRanges(50);
 
 var ORDERED_STEPS = [
 	/* covered = NUMERO DI TILE COPERTE VISIBILI (da v0.4.0: una sola
-	   tile per coppia è coperta, la gemella è scoperta). */
+	   tile per coppia è coperta, la gemella è scoperta).
+	   quads = ogni simbolo ha 4 copie (2 coppie) — devi ricordare
+	   se una coppia è già uscita e la gemella è ancora in tavola.
+	   NOTA: i set tematici (default/red/green/blue/gold/dark) restano
+	   la norma; il set classic compare solo OGNI TANTO per non perdere
+	   il look emoji carino.
+	   v0.5.0: 50 step — 9 nuovi layout builder (pagoda, butterfly,
+	   arrow, star, hourglass, castle, zigzag, rings, temple). */
 	{ layout: 'dragon',      variant: 'small',  symSet: 'default', covered: 0, maxStaging: 4 },
 	{ layout: 'cross',       variant: 'small',  symSet: 'red',     covered: 0, maxStaging: 4 },
+	{ layout: 'pagoda',      variant: 'small',  symSet: 'blue',    covered: 2, maxStaging: 4 },
 	{ layout: 'pyramid',     variant: 'small',  symSet: 'green',   covered: 2, maxStaging: 4 },
+	{ layout: 'butterfly',   variant: 'small',  symSet: 'gold',    covered: 4, maxStaging: 4 },
 	{ layout: 'turtle',      variant: 'small',  symSet: 'blue',    covered: 2, maxStaging: 4 },
+	{ layout: 'arrow',       variant: 'small',  symSet: 'green',   covered: 4, maxStaging: 4 },
 	{ layout: 'checker',     variant: 'small',  symSet: 'gold',    covered: 4, maxStaging: 4 },
 	{ layout: 'halfcover',   variant: 'small',  symSet: 'dark',    covered: 4, maxStaging: 3 },
 	{ layout: 'diamond',     variant: 'small',  symSet: 'default', covered: 4, maxStaging: 3 },
+	{ layout: 'hourglass',   variant: 'small',  symSet: 'dark',    covered: 6, maxStaging: 3 },
 	{ layout: 'cross',       variant: 'medium', symSet: 'red',     covered: 6, maxStaging: 3 },
 	{ layout: 'pyramid_half', variant: 'small', symSet: 'green',   covered: 6, maxStaging: 3 },
+	{ layout: 'star',        variant: 'small',  symSet: 'red',     covered: 6, maxStaging: 3 },
 	{ layout: 'dragon',      variant: 'medium', symSet: 'blue',    covered: 6, maxStaging: 3 },
+	{ layout: 'castle',      variant: 'small',  symSet: 'default', covered: 8, maxStaging: 3 },
 	{ layout: 'labyrinth',   variant: 'small',  symSet: 'gold',    covered: 8, maxStaging: 3 },
 	{ layout: 'bridge',      variant: 'small',  symSet: 'dark',    covered: 8, maxStaging: 3 },
 	{ layout: 'pyramid',     variant: 'medium', symSet: 'default', covered: 8, maxStaging: 3 },
+	{ layout: 'pagoda',      variant: 'medium', symSet: 'blue',    covered: 10, maxStaging: 3 },
 	{ layout: 'spiral',      variant: 'small',  symSet: 'red',     covered: 10, maxStaging: 3 },
 	{ layout: 'turtle',      variant: 'medium', symSet: 'green',   covered: 10, maxStaging: 3 },
 	{ layout: 'diamond',     variant: 'medium', symSet: 'blue',    covered: 10, maxStaging: 3 },
+	{ layout: 'butterfly',   variant: 'medium', symSet: 'gold',    covered: 12, maxStaging: 3 },
 	{ layout: 'wall',        variant: 'medium', symSet: 'gold',    covered: 12, maxStaging: 3 },
 	{ layout: 'helix',       variant: 'small',  symSet: 'dark',    covered: 12, maxStaging: 3 },
-	{ layout: 'fortress',    variant: 'large',  symSet: 'default', covered: 12, maxStaging: 3 },
+	{ layout: 'fortress',    variant: 'small',  symSet: 'default', covered: 12, maxStaging: 3 },
 	{ layout: 'pyramid',     variant: 'large',  symSet: 'red',     covered: 14, maxStaging: 3 },
+	{ layout: 'hourglass',   variant: 'medium', symSet: 'red',     covered: 14, maxStaging: 2 },
 	{ layout: 'pyramid_half', variant: 'medium', symSet: 'green',  covered: 14, maxStaging: 3 },
 	{ layout: 'labyrinth',   variant: 'medium', symSet: 'blue',    covered: 14, maxStaging: 2 },
+	{ layout: 'arrow',       variant: 'medium', symSet: 'green',   covered: 14, maxStaging: 2 },
 	{ layout: 'pyramid_half', variant: 'large', symSet: 'gold',    covered: 16, maxStaging: 2 },
 	{ layout: 'pyramid_half', variant: 'xl',     symSet: 'dark',    covered: 16, maxStaging: 2 },
 	{ layout: 'wall',        variant: 'large',  symSet: 'dark',    covered: 16, maxStaging: 2 },
-	{ layout: 'wall',        variant: 'xl',     symSet: 'default', covered: 16, maxStaging: 2 }
+	{ layout: 'wall',        variant: 'xl',     symSet: 'default', covered: 16, maxStaging: 2 },
+	{ layout: 'star',        variant: 'medium', symSet: 'classic', covered: 4, maxStaging: 2 },
+	{ layout: 'castle',      variant: 'small',  symSet: 'classic-dark', covered: 12, maxStaging: 2 },
+	/* v0.5.0 — 3 nuovi layout figura (zigzag, rings, temple) */
+	{ layout: 'zigzag',      variant: 'small',  symSet: 'dark',    covered: 4, maxStaging: 3 },
+	{ layout: 'rings',       variant: 'small',  symSet: 'blue',    covered: 6, maxStaging: 3 },
+	{ layout: 'temple',      variant: 'small',  symSet: 'gold',    covered: 6, maxStaging: 3 },
+	{ layout: 'zigzag',      variant: 'medium', symSet: 'dark',    covered: 8, maxStaging: 2 },
+	{ layout: 'rings',       variant: 'medium', symSet: 'blue',    covered: 10, maxStaging: 2 },
+	{ layout: 'temple',      variant: 'medium', symSet: 'gold',    covered: 12, maxStaging: 2 },
+	/* QUAD MODE — mix: la maggior parte usa i temi, classic ogni tanto */
+	{ layout: 'dragon',      variant: 'small',  symSet: 'red',     covered: 0, maxStaging: 4, quads: true },
+	{ layout: 'cross',       variant: 'small',  symSet: 'classic', covered: 2, maxStaging: 4, quads: true },
+	{ layout: 'pyramid',     variant: 'small',  symSet: 'green',   covered: 4, maxStaging: 4, quads: true },
+	{ layout: 'turtle',      variant: 'small',  symSet: 'classic', covered: 4, maxStaging: 3, quads: true },
+	{ layout: 'labyrinth',   variant: 'small',  symSet: 'blue',    covered: 6, maxStaging: 3, quads: true },
+	{ layout: 'spiral',      variant: 'small',  symSet: 'gold',    covered: 8, maxStaging: 3, quads: true }
 ];
 
 /* Holds the level definition last generated — game.js reads
    maxStaging from here when starting a level. */
 var LAST_LEVEL_DEF = null;
 
-function getLevelDef(index) {
-	index = Math.min(index, 99);
-	for (var i = 0; i < STEP_RANGES.length; i++) {
-		if (index + 1 >= STEP_RANGES[i].min && index + 1 <= STEP_RANGES[i].max) {
-			var def = ORDERED_STEPS[i];
-			return {
+/* ============================================================
+   DIFFICOLTÀ (v0.5.0) — computeDifficulty() dà un punteggio
+   oggettivo ad ogni combinazione layout×variante, calcolato su
+   parametri geometrici (non dipende dal shuffle):
+     - tileCount : più tile = più lungo
+     - maxZ      : più livelli = più tile nascoste
+     - blocked   : tile a bordo con entrambi i lati occupati
+     - covered   : tile coperte visibili (memoria)
+   Base 0..100 divisa in: piccola (0-24), media (25-49),
+   grande (50-74), molto grande (75-100).
+   ============================================================ */
+function computeDifficulty(layout, covered) {
+	var byZ = {}, maxZ = 0;
+	for (var i = 0; i < layout.length; i++) {
+		var z = layout[i].z;
+		if (z > maxZ) maxZ = z;
+		(byZ[z] = byZ[z] || []).push(layout[i]);
+	}
+	/* blocked: tile a z>0 o con vicino a sx E dx sulla stessa z */
+	var blocked = 0;
+	for (var j = 0; j < layout.length; j++) {
+		var t = layout[j];
+		blocked += (t.z > 0) ? 1 : 0;
+	}
+	var tilePart = Math.min(60, Math.round(layout.length * 60 / 108));
+	var layerPart = Math.min(20, maxZ * 7);
+	var coverPart = Math.min(15, covered * 3);
+	var freePart = 0; /* stimato: più tile bloccate sopra → più chiuse */
+	if (maxZ >= 3) freePart += 5;
+	if (layout.length >= 80) freePart += 5;
+	var score = tilePart + layerPart + coverPart + freePart;
+	return Math.min(100, score);
+}
+
+/* ============================================================
+   PROGRESSIONE AUTOMATICA (v0.5.0) — genera fino a 300 livelli.
+   Per ogni livello: partiamo dagli step esistenti (ordine soft di
+   difficoltà) e li ri-usiamo a difficoltà crescente, schedulando
+   prima i più facili e aumentando covered/close fino al massimo.
+   ============================================================ */
+function buildProgression(count) {
+	var out = [];
+	/* pool: ogni step esistente, ripetuto più volte con difficoltà (covered) crescente */
+	var pool = [];
+	for (var i = 0; i < ORDERED_STEPS.length; i++) {
+		var def = ORDERED_STEPS[i];
+		for (var rep = 0; rep < 6; rep++) {
+			pool.push({
 				layout: def.layout,
 				variant: def.variant,
 				symSet: def.symSet,
-				covered: def.covered,
 				maxStaging: def.maxStaging || 4,
-				min: STEP_RANGES[i].min,
-				max: STEP_RANGES[i].max
-			};
+				quads: !!def.quads,
+				coveredIdx: rep,
+				slot: i
+			});
 		}
 	}
-	var last = ORDERED_STEPS[ORDERED_STEPS.length - 1];
+	/* copriamo i livelli facendo girare il pool: i livelli 0..99 usano
+	   coveredIdx 0..3, i successivi up a 5. */
+	for (var n = 0; n < count; n++) {
+		var item = pool[n % pool.length];
+		/* covered: cresce col livello ma mai oltre il 40% delle coppie */
+		var maxPairs = 8;
+		var cov = Math.min(maxPairs, Math.floor((n / count) * maxPairs));
+		var symSets = ['default', 'red', 'green', 'blue', 'gold', 'dark', 'classic', 'classic-dark'];
+		var sym = symSets[(n + item.slot) % symSets.length];
+		/* alterna alcune volte quad mode per livelli alti */
+		if (n >= 250) item = { layout: item.layout, variant: item.variant, symSet: item.symSet, maxStaging: item.maxStaging, quads: !item.quads, slot: item.slot };
+		out.push({
+			layout: item.layout,
+			variant: item.variant,
+			symSet: sym,
+			covered: cov,
+			maxStaging: item.maxStaging,
+			quads: item.quads,
+			index: n + 1
+		});
+	}
+	return out;
+}
+
+/* Genera la progressione completa una sola volta (lazy). */
+var PROGRESSION = null;
+function ensureProgression() {
+	if (!PROGRESSION) PROGRESSION = buildProgression(300);
+	return PROGRESSION;
+}
+
+function getLevelDef(index) {
+	index = Math.max(0, Math.min(index, 299));
+	var p = ensureProgression()[index];
 	return {
-		layout: last.layout,
-		variant: last.variant,
-		symSet: last.symSet,
-		covered: last.covered,
-		maxStaging: last.maxStaging || 4,
-		min: STEP_RANGES[STEP_RANGES.length - 1].min,
-		max: 100
+		layout: p.layout,
+		variant: p.variant,
+		symSet: p.symSet,
+		covered: p.covered,
+		maxStaging: p.maxStaging || 4,
+		quads: !!p.quads,
+		min: p.index,
+		max: p.index
 	};
 }
 
@@ -900,25 +1480,35 @@ function generateLevel(levelIndex) {
 	   off upper layers and half-cover tiles, leaving only the dense
 	   rectangular base. Difficulty comes from the shape/variant, not
 	   from removing tiles. */
+	/* QUAD MODE (v0.5.0): each symbol has FOUR copies (2 pairs) —
+	   you must remember whether a pair already matched and the twin
+	   pair is still on the board. Requires layout length divisible by 4. */
+	var copiesPerSymbol = level.quads ? 4 : 2;
 	var tileCount = fullSize;
-	if (tileCount % 2 !== 0) tileCount--;
+	if (tileCount % copiesPerSymbol !== 0) tileCount -= (tileCount % copiesPerSymbol);
 	if (layout.length > tileCount) {
 		layout = layout.slice(0, tileCount);
-	} else if ((layout.length % 2) !== 0) {
-		layout = layout.slice(0, layout.length - 1);
+	} else if ((layout.length % copiesPerSymbol) !== 0) {
+		layout = layout.slice(0, layout.length - (layout.length % copiesPerSymbol));
 	}
 
 	var symbols = SYMBOL_SETS[level.symSet] || SYMBOL_SETS['default'];
+	/* SVG tile sets: map the symbol to the bundled SVG file under
+	   assets/regular (white tiles) or assets/black (dark tiles). */
+	var svgDir = null;
+	if (level.symSet === 'classic') svgDir = 'regular';
+	else if (level.symSet === 'classic-dark') svgDir = 'black';
 	var lastBest = null;
-	var symbolsNeeded = Math.ceil(layout.length / 2);
+	var symbolsNeeded = Math.ceil(layout.length / copiesPerSymbol);
 
 	for (var attempt = 0; attempt < 80; attempt++) {
 		var rng = createRng(42 + attempt * 7 + levelIndex);
 		var deck = [];
 		for (var i = 0; i < symbolsNeeded; i++) {
 			var sym = symbols[i % symbols.length];
-			deck.push(sym);
-			if (deck.length < layout.length) deck.push(sym);
+			for (var copy = 0; copy < copiesPerSymbol; copy++) {
+				if (deck.length < layout.length) deck.push(sym);
+			}
 		}
 		shuffle(deck, rng);
 
@@ -931,6 +1521,7 @@ function generateLevel(levelIndex) {
 				y: co.y,
 				isHalf: !!co.isHalf,
 				symbol: deck[c],
+				svg: svgDir ? 'assets/' + svgDir + '/' + deck[c] + '.svg' : null,
 				label: c + 1,
 				removed: false,
 				staging: false,

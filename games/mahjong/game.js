@@ -43,6 +43,20 @@
 		var overlay = document.createElement('div');
 		overlay.className = 'tile-overlay';
 
+		/* SVG tiles (riichi-mahjong-tiles): the face is an <img> filling
+		   the whole tile. No text symbol, no plane/num badges needed —
+		   the SVG already shows the suit, number and frame. */
+		if (t.svg) {
+			var svg = document.createElement('img');
+			svg.className = 'tile-svg';
+			svg.src = t.svg;
+			svg.alt = '';
+			svg.draggable = false;
+			el.appendChild(overlay);
+			el.appendChild(svg);
+			return el;
+		}
+
 		var sym = document.createElement('span');
 		sym.className = 'tile-sym';
 		el._symEl = sym;
@@ -221,7 +235,16 @@
 			slot.className = 'staging-slot';
 			if (i < app.staging.length) {
 				slot.classList.add('filled');
-				slot.textContent = app.staging[i].symbol;
+				var st = app.staging[i];
+				if (st.svg) {
+					var simg = document.createElement('img');
+					simg.className = 'staging-svg';
+					simg.src = st.svg;
+					simg.alt = '';
+					slot.appendChild(simg);
+				} else {
+					slot.textContent = st.symbol;
+				}
 			}
 			stagingBoxEl.appendChild(slot);
 		}
@@ -349,11 +372,19 @@
 			tile.faceDown = false;
 			app.peeking = tile;
 
-			/* If its match is already in staging → auto-match */
+			/* If its match is already in staging → turn the tile over,
+			   SHOW its symbol first, then auto-match with a short pause.
+			   Without the intermediate updateStates()+pause the tile goes
+			   to staging still showing its back (no reveal feedback). */
 			for (var i = 0; i < app.staging.length; i++) {
 				if (app.staging[i].symbol === tile.symbol) {
 					app.peeking = null;
-					moveToStaging(tile);
+					updateStates();
+					app.autoMatching = true;
+					setTimeout(function () {
+						app.autoMatching = false;
+						moveToStaging(tile);
+					}, 250);
 					return;
 				}
 			}
@@ -432,7 +463,7 @@
 
 	function levelComplete() {
 		stopTimer();
-		app.levelIndex = Math.min(app.levelIndex + 1, 99);
+		app.levelIndex = Math.min(app.levelIndex + 1, 299);
 		saveGame();
 		modalTitle.textContent = '🏆 Level ' + (app.levelIndex + 1) + ' Cleared!';
 		modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score;
@@ -477,7 +508,7 @@
 		try {
 			var qs = new URLSearchParams(window.location.search);
 			var lvl = parseInt(qs.get('level'), 10);
-			if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 99);
+			if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 299);
 		} catch (e) {}
 	}
 
@@ -492,7 +523,7 @@
 			var raw = localStorage.getItem('wp_mahjong_arcade_level');
 			if (raw !== null) {
 				var n = parseInt(raw, 10);
-				if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 99);
+				if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 299);
 			}
 		} catch (e) {}
 	}
@@ -591,7 +622,7 @@
 	document.getElementById('btn-level-go').addEventListener('click', function () {
 		var n = parseInt(document.getElementById('level-input').value, 10);
 		if (isNaN(n) || n < 1) n = 1;
-		app.levelIndex = Math.min(n - 1, 99);
+		app.levelIndex = Math.min(n - 1, 299);
 		saveGame();
 		startGame();
 	});

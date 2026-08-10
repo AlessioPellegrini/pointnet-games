@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.4.1** — Splash screen, high-DPI board rendering and the 15-layout difficulty rebalance with 100 progressive levels and up to 130 tiles. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.5.0** — 23 layout raffigurativi (pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica** e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## Attribution
 
@@ -70,8 +70,8 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 - [ ] 3-4 selectable tile back variants (classic, flowers, bamboo, animals)
 
 ### Phase 3 — Arcade Levels & Scoring
-- [ ] 100+ levels with gradual difficulty curve
-- [ ] Progressive parameters: layers (3→5), shapes (2→7), face-down pairs (1→8)
+- [x] 300 levels with automatic difficulty curve (`buildProgression`)
+- [x] Progressive parameters: covered pairs (0→8), quads alternati su livelli alti, stagging per-livello
 - [ ] Undo/hint limits per level (5→0)
 - [ ] Staging box size variation (3 slots early → 6 slots late)
 - [ ] Score system: removed tiles × time bonus, penalty for hints/undo
@@ -93,7 +93,7 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 
 ## Level Design
 
-The difficulty progression uses 25 steps across 100 levels. Every step introduces a new layout, a larger variant or a harder parameter. Grid grows from 4×5 up to 6×9 (mobile-friendly: max 6 columns, 9 rows).
+**v0.5.0**: la progressione è ora **automatica** — `buildProgression(300)` genera 300 livelli dal pool di 50 step esistenti, ripetuti a valori crescenti di `covered` (0 → 8 coppie) con simboli a rotazione e quad-mode nei livelli alti. La tabella storica qui sotto documenta l'ordine "soft difficulty" degli step originali (1..100).
 
 | Step | Levels | Layout | Variant | Tiles | Face-down pairs | Staging slots |
 |---|---|---|---|---|---|---|
@@ -139,7 +139,15 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.4.1 — Splash screen & crisp rendering (current)
+### v0.5.0 — 300 livelli automatici, nuovi layout figura (current)
+- Progressione riscritta: `buildProgression(300)` con difficoltà automatica (covered 0→8, quads nei livelli alti) al posto della lista manuale di 100
+- Cap livelli alzato a 300 in `game.js` (4 punti) + selettore livello max 300 in `index.html`
+- `computeDifficulty()`: punteggio 0..100 per ogni combinazione layout×variante (tile, layer, covered, densità)
+- 9 nuovi layout figura: pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple
+- Fix fisica spirali: `spiral/medium` ora ha il supporto Z2 sotto il centro rialzato (0 sospese); `spiral/small` anello aperto (corridoio a S)
+- Verifica solvability con criterio reale del gioco (risolvibile OR ≥4 tile libere) su tutti gli step
+
+### v0.4.1 — Splash screen & crisp rendering
 - Splash screen with title, description, PLAY button and version badge (`v0.4.1` in superscript after the title), matching the minesweeper-arcade pattern
 - Fullscreen request on PLAY (postMessage bridge / inline class) + `pointnet-games:start` support for the plugin's mobile "GIOCA" button
 - WordPress `pointnetGamesAPI` shim (postMessage) with `getNickname()` / `isUserLoggedIn()` / `_setGameId()`
