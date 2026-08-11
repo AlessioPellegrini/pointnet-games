@@ -297,7 +297,6 @@
 				app.staging = app.staging.filter(function (t) {
 					return t !== prev && t !== tile;
 				});
-				app.history.push([prev, tile]);
 				/* COMBO CHAIN (v0.7.0): a match within 3s of the previous
 				   one raises the multiplier (x1 → x2 → x3 … x5 max). */
 				var now = Date.now();
@@ -310,6 +309,16 @@
 				var gained = 100 * app.combo;
 				app.score += gained;
 				scoreEl.textContent = app.score;
+				/* HISTORY (v0.7.0): record the match with its score so
+				   undo can refund it, and discard the previous 'move'
+				   entry of the first tile (it was consumed by the match). */
+				for (var h = app.history.length - 1; h >= 0; h--) {
+					if (app.history[h].type === 'move' && app.history[h].tile === prev) {
+						app.history.splice(h, 1);
+						break;
+					}
+				}
+				app.history.push({ type: 'match', prev: prev, tile: tile, gained: gained });
 				if (comboEl) {
 					if (app.combo >= 2) {
 						comboEl.textContent = '🔥 x' + app.combo;
@@ -321,6 +330,13 @@
 				matched = true;
 				break;
 			}
+		}
+
+		/* HISTORY (v0.7.0 bug fix): a single tile that stays in the box
+		   WITHOUT matching must be undoable too. Record the move so
+		   undo can return it to the board. */
+		if (!matched) {
+			app.history.push({ type: 'move', tile: tile });
 		}
 
 		pairsLeftEl.textContent = pairsLeft();
@@ -452,17 +468,46 @@
 
 	/* ============================================================
 	   UNDO (v0.7.0: using undo costs the 3★ rating)
+	   History entries:
+	     { type: 'match', prev, tile, gained }  — a matched pair removed
+	     { type: 'move',  tile }                — a single tile sent to staging
 	   ============================================================ */
 	function undo() {
 		if (app.history.length === 0) return;
 		app.undoUsed++;
-		var pair = app.history.pop();
-		pair[0].removed = false;
-		pair[1].removed = false;
-		pair[0].faceDown = false;
-		pair[1].faceDown = false;
-		pair[0].staging = false;
-		pair[1].staging = false;
+		var entry = app.history.pop();
+
+		if (entry.type === 'match') {
+			entry.prev.removed = false;
+			entry.tile.removed = false;
+			entry.prev.faceDown = false;
+			entry.tile.faceDown = false;
+			entry.prev.staging = false;
+			entry.tile.staging = false;
+			/* Refund the score earned by the match (and reset the combo
+			   counter so it starts fresh from the next match). */
+			app.score -= entry.gained || 0;
+			if (app.score < 0) app.score = 0;
+			scoreEl.textContent = app.score;
+			app.combo = 0;
+			app.lastMatchTime = 0;
+			if (comboEl) comboEl.classList.remove('show');
+		} else if (entry.type === 'move') {
+			var t = entry.tile;
+			t.staging = false;
+			t.faceDown = false;
+			app.staging = app.staging.filter(function (s) { return s !== t; });
+		} else {
+			/* Legacy entry: plain array [tileA, tileB] from before v0.7.0. */
+			var pair = entry;
+			pair[0].removed = false;
+			pair[1].removed = false;
+			pair[0].faceDown = false;
+			pair[1].faceDown = false;
+			pair[0].staging = false;
+			pair[1].staging = false;
+		}
+
 		updateStates();
 		renderStaging();
 		pairsLeftEl.textContent = pairsLeft();
