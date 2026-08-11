@@ -1,9 +1,9 @@
 {
 	"name": "Mahjong Arcade",
 	"slug": "mahjong",
-	"version": "0.7.0",
+	"version": "0.7.1",
 	"author": "PointNet Games",
-	"description": "Classic Mahjong Solitaire tile-matching with a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards via DFS solver. 28 layouts, 300 progressive levels, combo chain scoring, shuffle power-up, star ratings. Mobile-first, no pan/zoom.",
+	"description": "Classic Mahjong Solitaire tile-matching with a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards via DFS solver. 28 layouts, 300 progressive levels, classic 4-of-a-kind deck, combo chain scoring, shuffle power-up, star ratings. Mobile-first, no pan/zoom.",
 	"type": "iframe",
 	"width": 400,
 	"height": 700,

@@ -1679,8 +1679,8 @@ function buildProgression(count) {
 		var maxCov = Math.max(2, Math.min(8, Math.floor(item.tiles / 6)));
 		var cov = Math.min(maxCov, Math.floor(progress * maxCov * 1.3));
 
-		/* maxStaging: 4 → 3 → 2 con l'avanzare */
-		var staging = n < 100 ? 4 : (n < 200 ? 3 : 2);
+		/* maxStaging: 4 (1-150) → 3 (151-225) → 2 (226-300) */
+		var staging = n < 150 ? 4 : (n < 225 ? 3 : 2);
 
 		/* quads: solo livelli ≥ 200, layout ≥ 60 tile, alternati */
 		var qt = item.tiles;
@@ -1746,10 +1746,10 @@ function generateLevel(levelIndex) {
 	   off upper layers and half-cover tiles, leaving only the dense
 	   rectangular base. Difficulty comes from the shape/variant, not
 	   from removing tiles. */
-	/* QUAD MODE (v0.5.0): each symbol has FOUR copies (2 pairs) —
-	   you must remember whether a pair already matched and the twin
-	   pair is still on the board. Requires layout length divisible by 4. */
-	var copiesPerSymbol = level.quads ? 4 : 2;
+	/* CLASSIC MAHJONG (v0.7.1): every symbol always has FOUR copies
+	   (2 matchable pairs), like the traditional solitaire deck.
+	   Requires layout length divisible by 4 — handled below. */
+	var copiesPerSymbol = 4;
 	var tileCount = fullSize;
 	if (tileCount % copiesPerSymbol !== 0) tileCount -= (tileCount % copiesPerSymbol);
 	if (layout.length > tileCount) {

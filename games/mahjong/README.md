@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.7.0** — 28 layout figure (lotus, sphinx, crown, galaxy, totem, pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica**, combo chain, shuffle power-up, valutazione a stelle e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.7.1** — 28 layout figure (lotus, sphinx, crown, galaxy, totem, pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica**, combo chain, shuffle power-up, valutazione a stelle, **deck classico 4 copie per simbolo** e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## Attribution
 
@@ -76,7 +76,7 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 - [x] Half-cover tiles: geometric centering + blocking of 4 tiles below
 - [x] Procedural layout generator: 28 builders (shapes, layers, difficulty curve)
 
-### Phase 2 — Tiles & Hints ✅ (mostly done)
+### Phase 2 — Tiles & Hints ✅
 - [x] Hint feature: highlight two matching tiles
 - [x] Top bar: timer ⏱️, pairs left, score
 - [x] Staging box with auto-match and game-over
@@ -84,13 +84,13 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 - [x] Drag-to-peek
 - [x] Flight animation to staging box
 - [x] Vanilla CSS, no dependencies
-- [ ] 3-4 selectable tile back variants (classic, flowers, bamboo, animals)
+- [x] Tile theme sets chosen automatically by the game (emoji themes + SVG classic/black)
 
 ### Phase 3 — Arcade Levels & Scoring ✅
 - [x] 300 levels with automatic difficulty curve (`buildProgression`)
-- [x] Progressive parameters: covered pairs (0→8), quads su livelli alti, staging per-livello
+- [x] Progressive parameters: covered pairs (0→8), deck classico 4 copie per simbolo (2 coppie), staging per-livello
 - [x] Undo/hint limits: hint attivo, undo limitato, 3★ richiede zero undo
-- [ ] Staging box size variation (3 slots early → 6 slots late)
+- [x] Staging box: massimo 4 slot, ridotti a 3 e 2 nei livelli alti (4→3→2)
 - [x] Score system: combo chain (×1..×5) + star rating (par time, no undo)
 - [x] Splash + level bar UI (same style as minesweeper-arcade)
 - [x] **No pan/zoom**: board resizes to fit the viewport ✅
@@ -120,8 +120,8 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 | 4 | 226–300 | molto grande |
 
 - **Round-robin** dentro ogni zona: mai due livelli consecutivi con lo stesso layout
-- `covered` (coppie coperte) cresce in modo proporzionale alla zona; `maxStaging` scende 4 → 3 → 2
-- **Quad-mode** dal livello ~200 sui layout con ≥60 tile (4 copie per simbolo invece di 2)
+- `covered` (coppie coperte) cresce in modo proporzionale alla zona; `maxStaging` scende **4 → 3 → 2** con soglie 1–150 / 151–225 / 226–300
+- **Deck classico (v0.7.1)**: ogni simbolo appare **sempre 4 volte** (2 coppie matchabili), come nel Mahjong Solitaire tradizionale — niente più quad-mode selettivo
 - La tabella storica qui sotto documenta l'ordine "soft difficulty" degli step originali v0.4.0 (1..100)
 
 | Step | Levels | Layout | Variant | Tiles | Face-down pairs | Staging slots |
@@ -168,7 +168,13 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.7.0 — Combo chain, shuffle power-up & star ratings (current)
+### v0.7.1 — Deck classico 4 copie per simbolo (current)
+- **Deck classico**: ogni simbolo appare **sempre 4 volte** (2 coppie matchabili) su tutti i 300 livelli, come nel Mahjong Solitaire tradizionale; rimosso il quad-mode selettivo dei livelli ≥200
+- `maxStaging` ridefinito: **4** (livelli 1–150), **3** (151–225), **2** (226–300)
+- Rimossi dalla roadmap: varianti dorso selezionabili (il gioco propone i set) e staging box 5–6 slot (si resta a max 4, a scalare)
+- Verifica automatizzata: 10 livelli campione su tutte le zone con esattamente 4 copie per simbolo e conteggi pari
+
+### v0.7.0 — Combo chain, shuffle power-up & star ratings
 - **Combo Chain**: match entro 3s dal precedente → moltiplicatore ×1..×5, ogni match vale `100 × combo` punti, badge 🔥 animato nella barra di stato, reset oltre 3s
 - **Shuffle Power-Up**: pulsante 🔀 con 3 usi per livello; rimescola i simboli delle tile rimanenti mantenendo il multiset (coppie sempre complete e risolvibili), resetta la combo e ricopre i tile rivelati
 - **Star Rating**: 1★ clear, 2★ sotto il par tempo (2s/coppia, minimo 10s), 3★ senza undo; miglior risultato salvato in `localStorage` e mostrato nel modal di completamento
