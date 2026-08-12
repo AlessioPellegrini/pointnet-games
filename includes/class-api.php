@@ -91,6 +91,26 @@ class PointNet_Games_API {
 				'permission_callback' => '__return_true',
 			)
 		);
+
+		register_rest_route(
+			$namespace,
+			'/game/(?P<id>\d+)/progress',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( $this, 'get_progress' ),
+				'permission_callback' => 'is_user_logged_in',
+			)
+		);
+
+		register_rest_route(
+			$namespace,
+			'/game/(?P<id>\d+)/progress',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'save_progress' ),
+				'permission_callback' => 'is_user_logged_in',
+			)
+		);
 	}
 
 	/**
@@ -279,6 +299,97 @@ class PointNet_Games_API {
 			array(
 				'entries' => $entries,
 				'count'   => count( $entries ),
+			)
+		);
+	}
+
+	/**
+	 * GET /game/{id}/progress — user's saved progress for a game.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_progress( $request ) {
+		$game_id = (int) $request['id'];
+		$user_id = get_current_user_id();
+
+		if ( ! $user_id ) {
+			return new WP_Error(
+				'pointnet_games_not_logged_in',
+				__( 'You must be logged in.', 'pointnet-games' ),
+				array( 'status' => 401 )
+			);
+		}
+
+		$progress  = get_user_meta( $user_id, '_pointnet_games_progress', true );
+		$progress  = is_array( $progress ) ? $progress : array();
+		$game_data = isset( $progress[ $game_id ] ) ? $progress[ $game_id ] : array();
+
+		return rest_ensure_response(
+			array(
+				'game_id'  => $game_id,
+				'progress' => array(
+					'level'      => isset( $game_data['level'] ) ? (int) $game_data['level'] : 0,
+					'best_score' => isset( $game_data['best_score'] ) ? (int) $game_data['best_score'] : 0,
+					'updated'    => isset( $game_data['updated'] ) ? (int) $game_data['updated'] : 0,
+				),
+			)
+		);
+	}
+
+	/**
+	 * POST /game/{id}/progress — save the user's progress for a game.
+	 *
+	 * Body: { level: int, score: int }
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function save_progress( $request ) {
+		$game_id = (int) $request['id'];
+		$user_id = get_current_user_id();
+
+		if ( ! $user_id ) {
+			return new WP_Error(
+				'pointnet_games_not_logged_in',
+				__( 'You must be logged in.', 'pointnet-games' ),
+				array( 'status' => 401 )
+			);
+		}
+
+		$params = $request->get_json_params();
+		if ( ! is_array( $params ) ) {
+			$params = $request->get_params();
+		}
+
+		$level = isset( $params['level'] ) ? absint( $params['level'] ) : 0;
+		$score = isset( $params['score'] ) ? absint( $params['score'] ) : 0;
+
+		/* Clamp level: a game can register up to 300 levels (Mahjong).
+		   Use a safe generic cap to avoid storing absurd values. */
+		$level = min( 300, max( 1, $level ) );
+
+		$progress = get_user_meta( $user_id, '_pointnet_games_progress', true );
+		$progress = is_array( $progress ) ? $progress : array();
+		$current  = isset( $progress[ $game_id ] ) ? $progress[ $game_id ] : array();
+
+		/* Only move forward: the saved level never goes backwards. */
+		$current['level'] = max( isset( $current['level'] ) ? (int) $current['level'] : 0, $level );
+		$current['best_score'] = max( isset( $current['best_score'] ) ? (int) $current['best_score'] : 0, $score );
+		$current['updated']    = time();
+
+		$progress[ $game_id ] = $current;
+		update_user_meta( $user_id, '_pointnet_games_progress', $progress );
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'game_id' => $game_id,
+				'level'   => $current['level'],
+				'score'   => $current['best_score'],
+				'updated' => $current['updated'],
 			)
 		);
 	}

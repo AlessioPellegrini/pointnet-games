@@ -158,6 +158,22 @@
 				window.pointnetGamesAPI.setNickname(message.data && message.data.nickname);
 			}
 
+			if (message.type === 'pointnet-games:get-progress') {
+				window.pointnetGamesAPI.getProgress().then(function (progress) {
+					iframe.contentWindow.postMessage({
+						type: 'pointnet-games:progress',
+						data: progress
+					}, '*');
+				});
+			}
+
+			if (message.type === 'pointnet-games:save-progress') {
+				window.pointnetGamesAPI.saveProgress(
+					message.data && message.data.level,
+					message.data && message.data.score
+				);
+			}
+
 			if (message.type === 'pointnet-games:fullscreen-request') {
 				// Expand the embed container to cover the viewport.
 				element.classList.add('pointnet-games-fullscreen-active');

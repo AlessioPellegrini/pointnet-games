@@ -593,6 +593,9 @@
 		saveStars(levelNum, app.stars);
 		app.levelIndex = Math.min(levelNum, 299);
 		saveGame();
+		/* PHASE 4: persist progress + submit the score to the leaderboard. */
+		saveProgressToWP(levelNum, app.score);
+		submitScoreToWP(app.score, levelNum, app.elapsed);
 		modalTitle.textContent = '🏆 Level ' + levelNum + ' Cleared!';
 		if (modalStars) {
 			var starStr = '';
@@ -697,6 +700,11 @@
 	if (!new URLSearchParams(window.location.search).get('level')) loadGame();
 	loadStars();
 	window.addEventListener('beforeunload', saveGame);
+
+	/* PHASE 4: logged-in users resume from their saved WP level.
+	   The board isn't rendered until PLAY, so this races cleanly with
+	   the rest of the boot and only applies when no ?level= override. */
+	loadProgressFromWP();
 
 	/* ============================================================
 	   DRAG TO PEEK — pointer events cover mouse + touch.
@@ -876,7 +884,76 @@
 				window.__wpGamesState.nickname = msg.data.nickname;
 				window.__wpGamesState.loggedIn = msg.data.loggedIn;
 			}
+
+			/* PHASE 4: saved WP progress (only before the game starts) */
+			if (msg.type === 'pointnet-games:progress' && msg.data) {
+				var savedLevel = parseInt(msg.data.level, 10) || 0;
+				/* Only apply if the user hasn't started playing yet and
+				   no explicit ?level= override is present. */
+				if (app.tiles.length === 0 &&
+				    !new URLSearchParams(window.location.search).get('level') &&
+				    savedLevel > 0) {
+					app.levelIndex = Math.min(savedLevel - 1, 299);
+					window.__wpLoadedLevel = savedLevel;
+				}
+			}
 		});
+	}
+
+	/* PHASE 4: ask the plugin for the user's saved level (logged-in). */
+	function loadProgressFromWP() {
+		var inIframe = window.parent !== window;
+		if (typeof window.pointnetGamesAPI !== 'undefined' &&
+		    typeof window.pointnetGamesAPI.getProgress === 'function') {
+			window.pointnetGamesAPI.getProgress().then(function (progress) {
+				var savedLevel = parseInt(progress.level, 10) || 0;
+				if (app.tiles.length === 0 &&
+				    !new URLSearchParams(window.location.search).get('level') &&
+				    savedLevel > 0) {
+					app.levelIndex = Math.min(savedLevel - 1, 299);
+					window.__wpLoadedLevel = savedLevel;
+				}
+			});
+		} else if (inIframe) {
+			window.parent.postMessage({ type: 'pointnet-games:get-progress' }, '*');
+		}
+	}
+
+	/* PHASE 4: persist reached level + best score to the plugin. */
+	function saveProgressToWP(reachedLevel, score) {
+		try {
+			if (typeof window.pointnetGamesAPI !== 'undefined' &&
+			    typeof window.pointnetGamesAPI.saveProgress === 'function') {
+				window.pointnetGamesAPI.saveProgress(reachedLevel, score);
+			} else if (window.parent !== window) {
+				window.parent.postMessage({
+					type: 'pointnet-games:save-progress',
+					data: { level: reachedLevel, score: score }
+				}, '*');
+			}
+		} catch (e) {}
+	}
+
+	/* PHASE 4: submit the completed level score to the leaderboard. */
+	function submitScoreToWP(score, level, elapsed) {
+		try {
+			var payload = {
+				score: parseInt(score, 10) || 0,
+				meta: {
+					level: level,
+					time: elapsed
+				}
+			};
+			if (typeof window.pointnetGamesAPI !== 'undefined' &&
+			    typeof window.pointnetGamesAPI.submitScore === 'function') {
+				window.pointnetGamesAPI.submitScore(payload.score, payload.meta);
+			} else if (window.parent !== window) {
+				window.parent.postMessage({
+					type: 'pointnet-games:submit-score',
+					data: payload
+				}, '*');
+			}
+		} catch (e) {}
 	}
 
 	function wirePostMessageAPI() {

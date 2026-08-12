@@ -225,6 +225,51 @@
 		},
 
 		/**
+		 * Fetch the saved progress for the current game (logged-in only).
+		 *
+		 * @return {Promise} Resolves to { level, best_score, updated }.
+		 */
+		getProgress: function () {
+			var currentGameId = this._currentGameId;
+			if (!currentGameId) {
+				return Promise.resolve({ level: 0, best_score: 0, updated: 0 });
+			}
+
+			return request('/game/' + encodeURIComponent(currentGameId) + '/progress')
+				.then(function (data) {
+					return data.progress || { level: 0, best_score: 0, updated: 0 };
+				})
+				.catch(function () {
+					return { level: 0, best_score: 0, updated: 0 };
+				});
+		},
+
+		/**
+		 * Save the progress for the current game (logged-in only).
+		 *
+		 * @param {number} level Reached level number (1-based).
+		 * @param {number} score Best score so far (optional).
+		 *
+		 * @return {Promise}
+		 */
+		saveProgress: function (level, score) {
+			var currentGameId = this._currentGameId;
+			if (!currentGameId) {
+				return Promise.resolve({ success: false });
+			}
+
+			return request('/game/' + encodeURIComponent(currentGameId) + '/progress', {
+				method: 'POST',
+				body: JSON.stringify({
+					level: parseInt(level, 10) || 0,
+					score: parseInt(score, 10) || 0
+				})
+			}).catch(function () {
+				return { success: false };
+			});
+		},
+
+		/**
 		 * Internal: bind the API to a specific game element.
 		 * Called by pointnet-games-embed.js automatically.
 		 *

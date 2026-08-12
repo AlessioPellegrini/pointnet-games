@@ -95,11 +95,10 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 - [x] Splash + level bar UI (same style as minesweeper-arcade)
 - [x] **No pan/zoom**: board resizes to fit the viewport ✅
 
-### Phase 4 — Registered User Persistence
-- [ ] Save progress via `submitScore()` for leaderboard
-- [ ] Logged-in users resume from their saved level
-- [ ] Anonymous users always start from Level 1 (pure arcade)
-- [ ] Level stored in `wp_user_meta` (`_pointnet_games_mahjong_level`)
+### Phase 4 — Registered User Persistence ✅
+- [x] Save progress via `submitScore()` for leaderboard
+- [x] Logged-in users resume from their saved level (`wp_user_meta` `_pointnet_games_progress`)
+- [x] Anonymous users always start from Level 1 (pure arcade, localStorage)
 
 ### Phase 5 — Polish & Extra Mechanics
 - [ ] Pyramid/brick-wall layouts with full staggered upper layers
