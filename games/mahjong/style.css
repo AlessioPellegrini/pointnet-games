@@ -125,6 +125,11 @@ html, body {
 	pointer-events: none;
 }
 
+/* v0.8.0: dark staging slot for classic-dark (black) tiles. */
+.staging-slot.svg-black {
+	background: linear-gradient(135deg, #475569 0%, #1e293b 55%, #0f172a 100%);
+}
+
 .board-wrap {
 	flex: 1;
 	position: relative;
@@ -306,6 +311,16 @@ html, body {
 	height: calc(100% - 10px);
 	object-fit: contain;
 	pointer-events: none;
+}
+
+/* v0.8.0: classic-dark (black) tiles — their white details would be
+   invisible on the default light face. Give them a dark face so the
+   drawn suit/character stays readable. Class added in game.js. */
+.tile.svg-black {
+	background: linear-gradient(135deg, #475569 0%, #1e293b 55%, #0f172a 100%);
+}
+.tile.svg-black.blocked:not(.face-down) {
+	background: linear-gradient(135deg, #334155 0%, #111827 100%);
 }
 
 /* Face-down classic tiles: hide the SVG and show the ? back. */

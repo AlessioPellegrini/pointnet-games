@@ -56,6 +56,9 @@
 			svg.src = t.svg;
 			svg.alt = '';
 			svg.draggable = false;
+			/* v0.8.0: classic-dark tiles need a dark face, or their
+			   white details are invisible on the light gradient. */
+			if (t.svg.indexOf('/black/') !== -1) el.classList.add('svg-black');
 			el.appendChild(overlay);
 			el.appendChild(svg);
 			return el;
@@ -246,6 +249,8 @@
 				slot.classList.add('filled');
 				var st = app.staging[i];
 				if (st.svg) {
+					/* v0.8.0: dark staging slots for classic-dark tiles. */
+					if (st.svg.indexOf('/black/') !== -1) slot.classList.add('svg-black');
 					var simg = document.createElement('img');
 					simg.className = 'staging-svg';
 					simg.src = st.svg;
