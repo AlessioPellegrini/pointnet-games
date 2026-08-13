@@ -331,7 +331,8 @@ class PointNet_Games_API {
 				'game_id'  => $game_id,
 				'progress' => array(
 					'level'      => isset( $game_data['level'] ) ? (int) $game_data['level'] : 0,
-					'best_score' => isset( $game_data['best_score'] ) ? (int) $game_data['best_score'] : 0,
+					'scores'            => isset( $game_data['scores'] ) && is_array( $game_data['scores'] ) ? $game_data['scores'] : array(),
+					'cumulative_score'  => isset( $game_data['cumulative_score'] ) ? (int) $game_data['cumulative_score'] : 0,
 					'updated'    => isset( $game_data['updated'] ) ? (int) $game_data['updated'] : 0,
 				),
 			)
@@ -364,8 +365,8 @@ class PointNet_Games_API {
 			$params = $request->get_params();
 		}
 
-		$level = isset( $params['level'] ) ? absint( $params['level'] ) : 0;
-		$score = isset( $params['score'] ) ? absint( $params['score'] ) : 0;
+		$level  = isset( $params['level'] ) ? absint( $params['level'] ) : 0;
+		$scores = isset( $params['scores'] ) && is_array( $params['scores'] ) ? $params['scores'] : array();
 
 		/* Clamp level: a game can register up to 300 levels (Mahjong).
 		   Use a safe generic cap to avoid storing absurd values. */
@@ -377,7 +378,19 @@ class PointNet_Games_API {
 
 		/* Only move forward: the saved level never goes backwards. */
 		$current['level'] = max( isset( $current['level'] ) ? (int) $current['level'] : 0, $level );
-		$current['best_score'] = max( isset( $current['best_score'] ) ? (int) $current['best_score'] : 0, $score );
+		/* Merge per-level best scores, keeping the highest. */
+		$existing = isset( $current['scores'] ) && is_array( $current['scores'] ) ? $current['scores'] : array();
+		foreach ( $scores as $lvl => $val ) {
+			$lvl = absint( $lvl );
+			$val = absint( $val );
+			if ( $lvl >= 1 && $lvl <= 300 && $val > 0 ) {
+				$existing[ $lvl ] = max( isset( $existing[ $lvl ] ) ? (int) $existing[ $lvl ] : 0, $val );
+			}
+		}
+		$cumulative = 0;
+		foreach ( $existing as $val ) { $cumulative += absint( $val ); }
+		$current['scores'] = $existing;
+		$current['cumulative_score'] = $cumulative;
 		$current['updated']    = time();
 
 		$progress[ $game_id ] = $current;
@@ -385,11 +398,11 @@ class PointNet_Games_API {
 
 		return rest_ensure_response(
 			array(
-				'success' => true,
-				'game_id' => $game_id,
-				'level'   => $current['level'],
-				'score'   => $current['best_score'],
-				'updated' => $current['updated'],
+				'success'          => true,
+				'game_id'          => $game_id,
+				'level'            => $current['level'],
+				'cumulative_score' => $cumulative,
+				'updated'          => $current['updated'],
 			)
 		);
 	}

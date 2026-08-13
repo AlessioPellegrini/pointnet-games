@@ -599,8 +599,12 @@
 		app.levelIndex = Math.min(levelNum, 299);
 		saveGame();
 		/* PHASE 4: persist progress + submit the score to the leaderboard. */
-		saveProgressToWP(levelNum, app.score);
-		submitScoreToWP(app.score, levelNum, app.elapsed);
+		if (!bestScores[levelNum] || app.score > bestScores[levelNum]) {
+			bestScores[levelNum] = app.score;
+		}
+		saveScores();
+		saveProgressToWP(levelNum, bestScores);
+		submitScoreToWP(computeCumulative(), levelNum, app.elapsed);
 		modalTitle.textContent = '🏆 Level ' + levelNum + ' Cleared!';
 		if (modalStars) {
 			var starStr = '';
@@ -683,6 +687,7 @@
 	   STAR RATING PERSISTENCE (v0.7.0) — best stars per level.
 	   ============================================================ */
 	var bestStars = {};
+var bestScores = {};
 	var pairsLeftAtStart = 1;
 
 	function loadStars() {
@@ -701,9 +706,34 @@
 		} catch (e) {}
 	}
 
-	readUrlParams();
+	/* CUMULATIVE SCORE (v0.8.0) — best score per level + running total. */
+	function loadScores() {
+		try {
+			var raw = localStorage.getItem('wp_mahjong_arcade_scores');
+			if (raw) bestScores = JSON.parse(raw) || {};
+		} catch (e) { bestScores = {}; }
+	}
+
+	function saveScores() {
+		try {
+			localStorage.setItem('wp_mahjong_arcade_scores', JSON.stringify(bestScores));
+		} catch (e) {}
+	}
+
+	function computeCumulative() {
+		var total = 0;
+		for (var lvl in bestScores) {
+			if (Object.prototype.hasOwnProperty.call(bestScores, lvl)) {
+				total += parseInt(bestScores[lvl], 10) || 0;
+			}
+		}
+		return total;
+	}
+
+		readUrlParams();
 	if (!new URLSearchParams(window.location.search).get('level')) loadGame();
 	loadStars();
+	loadScores();
 	window.addEventListener('beforeunload', saveGame);
 
 	/* PHASE 4: logged-in users resume from their saved WP level.
@@ -918,6 +948,15 @@
 					app.levelIndex = Math.min(savedLevel - 1, 299);
 					window.__wpLoadedLevel = savedLevel;
 				}
+				/* Merge server-side best scores so the cumulative total
+				   stays coherent across devices. */
+				if (progress.scores && typeof progress.scores === 'object') {
+					for (var lvl in progress.scores) {
+						var val = parseInt(progress.scores[lvl], 10) || 0;
+						if (val > (bestScores[lvl] || 0)) bestScores[lvl] = val;
+					}
+					saveScores();
+				}
 			});
 		} else if (inIframe) {
 			window.parent.postMessage({ type: 'pointnet-games:get-progress' }, '*');
@@ -925,15 +964,15 @@
 	}
 
 	/* PHASE 4: persist reached level + best score to the plugin. */
-	function saveProgressToWP(reachedLevel, score) {
+	function saveProgressToWP(reachedLevel, scores) {
 		try {
 			if (typeof window.pointnetGamesAPI !== 'undefined' &&
 			    typeof window.pointnetGamesAPI.saveProgress === 'function') {
-				window.pointnetGamesAPI.saveProgress(reachedLevel, score);
+				window.pointnetGamesAPI.saveProgress(reachedLevel, scores);
 			} else if (window.parent !== window) {
 				window.parent.postMessage({
 					type: 'pointnet-games:save-progress',
-					data: { level: reachedLevel, score: score }
+					data: { level: reachedLevel, scores: scores }
 				}, '*');
 			}
 		} catch (e) {}

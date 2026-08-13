@@ -252,7 +252,7 @@
 		 *
 		 * @return {Promise}
 		 */
-		saveProgress: function (level, score) {
+		saveProgress: function (level, scores) {
 			var currentGameId = this._currentGameId;
 			if (!currentGameId) {
 				return Promise.resolve({ success: false });
@@ -262,7 +262,7 @@
 				method: 'POST',
 				body: JSON.stringify({
 					level: parseInt(level, 10) || 0,
-					score: parseInt(score, 10) || 0
+					scores: scores || {}
 				})
 			}).catch(function () {
 				return { success: false };
