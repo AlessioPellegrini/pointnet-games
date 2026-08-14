@@ -39,7 +39,8 @@
 			modalStars.textContent = starStr;
 		}
 		modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score +
-			'   ·   Best: ' + (bestStars[levelNum] || 0) + '⭐';
+			'   ·   Best: ' + (bestStars[levelNum] || 0) + '⭐' +
+			'   ·   Next: Level ' + Math.min(levelNum + 1, 300);
 		overlayEl.classList.add('show');
 	}
 
