@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.7.1** — 28 layout figure (lotus, sphinx, crown, galaxy, totem, pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica**, combo chain, shuffle power-up, valutazione a stelle, **deck classico 4 copie per simbolo** e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.8.0** — 28 layout figure (lotus, sphinx, crown, galaxy, totem, pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica**, combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## Attribution
 
@@ -51,6 +51,11 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 - **2★** — completare sotto il par tempo (2s per coppia rimasta, minimo 10s)
 - **3★** — completare senza usare **undo**
 - Il miglior punteggio a stelle per livello è salvato in `localStorage` e mostrato nel modal di completamento
+
+### Cumulative Score (v0.8.0)
+- **Best score per livello**: salva il miglior punteggio di ogni livello completato in `localStorage` (`wp_mahjong_arcade_scores`) e, per gli utenti loggati, sul server (via `wp_user_meta` `_pointnet_games_progress`)
+- **Totale cumulativo**: il punteggio inviato alla leaderboard è la **somma dei migliori punteggi di tutti i livelli** (`computeCumulative()`), coerente tra i dispositivi grazie al merge server-side
+- Il popup di completamento mostra "Next: Level Y" — il bottone "▶ Next level" avanza al livello successivo
 
 ### Drag-to-Peek
 - Grab any free tile with mouse or finger → lift it above the stack
@@ -159,7 +164,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Technical Notes
 
-- **Engine**: vanilla JavaScript, 5 static files (index.html + style.css + data.js + engine.js + game.js), no build step
+- **Engine**: vanilla JavaScript, 8 static files (index.html + style.css + data.js + engine.js + **app.js + ui.js + input.js + progress.js**), no build step, no modules/IIFE — shared global scope loaded as sequential `<script>` tags
 - **No runtime dependencies**: static HTML + JS + CSS served via iframe
 - **No pan/zoom**: the board always fits the viewport, tiles scale responsively
 - **API integration**: `window.pointnetGamesAPI.submitScore()` for leaderboard (Phase 4)
@@ -167,7 +172,13 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.7.1 — Deck classico 4 copie per simbolo (current)
+### v0.8.0 — Modular split + cumulative score (current)
+- **Refactor**: `game.js` (ex monolith, ~1029 righe) diviso in 4 moduli a focus singolo — `app.js` (stato/flusso/fullscreen), `ui.js` (tile DOM/fitting), `input.js` (staging/click/undo/hint/shuffle/drag), `progress.js` (stelline/persistenza/bridge WP/boot). `index.html` aggiornato: `data.js → engine.js → app.js → ui.js → input.js → progress.js` (cache-bust `?v=0.8.0`)
+- **Cumulative score**: best score per livello + totale cumulativo inviato alla leaderboard; merge server-side dei `scores` per utenti loggati (`_pointnet_games_progress`)
+- **UX**: popup di completamento con "Next: Level Y"; bottone rinominato "▶ Next level" (prima "Play again" — ambiguo)
+- `game.js` rimosso dal repo (sostituito dai 4 moduli); `ARCHITECTURE.md`/`README.md` aggiornati alla struttura v0.8.0
+
+### v0.7.1 — Deck classico 4 copie per simbolo
 - **Deck classico**: ogni simbolo appare **sempre 4 volte** (2 coppie matchabili) su tutti i 300 livelli, come nel Mahjong Solitaire tradizionale; rimosso il quad-mode selettivo dei livelli ≥200
 - `maxStaging` ridefinito: **4** (livelli 1–150), **3** (151–225), **2** (226–300)
 - Rimossi dalla roadmap: varianti dorso selezionabili (il gioco propone i set) e staging box 5–6 slot (si resta a max 4, a scalare)

@@ -13,7 +13,7 @@ games/
 └── mio-gioco/
     ├── manifest.json       # ✅ OBBLIGATORIO — metadati del gioco
     ├── index.html          # ✅ OBBLIGATORIO — entry point
-    ├── game.js             # Logica del gioco
+    ├── game.js             # Logica del gioco (puoi usare più file JS, es. engine.js, ui.js)
     ├── style.css           # Stili
     ├── audio/              # (opzionale) file audio
     └── assets/             # (opzionale) sprite, immagini

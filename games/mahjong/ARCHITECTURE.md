@@ -18,17 +18,23 @@ games/mahjong/
 ├── style.css           ← all CSS (tiles, 3D, responsive, staging)
 ├── data.js             ← symbols, layout builders, level progression
 ├── engine.js           ← board model, solver, geometry math
-├── game.js             ← UI, DOM, staging, drag, timer, bootstrap
+├── app.js              ← constants, DOM refs, shared state, game flow (startGame), fullscreen/splash
+├── ui.js               ← tile DOM creation, board rebuild, fitting
+├── input.js            ← staging box, click/tap, undo/hint, shuffle, drag events
+├── progress.js         ← star rating, persistence, cumulative scores, WP bridge, boot
 ├── manifest.json       ← plugin registration
 ├── ARCHITECTURE.md     ← this document
 └── README.md           ← roadmap + changelog
 ```
 
-Since v0.4.0 the code is split into 5 files (was a single self-contained `index.html`):
+Since v0.4.0 the code is split into 5 files (was a single self-contained `index.html`); since **v0.8.0** the former `game.js` monolith is split into 4 focused modules running in shared global scope (no IIFE, no build step — they behave exactly like sequential `<script>` tags):
 - **data.js** — pure data (symbols, layouts, ORDERED_STEPS) + level generator
 - **engine.js** — DOM-free logic: board, solver, pixel geometry
-- **game.js** — everything user-facing: rendering, events, state, persistence
-- Load order: `data.js` → `engine.js` → `game.js` (dependencies flow downward)
+- **app.js** — constants, DOM refs, `app` state, `startGame`, fullscreen/splash
+- **ui.js** — `createTileEl`, `rebuildBoard`, `updateStates`, `fitBoard`/`refitUntilStable`
+- **input.js** — staging box + click logic, undo/hint, shuffle, drag-to-peek, button/pointer listeners
+- **progress.js** — star rating, arcade/WP persistence, cumulative scores, WP bridge, boot sequence (loaded last)
+- Load order: `data.js` → `engine.js` → `app.js` → `ui.js` → `input.js` → `progress.js` (dependencies flow downward)
 
 ## Core Data Model
 
