@@ -16,7 +16,8 @@ Design document for the vanilla JavaScript engine. Written from scratch, inspire
 games/mahjong/
 ├── index.html          ← shell HTML (markup + script/css loads)
 ├── style.css           ← all CSS (tiles, 3D, responsive, staging)
-├── data.js             ← symbols, layout builders, level progression
+├── layouts.js          ← layout builders (extracted from data.js)
+├── data.js             ← symbols, level progression, generator
 ├── engine.js           ← board model, solver, geometry math
 ├── app.js              ← constants, DOM refs, shared state, game flow (startGame), fullscreen/splash
 ├── ui.js               ← tile DOM creation, board rebuild, fitting
@@ -27,14 +28,15 @@ games/mahjong/
 └── README.md           ← roadmap + changelog
 ```
 
-Since v0.4.0 the code is split into 5 files (was a single self-contained `index.html`); since **v0.8.0** the former `game.js` monolith is split into 4 focused modules running in shared global scope (no IIFE, no build step — they behave exactly like sequential `<script>` tags):
-- **data.js** — pure data (symbols, layouts, ORDERED_STEPS) + level generator
+Since v0.4.0 the code is split into 5 files (was a single self-contained `index.html`); since **v0.8.0** the former `game.js` monolith is split into 4 focused modules running in shared global scope, and **`data.js`** has been slimmed by extracting its layout builders into **`layouts.js`** (no IIFE, no build step — they behave exactly like sequential `<script>` tags):
+- **layouts.js** — all layout builders plus `evenTrim()`/`dedupePts()` helpers (loaded first)
+- **data.js** — symbols, `SYMBOL_SETS`, progression (ORDERED_STEPS/`computeDifficulty`/`buildProgression`/`generateLevel`)
 - **engine.js** — DOM-free logic: board, solver, pixel geometry
 - **app.js** — constants, DOM refs, `app` state, `startGame`, fullscreen/splash
 - **ui.js** — `createTileEl`, `rebuildBoard`, `updateStates`, `fitBoard`/`refitUntilStable`
 - **input.js** — staging box + click logic, undo/hint, shuffle, drag-to-peek, button/pointer listeners
 - **progress.js** — star rating, arcade/WP persistence, cumulative scores, WP bridge, boot sequence (loaded last)
-- Load order: `data.js` → `engine.js` → `app.js` → `ui.js` → `input.js` → `progress.js` (dependencies flow downward)
+- Load order: `layouts.js` → `data.js` → `engine.js` → `app.js` → `ui.js` → `input.js` → `progress.js` (dependencies flow downward)
 
 ## Core Data Model
 

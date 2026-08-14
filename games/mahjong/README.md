@@ -9,7 +9,7 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 Quando cambi la versione del gioco, aggiorna **tutti** questi punti:
 
 1. `manifest.json` → campo `"version"`
-2. `index.html` → **8 occorrenze**: `style.css?v=…` (1 `<link>`), badge splash `<sup class="splash-version">v…</sup>`, e i 6 `<script>` `data.js?v=…`, `engine.js?v=…`, `app.js?v=…`, `ui.js?v=…`, `input.js?v=…`, `progress.js?v=…`
+2. `index.html` → **9 occorrenze**: `style.css?v=…` (1 `<link>`), badge splash `<sup class="splash-version">v…</sup>`, e i 7 `<script>` `layouts.js?v=…`, `data.js?v=…`, `engine.js?v=…`, `app.js?v=…`, `ui.js?v=…`, `input.js?v=…`, `progress.js?v=…`
 3. `README.md` → riga `> **Version: …**` + nuova voce in fondo al changelog
 
 Nota: il plugin fa già il cache-bust di `index.html` con il timestamp dei file (`get_game_dir_mtime`), quindi l'iframe si aggiorna da solo; i `?v=…` manuali servono solo per i sub-asset (CSS/JS) dentro l'HTML.
@@ -174,7 +174,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Technical Notes
 
-- **Engine**: vanilla JavaScript, 8 static files (index.html + style.css + data.js + engine.js + **app.js + ui.js + input.js + progress.js**), no build step, no modules/IIFE — shared global scope loaded as sequential `<script>` tags
+- **Engine**: vanilla JavaScript, 9 static files (index.html + style.css + **layouts.js** + data.js + engine.js + **app.js + ui.js + input.js + progress.js**), no build step, no modules/IIFE — shared global scope loaded as sequential `<script>` tags
 - **No runtime dependencies**: static HTML + JS + CSS served via iframe
 - **No pan/zoom**: the board always fits the viewport, tiles scale responsively
 - **API integration**: `window.pointnetGamesAPI.submitScore()` for leaderboard (Phase 4)
