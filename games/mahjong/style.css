@@ -417,6 +417,31 @@ html, body {
 /* STAR RATING (v0.7.0) — modal stars row */
 #modal-stars { font-size: 2.2rem; letter-spacing: 6px; margin: 6px 0; }
 
+/* MUSIC TOGGLE (v0.8.0) — fixed corner button, on top of everything
+   except the fullscreen close. Icon reflects playing+muted state
+   (updated by audio.js). */
+.music-btn {
+	position: fixed;
+	top: 16px;
+	right: 64px;
+	z-index: 1001;
+	width: 40px;
+	height: 40px;
+	border: none;
+	border-radius: 10px;
+	background: rgba(15, 23, 42, 0.7);
+	color: #fff;
+	font-size: 1.2rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.2s ease, opacity 0.2s ease;
+	backdrop-filter: blur(4px);
+}
+.music-btn:hover { background: rgba(56, 189, 248, 0.35); }
+.music-btn.muted { opacity: 0.65; }
+
 /* ----------------------------------------------------------
    MOBILE — maximise board space on small screens
    ---------------------------------------------------------- */
