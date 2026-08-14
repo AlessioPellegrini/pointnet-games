@@ -4,7 +4,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.1.7
+Stable tag: 0.1.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -45,7 +45,7 @@ PointNet Games follows official WordPress security recommendations:
 = Included Games =
 
 * **Minesweeper Arcade** — progressive levels: clear the field and advance to the next level. One mistake and you restart from Level 1. Mobile friendly.
-* **Mahjong Arcade** — tile-matching with a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards via DFS solver. In development (v0.4.0).
+* **Mahjong Arcade** — tile-matching with a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards via DFS solver. In development (v0.8.0).
 
 == Installation ==
 
@@ -100,6 +100,11 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 0.1.8 =
+* Mahjong Arcade updated to v0.8.0 — game.js split into 4 modules (app/ui/input/progress)
+* Cumulative score: per-level best scores + leaderboard total, merged via WP user meta
+* PointNet API: getProgress/saveProgress aligned to per-level scores map
 
 = 0.1.7 =
 * Mahjong Arcade updated to v0.4.0 — 15 classic/hybrid layouts, 25-step progressive difficulty curve, up to 130 tiles, 8 face-down pairs, reduced staging box on higher levels

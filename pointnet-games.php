@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version.
-define( 'POINTNET_GAMES_VERSION', '0.1.7' );
+define( 'POINTNET_GAMES_VERSION', '0.1.8' );
 
 // Plugin paths.
 define( 'POINTNET_GAMES_PLUGIN_FILE', __FILE__ );
