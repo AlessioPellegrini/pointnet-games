@@ -4,6 +4,16 @@ Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging bo
 
 > **Version: 0.8.0** — 28 layout figure (lotus, sphinx, crown, galaxy, totem, pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica**, combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
+## 🔖 Version bump checklist
+
+Quando cambi la versione del gioco, aggiorna **tutti** questi punti:
+
+1. `manifest.json` → campo `"version"`
+2. `index.html` → **8 occorrenze**: `style.css?v=…` (1 `<link>`), badge splash `<sup class="splash-version">v…</sup>`, e i 6 `<script>` `data.js?v=…`, `engine.js?v=…`, `app.js?v=…`, `ui.js?v=…`, `input.js?v=…`, `progress.js?v=…`
+3. `README.md` → riga `> **Version: …**` + nuova voce in fondo al changelog
+
+Nota: il plugin fa già il cache-bust di `index.html` con il timestamp dei file (`get_game_dir_mtime`), quindi l'iframe si aggiorna da solo; i `?v=…` manuali servono solo per i sub-asset (CSS/JS) dentro l'HTML.
+
 ## Attribution
 
 - Algorithms studied and inspired by: [ffalt/mah](https://github.com/ffalt/mah) — "a html5 mahjong solitaire game" — **MIT License**
