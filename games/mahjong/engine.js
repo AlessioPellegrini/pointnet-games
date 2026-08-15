@@ -177,22 +177,28 @@ var TOP_PAD_EXTRA = 2;          // extra top clearance — LOWER = board sits hi
 
 function computeMetrics(tiles) {
 	var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
+	var hasHalf = false;
 	tiles.forEach(function (t) {
 		if (t.x < minX) minX = t.x;
 		if (t.x > maxX) maxX = t.x;
 		if (t.y < minY) minY = t.y;
 		if (t.y > maxY) maxY = t.y;
 		if (t.z > maxZ) maxZ = t.z;
+		if (t.isHalf) hasHalf = true;
 	});
-	return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ };
+	return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ, hasHalf: hasHalf };
 }
 
-/* Top pad = max plane thickness. Pushes the whole stack down so
-   upper-plane tiles at the first row are NEVER clipped at the
-   top of the board. (This was the 23/24 bug: their top 8px were
-   cut off by overflow:hidden in every previous version.) */
+/* Top pad = max plane thickness + (when the level contains half tiles)
+   the half-row offset they rise by. Pushes the whole stack down so
+   neither upper-plane full tiles NOR first-row half tiles are ever
+   clipped at the top of the board. (v0.8.1 half-tile clipping fix.) */
+function topPadOf(m) {
+	return m.maxZ * Z_OFFSET_Y + (m.hasHalf ? Math.round(STEP_Y / 2) : 0) + TOP_PAD_EXTRA;
+}
+
 function layoutPos(t, m) {
-	var topPad = m.maxZ * Z_OFFSET_Y + TOP_PAD_EXTRA;
+	var topPad = topPadOf(m);
 	var shiftX = t.isHalf ? 0 : t.z * Z_OFFSET_X;
 	/* Full tiles on upper planes shift slightly UP (shiftY positive
 	   → y subtracts z*Z_OFFSET_Y), so stacked tiles sit just above
@@ -208,7 +214,7 @@ function layoutPos(t, m) {
 }
 
 function boardSize(m) {
-	var topPad = m.maxZ * Z_OFFSET_Y + TOP_PAD_EXTRA;
+	var topPad = topPadOf(m);
 	return {
 		/* The right shift of upper planes (maxZ * Z_OFFSET_X) is included
 		   in the width so the board stays exactly centered. */
