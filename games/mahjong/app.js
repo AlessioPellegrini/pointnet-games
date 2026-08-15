@@ -33,6 +33,7 @@
 	var splashEl = document.getElementById('splash');
 	var splashPlayBtn = document.getElementById('splash-play');
 	var fsCloseBtn = document.getElementById('fs-close');
+	var btnPlayAgain = document.getElementById('btn-play-again');
 	var pairsLeftAtStart = 1;
 
 	/* ============================================================

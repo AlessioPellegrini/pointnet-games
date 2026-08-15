@@ -134,11 +134,14 @@
 			setTimeout(function () { flyer.remove(); }, 350);
 		}
 
-		/* Game over: 4 tiles in the box without any match */
+		/* Game over: 4 tiles in the box without any match.
+		   Il livello NON cambia (startGame rigioca lo stesso) →
+		   il bottone deve dirlo: "Riprova". */
 		if (!matched && app.staging.length >= MAX_STAGING) {
 			stopTimer();
 			modalTitle.textContent = '💀 Staging Full!';
 			modalStats.textContent = '4 tiles, no match — try again!';
+			if (btnPlayAgain) btnPlayAgain.textContent = '🔄 Riprova';
 			overlayEl.classList.add('show');
 			return;
 		}

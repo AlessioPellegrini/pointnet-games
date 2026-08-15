@@ -33,6 +33,9 @@
 		saveProgressToWP(levelNum, bestScores);
 		submitScoreToWP(computeCumulative(), levelNum, app.elapsed);
 		modalTitle.textContent = '🏆 Level ' + levelNum + ' Cleared!';
+		/* Il bottone riprende il testo "Next level" (una perdita
+		   precedente lo aveva cambiato in "Riprova"). */
+		if (btnPlayAgain) btnPlayAgain.textContent = '▶ Next level';
 		if (modalStars) {
 			var starStr = '';
 			for (var si = 0; si < 3; si++) starStr += (si < app.stars) ? '⭐' : '☆';
