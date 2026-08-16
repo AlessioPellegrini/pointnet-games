@@ -189,12 +189,13 @@ function computeMetrics(tiles) {
 	return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ, hasHalf: hasHalf };
 }
 
-/* Top pad = max plane thickness + (when the level contains half tiles)
-   the half-row offset they rise by. Pushes the whole stack down so
-   neither upper-plane full tiles NOR first-row half tiles are ever
-   clipped at the top of the board. (v0.8.1 half-tile clipping fix.) */
+/* Top pad = max plane thickness. Pushes the whole stack down so
+   upper-plane tiles at the first row are NEVER clipped at the top.
+   Half tiles need NO extra top padding: they render DOWN (centered
+   on the crossing of their 2x2 supports), so it would only waste
+   vertical space. */
 function topPadOf(m) {
-	return m.maxZ * Z_OFFSET_Y + (m.hasHalf ? Math.round(STEP_Y / 2) : 0) + TOP_PAD_EXTRA;
+	return m.maxZ * Z_OFFSET_Y + TOP_PAD_EXTRA;
 }
 
 function layoutPos(t, m) {
@@ -203,8 +204,12 @@ function layoutPos(t, m) {
 	/* Full tiles on upper planes shift slightly UP (shiftY positive
 	   → y subtracts z*Z_OFFSET_Y), so stacked tiles sit just above
 	   the tile beneath — a subtle pseudo-3D offset without ever
-	   dipping below the lower grid. */
-	var shiftY = t.isHalf ? Math.round(STEP_Y / 2) : t.z * Z_OFFSET_Y;
+	   dipping below the lower grid.
+	   Half tiles straddle the two support rows below (t.y and t.y+1):
+	   centering on the crossing means shifting DOWN half a row, i.e.
+	   NEGATIVE shiftY. (v0.8.1: was +STEP_Y/2 → tiles sat half a row
+	   ABOVE their supports; the whole second plane looked shifted up.) */
+	var shiftY = t.isHalf ? -Math.round(STEP_Y / 2) : t.z * Z_OFFSET_Y;
 	return {
 		x: PAD + (t.x - m.minX) * STEP_X + shiftX,
 		y: PAD + topPad + (t.y - m.minY) * STEP_Y - shiftY,
@@ -215,10 +220,14 @@ function layoutPos(t, m) {
 
 function boardSize(m) {
 	var topPad = topPadOf(m);
+	/* Half tiles render DOWN by half a row (centered on their 2x2
+	   supports), so the last row needs a bit more room below, not
+	   above. Only when the level actually contains half tiles. */
+	var halfBottomPad = m.hasHalf ? Math.round(STEP_Y / 2) : 0;
 	return {
 		/* The right shift of upper planes (maxZ * Z_OFFSET_X) is included
 		   in the width so the board stays exactly centered. */
 		w: PAD + (m.maxX - m.minX) * STEP_X + m.maxZ * Z_OFFSET_X + TILE_W + SIDE_R + PAD,
-		h: PAD + topPad + (m.maxY - m.minY) * STEP_Y + TILE_H + SIDE_B + PAD
+		h: PAD + topPad + (m.maxY - m.minY) * STEP_Y + TILE_H + SIDE_B + halfBottomPad + PAD
 	};
 }
