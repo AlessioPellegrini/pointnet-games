@@ -183,15 +183,17 @@ function computeDifficulty(layout, covered) {
    PROGRESSIONE AUTOMATICA (v0.6.0) — genera 300 livelli con
    massima VARIETÀ e curva di difficoltà reale.
    - Pool: TUTTE le combinazioni layout×variante, ordinate per
-     score base di computeDifficulty(layout, 0).
-   - Il pool è diviso in 4 ZONE di difficoltà (quartili di score).
-   - Dentro ogni zona il pick è ROUND-ROBIN: ogni livello prende
-     la combo successiva della zona → MAI due layout uguali di
-     fila e nessuna struttura ripetuta per 5-6 livelli.
-   - La zona avanza col livello: livelli 1-75 zona facile,
-     226-300 zona difficile (spirali/labirinti/piramidi).
-   - Half-cover ogni 7 livelli: half nella stessa zona di
-     difficoltà (i primi half piccoli, gli ultimi half giganti).
+     tile-count giocabile (multipli di 4).
+   - FLOOR GLOBALE crescente: quantile dei tile-count REALI del
+     pool senza buchi (tileLevels), curva progress^2.2 → il
+     trend del count sale verso le mega-table finali.
+   - Tra livelli adiacenti è permessa solo una piccola oscillazione
+     di -8 tile (per VARIETÀ), mai cali drastici.
+   - PICK round-robin GLOBALE sulla banda [minTiles, bandMax]:
+     MAI due layout uguali di fila.
+   - Banda bandMax = minTiles+16 (cap 108): il layout a 124
+     (spiral/medium, unico) è ESCLUSO fino al FINALE BOSS negli
+     ultimi 3 livelli.
    - covered: proporzionale al livello e alla dimensione del layout.
    - maxStaging: 4 → 3 → 2 con l'avanzare.
    - Quads: da livello 200+, layout ≥ 60 tile, alternati.
@@ -210,12 +212,25 @@ function buildProgression(count) {
 				layout: layout,
 				variant: variant,
 				tiles: tc,
+				playableTiles: tc - (tc % 4),
 				score: computeDifficulty(nb, 0),
 				isHalf: nb.some(function (t) { return t.isHalf; })
 			});
 		});
 	});
-	pool.sort(function (a, b) { return a.score - b.score || a.tiles - b.tiles; });
+	pool.sort(function (a, b) { return a.playableTiles - b.playableTiles || a.score - b.score || a.tiles - b.tiles; });
+
+	/* Tile-count unici del pool in ordine (senza buchi): il floor di
+	   crescita verrà scelto come quantile di questo elenco, così non
+	   atterra mai in un valore inesistente fra i layout (es. non c'è
+	   nessun layout fra 108 e 124). */
+	var tileLevels = [];
+	var seenTileLevel = {};
+	for (var tl = 0; tl < pool.length; tl++) {
+		var pt = pool[tl].playableTiles;
+		if (!seenTileLevel[pt]) { seenTileLevel[pt] = 1; tileLevels.push(pt); }
+	}
+	tileLevels.sort(function (a, b) { return a - b; });
 
 	/* 4 zone di difficoltà (quartili del pool ordinato) */
 	var zones = [[], [], [], []];
@@ -231,49 +246,100 @@ function buildProgression(count) {
 	var halfCount = 0;
 
 	var symSets = ['default', 'red', 'green', 'blue', 'gold', 'dark', 'classic', 'classic-dark'];
-	/* contatori round-robin per zona */
-	var rr = [0, 0, 0, 0];
+	/* contatore round-robin globale */
+	var rr0 = 0;
 	var prevLayout = null;
+	var lastTiles = 0;
 
 	for (var n = 0; n < count; n++) {
 		var progress = n / count;
-		/* zona corrente (mai indietro) */
+		/* Zona solo per la selezione del symSet (mai indietro). */
 		var zoneIdx = Math.min(3, Math.floor(progress * 4));
-		var zc = zones[zoneIdx];
-		if (!zc.length) { zc = zones[3]; zoneIdx = 3; }
 
-		/* round-robin: combo successiva nella zona — se coincide col
-		   layout appena giocato, avanzo ancora (mai 2 uguali di fila) */
-		var item = zc[rr[zoneIdx] % zc.length];
+		/* v0.8.2: il TREND del tile-count è sempre crescente (i livelli
+		   avanzano verso le mega-table finali) ma tra livelli adiacenti
+		   è ammessa una piccola oscillazione di -8 tile. Questo tiene
+		   la VARIETÀ: il pool ha buchi (56→60→64→68→76→80→84→92→96) e
+		   pochi layout per fascia; con un no-drop rigoroso si resta
+		   incastrati sul minimo layout della fascia per decine di
+		   livelli. Il FLOOR GLOBALE è un quantile dei tile-count reali
+		   (tileLevels) con curva MOLTO RALLENTATA (progress^2.2) che
+		   garantisce il trend crescente di fondo.
+		   Banda di scelta: [minTiles, bandMax] dove
+		     - minTiles = max(floorTiles, lastTiles - 8)  → trend +
+		       piccola oscillazione per varietà
+		     - bandMax  = minTiles + 16 (cap 108 finché floor<124) →
+		       più layout disponibili per fascia; il layout a 124
+		       (spiral/medium, unico) resta fuori fino al FINALE BOSS
+		       nell'ultimo 1%. */
+		var floorIdx = Math.min(tileLevels.length - 1, Math.floor(Math.pow(progress, 2.2) * (tileLevels.length - 1)));
+		if (progress >= 0.99) floorIdx = tileLevels.length - 1;
+		var floorTiles = tileLevels[floorIdx];
+		var minTiles = Math.max(floorTiles, lastTiles - 8);
+		var bandMax = (floorTiles >= 124) ? 124 : Math.min(108, minTiles + 16);
+
+		var candidates = pool.filter(function (item) {
+			return item.playableTiles >= minTiles && item.playableTiles <= bandMax;
+		});
+		if (!candidates.length) {
+			/* Fascia vuota (buchi del pool): apre fino a minTiles+24,
+			   mai a 124 prima del finale. */
+			candidates = pool.filter(function (item) {
+				return item.playableTiles >= minTiles && item.playableTiles <= Math.min(108, minTiles + 24);
+			});
+		}
+		if (!candidates.length) {
+			/* Ultima rete: resta sullo stesso tile-count. */
+			candidates = pool.filter(function (item) {
+				return item.playableTiles === lastTiles;
+			});
+		}
+
+		/* round-robin sulla rosa dei candidati: variazione senza blocchi */
+		var idx = rr0 % candidates.length;
+		var item = candidates[idx];
 		var guard = 0;
-		while (item.layout === prevLayout && guard < zc.length) {
-			rr[zoneIdx]++;
-			item = zc[rr[zoneIdx] % zc.length];
+		while (item.layout === prevLayout && guard < candidates.length) {
+			idx = (idx + 1) % candidates.length;
+			item = candidates[idx];
 			guard++;
 		}
-		rr[zoneIdx]++;
+		rr0++;
 		prevLayout = item.layout;
 
-		/* half-cover ogni 7 livelli: half nella stessa zona di difficoltà */
+		/* half-cover ogni 7 livelli: forzato SOLO se compatibile con la
+		   banda di crescita (niente cali e niente salti precoci). */
 		var forceHalf = ((n + 1) % 7 === 0);
 		if (forceHalf && halfPool.length) {
-			var hTarget = progress * (halfPool.length - 1);
-			var hIdx = Math.max(0, Math.min(halfPool.length - 1, Math.round(hTarget + ((halfCount % 3) - 1))));
-			item = halfPool[hIdx];
-			halfCount++;
-			prevLayout = item.layout;
+			var halfCandidates = halfPool.filter(function (p) {
+				return p.playableTiles >= minTiles && p.playableTiles <= bandMax;
+			});
+			if (!halfCandidates.length) {
+				halfCandidates = halfPool.filter(function (p) { return p.playableTiles >= minTiles; });
+			}
+			if (!halfCandidates.length) {
+				halfCandidates = halfPool.filter(function (p) { return p.playableTiles >= lastTiles - 8; });
+			}
+			if (halfCandidates.length) {
+				var hTarget = progress * (halfCandidates.length - 1);
+				var hIdx = Math.max(0, Math.min(halfCandidates.length - 1, Math.round(hTarget + ((halfCount % 3) - 1))));
+				item = halfCandidates[hIdx];
+				halfCount++;
+				prevLayout = item.layout;
+			}
 		}
 
+		lastTiles = item.playableTiles;
+
 		/* covered: cresce col livello ma mai oltre floor(tiles/6) coppie */
-		var maxCov = Math.max(2, Math.min(8, Math.floor(item.tiles / 6)));
+		var maxCov = Math.max(2, Math.min(8, Math.floor(item.playableTiles / 6)));
 		var cov = Math.min(maxCov, Math.floor(progress * maxCov * 1.3));
 
 		/* maxStaging: 4 (1-150) → 3 (151-225) → 2 (226-300) */
 		var staging = n < 150 ? 4 : (n < 225 ? 3 : 2);
 
 		/* quads: solo livelli ≥ 200, layout ≥ 60 tile, alternati */
-		var qt = item.tiles;
-		if (qt % 4 !== 0) qt -= (qt % 4);
+		var qt = item.playableTiles;
 		var quads = n >= 199 && qt >= 60 && (n % 2 === 0);
 
 		var sym = symSets[(n + Math.floor(progress * 8) + zoneIdx) % symSets.length];
