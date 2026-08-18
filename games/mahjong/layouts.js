@@ -1416,5 +1416,283 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 4, y: 3 });
 			return evenTrim(pts); // 36 + 11 + 2 + 2 = 51 → 50
 		}
+	},
+
+	/* ============================================================
+	   NUOVE FIGURE v0.8.3 — 9 layout (chalice, mushroom, ship,
+	   anchor, windmill, harp, lyre, skyscraper, crane).
+	   Regole fisiche rispettate: FULL a z>0 poggia su FULL identica
+	   sotto; niente half nuove (rischio zero supporti).
+	   ============================================================ */
+	'chalice': {
+		'small': function () {
+			var pts = [];
+			/* base larga (z0) + vasca rialzata (z1) sopra di essa */
+			for (var y = 0; y < 2; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+				pts.push({ z: 1, x: 4, y: y }, { z: 1, x: 6, y: y });
+			}
+			/* fusto (z0) */
+			for (var f = 0; f < 2; f++) pts.push({ z: 0, x: 4, y: f + 2 }, { z: 0, x: 6, y: f + 2 });
+			/* piede (z0) */
+			for (var p = 0; p < 2; p++) {
+				for (var x2 = 0; x2 < 6; x2++) pts.push({ z: 0, x: x2 * 2, y: p + 4 });
+			}
+			return pts; // 12 + 4 + 4 + 12 = 32
+		},
+		'medium': function () {
+			var pts = [];
+			for (var y = 0; y < 2; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+				for (var v = 2; v < 6; v++) pts.push({ z: 1, x: v * 2, y: y });
+			}
+			for (var f = 0; f < 3; f++) pts.push({ z: 0, x: 4, y: f + 2 }, { z: 0, x: 6, y: f + 2 });
+			for (var p = 0; p < 2; p++) {
+				for (var x2 = 0; x2 < 6; x2++) pts.push({ z: 0, x: x2 * 2, y: p + 5 });
+			}
+			return pts; // 12 + 12 + 6 + 12 = 42
+		}
+	},
+
+	'mushroom': {
+		'small': function () {
+			var pts = [];
+			/* radici larghe (z0) */
+			for (var y = 0; y < 3; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* gambo z1 + cappello z2 (allineati, poggiano corretti) */
+			for (var g = 0; g < 3; g++) {
+				pts.push({ z: 1, x: 4, y: g }, { z: 1, x: 6, y: g });
+				pts.push({ z: 2, x: 4, y: g }, { z: 2, x: 6, y: g });
+			}
+			return pts; // 18 + 6 + 6 = 30
+		},
+		'medium': function () {
+			var pts = [];
+			for (var y = 0; y < 2; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			for (var g = 0; g < 2; g++) {
+				pts.push({ z: 1, x: 4, y: g }, { z: 1, x: 6, y: g });
+				pts.push({ z: 2, x: 4, y: g }, { z: 2, x: 6, y: g });
+			}
+			/* piede/collinetta ai lati (z0) */
+			for (var s = 0; s < 3; s++) pts.push({ z: 0, x: 0, y: s }, { z: 0, x: 10, y: s });
+			return pts; // 12 + 4 + 4 + 6 = 26
+		}
+	},
+
+	'ship': {
+		'small': function () {
+			var pts = [];
+			/* chiglia + scafo + coperta (z0) */
+			for (var c = 1; c < 5; c++) pts.push({ z: 0, x: c * 2, y: 4 });
+			for (var s = 0; s < 6; s++) pts.push({ z: 0, x: s * 2, y: 3 });
+			for (var d = 0; d < 6; d++) pts.push({ z: 0, x: d * 2, y: 2 });
+			/* ponte rialzato z1 (poggia sulla coperta) */
+			for (var p = 1; p < 5; p++) pts.push({ z: 1, x: p * 2, y: 2 });
+			return pts; // 4 + 6 + 6 + 4 = 20
+		},
+		'medium': function () {
+			var pts = [];
+			for (var c = 0; c < 3; c++) pts.push({ z: 0, x: c * 2 + 2, y: 5 }, { z: 0, x: c * 2 + 2, y: 6 });
+			for (var y = 0; y < 2; y++) {
+				for (var s = 0; s < 6; s++) pts.push({ z: 0, x: s * 2, y: y + 3 });
+				for (var d = 0; d < 6; d++) pts.push({ z: 0, x: d * 2, y: y + 1 });
+				for (var p = 1; p < 5; p++) pts.push({ z: 1, x: p * 2, y: y + 1 });
+			}
+			return pts; // 6 + 12 + 12 + 8 = 38
+		}
+	},
+
+	'anchor': {
+		'small': function () {
+			var pts = [];
+			/* anello + asta (z0) */
+			for (var a = 0; a < 5; a++) pts.push({ z: 0, x: a * 2, y: 0 });
+			pts.push({ z: 0, x: 4, y: 1 }, { z: 0, x: 4, y: 2 });
+			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 4, y: 4 });
+			/* traversa */
+			for (var t = 0; t < 6; t++) pts.push({ z: 0, x: t * 2, y: 5 });
+			/* bracci */
+			pts.push({ z: 0, x: 0, y: 6 }, { z: 0, x: 10, y: 6 });
+			return evenTrim(pts); // 5+2+2+6+2 = 17 → 16
+		},
+		'medium': function () {
+			var pts = [];
+			for (var a = 0; a < 6; a++) pts.push({ z: 0, x: a * 2, y: 0 });
+			for (var st = 0; st < 4; st++) pts.push({ z: 0, x: 4, y: st + 1 });
+			for (var t = 0; t < 6; t++) pts.push({ z: 0, x: t * 2, y: 5 });
+			pts.push({ z: 0, x: 0, y: 6 }, { z: 0, x: 10, y: 6 }, { z: 0, x: 0, y: 7 }, { z: 0, x: 10, y: 7 });
+			return pts; // 6 + 4 + 6 + 4 = 20
+		}
+	},
+
+	'windmill': {
+		'small': function () {
+			var pts = [];
+			/* pale a croce di S.Andrea (z0) */
+			pts.push({ z: 0, x: 0, y: 2 }, { z: 0, x: 2, y: 2 }, { z: 0, x: 4, y: 2 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 8, y: 2 });
+			pts.push({ z: 0, x: 2, y: 0 }, { z: 0, x: 2, y: 1 }, { z: 0, x: 2, y: 3 }, { z: 0, x: 2, y: 4 });
+			pts.push({ z: 0, x: 6, y: 0 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 6, y: 3 }, { z: 0, x: 6, y: 4 });
+			/* perno rialzato (poggia sulla pala centrale z0) */
+			pts.push({ z: 1, x: 4, y: 2 });
+			return pts; // 13 + 1 = 14
+		},
+		'medium': function () {
+			var pts = [];
+			/* diagonale A (z0) */
+			pts.push({ z: 0, x: 0, y: 0 }, { z: 0, x: 2, y: 1 }, { z: 0, x: 4, y: 2 }, { z: 0, x: 6, y: 3 }, { z: 0, x: 8, y: 4 });
+			/* diagonale B */
+			pts.push({ z: 0, x: 0, y: 4 }, { z: 0, x: 2, y: 3 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 8, y: 0 });
+			/* assi orizzontale + verticale */
+			for (var o = 0; o < 5; o++) pts.push({ z: 0, x: o * 2, y: 2 });
+			for (var v = 0; v < 5; v++) pts.push({ z: 0, x: 4, y: v });
+			pts.push({ z: 1, x: 4, y: 2 });
+			return pts; // 5+4+5+5+1 = 20
+		}
+	},
+
+	'harp': {
+		/* ARPA: colonna sinistra + braccio obliquo discendente + base
+		   piena con corde interne. Solo FULL. */
+		'small': function () {
+			var pts = [];
+			/* colonna sinistra (z0) */
+			for (var y = 0; y < 5; y++) pts.push({ z: 0, x: 2, y: y });
+			/* base piena (z0) */
+			for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: 4 });
+			/* braccio obliquo: diagonale verso il basso-destra */
+			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 8, y: 1 });
+			/* corda interna (z0) */
+			pts.push({ z: 0, x: 4, y: 1 }, { z: 0, x: 4, y: 2 });
+			return evenTrim(pts); // 5 + 6 + 3 + 2 = 16 → 16
+		},
+		'medium': function () {
+			var pts = [];
+			/* colonna sinistra + base + braccio obliquo + corde doppie */
+			for (var y = 0; y < 6; y++) pts.push({ z: 0, x: 2, y: y });
+			for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: 5 });
+			pts.push({ z: 0, x: 4, y: 4 }, { z: 0, x: 6, y: 3 }, { z: 0, x: 8, y: 2 }, { z: 0, x: 10, y: 1 });
+			/* corde interne doppie */
+			for (var y2 = 1; y2 < 5; y2++) {
+				pts.push({ z: 0, x: 4, y: y2 });
+				pts.push({ z: 0, x: 6, y: y2 });
+			}
+			return evenTrim(pts); // 6 + 6 + 4 + 8 = 24 → 24
+		}
+	},
+
+	'lyre': {
+		/* LIRA: due bracci laterali + traversa + piede al centro. */
+		'small': function () {
+			var pts = [];
+			/* bracci (z0) */
+			for (var y = 0; y < 3; y++) {
+				pts.push({ z: 0, x: 0, y: y });
+				pts.push({ z: 0, x: 8, y: y });
+			}
+			/* traversa in alto (z0) */
+			for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: 0 });
+			/* base (z0) */
+			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 3 });
+			/* piede (z0) */
+			pts.push({ z: 0, x: 4, y: 4 }, { z: 0, x: 6, y: 4 });
+			return evenTrim(pts); // 6 + 5 + 3 + 2 = 16 → 16
+		},
+		'medium': function () {
+			var pts = [];
+			/* bracci più lunghi + traversa + base + doppio piede */
+			for (var y = 0; y < 4; y++) {
+				pts.push({ z: 0, x: 0, y: y });
+				pts.push({ z: 0, x: 8, y: y });
+			}
+			for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: 0 });
+			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 4 });
+			pts.push({ z: 0, x: 4, y: 5 }, { z: 0, x: 6, y: 5 });
+			pts.push({ z: 0, x: 4, y: 6 }, { z: 0, x: 6, y: 6 });
+			return pts; // 8 + 5 + 3 + 2 + 2 = 20
+		}
+	},
+
+	'skyscraper': {
+		/* GRATTACIELO: torre centrata su base larga, 4 piani che si
+		   restringono verso l'alto. Molte tile nascoste sotto → alto. */
+		'small': function () {
+			var pts = [];
+			/* base larga 6×4 (z0) */
+			for (var y = 0; y < 4; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* torre z1: 2×2 (x 4,6; y 1..2) */
+			for (var y1 = 1; y1 < 3; y1++) {
+				pts.push({ z: 1, x: 4, y: y1 }, { z: 1, x: 6, y: y1 });
+			}
+			/* torre z2: 2×2 (x 4,6; y 1..2) */
+			for (var y2 = 1; y2 < 3; y2++) {
+				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
+			}
+			/* vertice z3 */
+			pts.push({ z: 3, x: 4, y: 1 }, { z: 3, x: 4, y: 2 });
+			return pts; // 24 + 4 + 4 + 2 = 34
+		},
+		'medium': function () {
+			var pts = [];
+			/* base larga 6×6 (z0) */
+			for (var y = 0; y < 6; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* torre z1: 4×4 (x 2..8, y 1..4) */
+			for (var y1 = 1; y1 < 5; y1++) {
+				for (var x1 = 2; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
+			}
+			/* torre z2: 2×3 (x 4,6; y 2..4) */
+			for (var y2 = 2; y2 < 5; y2++) {
+				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
+			}
+			/* torre z3: 1×2 (x 4; y 3..4) */
+			for (var y3 = 3; y3 < 5; y3++) pts.push({ z: 3, x: 4, y: y3 });
+			/* antenna z4 */
+			pts.push({ z: 4, x: 4, y: 3 });
+			return pts; // 36 + 16 + 6 + 2 + 1 = 61
+		}
+	},
+
+	'crane': {
+		/* GRU (uccello): ali diagonali spiegate + corpo + collo/becco.
+		   Tutto a z0 con un piccolo crest rialzato al centro. */
+		'small': function () {
+			var pts = [];
+			/* ali spiegate (z0), simmetriche attorno a x=4 */
+			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 2, y: 0 });
+			pts.push({ z: 0, x: 8, y: 1 }, { z: 0, x: 6, y: 0 });
+			/* corpo (z0) */
+			for (var x = 1; x < 4; x++) pts.push({ z: 0, x: x * 2, y: 1 });
+			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 2 });
+			/* collo + becco */
+			pts.push({ z: 0, x: 2, y: 3 }, { z: 0, x: 2, y: 4 });
+			/* coda */
+			pts.push({ z: 0, x: 8, y: 2 });
+			/* crest rialzato (poggia sul corpo z0) */
+			pts.push({ z: 1, x: 4, y: 1 });
+			return evenTrim(pts); // 4 + 6 + 2 + 1 + 1 = 14 → 14
+		},
+		'medium': function () {
+			var pts = [];
+			/* ali più lunghe */
+			pts.push({ z: 0, x: 0, y: 2 }, { z: 0, x: 2, y: 1 }, { z: 0, x: 0, y: 1 });
+			pts.push({ z: 0, x: 8, y: 2 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 10, y: 1 });
+			/* corpo allungato */
+			for (var x = 1; x < 5; x++) pts.push({ z: 0, x: x * 2, y: 2 });
+			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 3 });
+			/* collo lungo + testa */
+			pts.push({ z: 0, x: 2, y: 4 }, { z: 0, x: 2, y: 5 }, { z: 0, x: 4, y: 5 });
+			/* coda */
+			pts.push({ z: 0, x: 8, y: 3 });
+			/* crest doppio rialzato */
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
+			return pts; // 6 + 8 + 6 + 3 + 1 + 2 = 26
+		}
 	}
 };
