@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.8.0** — 28 layout figure (lotus, sphinx, crown, galaxy, totem, pagoda, butterfly, arrow, star, hourglass, castle, zigzag, rings, temple + 14 classici) con **300 livelli progressivi a difficoltà automatica**, combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 130 tile. Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.8.2** — 37 layout figure (chalice, mushroom, ship, anchor, windmill, harp, lyre, skyscraper, crane + 28 esistenti) con **300 livelli progressivi a difficoltà automatica** e tile-count monotono (mai un calo > 8 tra livelli adiacenti), combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 124 tile (finale boss). Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## 🔖 Version bump checklist
 
@@ -182,7 +182,17 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.8.0 — Modular split + cumulative score (current)
+### v0.8.2 — Progressione monotona + 9 nuove figure (current)
+- **Tile-count monotono**: la progressione (`buildProgression`) non fa MAI calare il numero di tile di più di 8 tra livelli adiacenti (prima c'erano salti tipo `124 → 56`); floor globale come quantile dei tile-count reali del pool (`tileLevels`) con curva `progress^2.2`; banda `[minTiles, minTiles+16]` con cap 108 → `spiral/medium` (124 tile) come **finale boss** negli ultimi 3 livelli
+- **9 nuove figure**: `chalice, mushroom, ship, anchor, windmill, harp, lyre, skyscraper, crane` (totale 37 layout)
+- **Script di test permanenti**: creati `games/mahjong/tests/test-layouts.js` e `test-progression.js` (non più in /tmp — si lanciano con `node games/mahjong/tests/test-*.js`)
+- **CHANGELOG.md** introdotto: storico essenziale + convenzioni coordinate + come aggiungere figure e fare il version bump
+
+### v0.8.1 — Fix half-tile offset
+- Half-tile centrata tra due righe di supporto (spostata mezza riga in basso) — fix `engine.js` su `layoutPos.shiftY` e `boardSize`
+- Verificato su 300 livelli: 0 violazioni top/bottom
+
+### v0.8.0 — Modular split + cumulative score
 - **Refactor**: `game.js` (ex monolith, ~1029 righe) diviso in 4 moduli a focus singolo — `app.js` (stato/flusso/fullscreen), `ui.js` (tile DOM/fitting), `input.js` (staging/click/undo/hint/shuffle/drag), `progress.js` (stelline/persistenza/bridge WP/boot). `index.html` aggiornato: `data.js → engine.js → app.js → ui.js → input.js → progress.js` (cache-bust `?v=0.8.0`)
 - **Cumulative score**: best score per livello + totale cumulativo inviato alla leaderboard; merge server-side dei `scores` per utenti loggati (`_pointnet_games_progress`)
 - **UX**: popup di completamento con "Next: Level Y"; bottone rinominato "▶ Next level" (prima "Play again" — ambiguo)
