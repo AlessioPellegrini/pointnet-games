@@ -159,6 +159,9 @@
 	function handleTileClick(tile) {
 		if (app.autoMatching) return;
 		if (tile.removed || tile.staging) return;
+		/* v0.9 blackout: le tile oscurate sono INERTI — si rivelano da
+		   sole appena libere (auto-reveal in ui.js), non con un click. */
+		if (tile.obscured) return;
 		if (!isFree(app.board, tile)) {
 			app.peeking = null;
 			updateStates();
@@ -383,6 +386,8 @@
 			updateStates();
 			return;
 		}
+		/* v0.9 blackout: le tile oscurate non si possono trascinare. */
+		if (hit.tile.obscured) return;
 		if (!isFree(app.board, hit.tile)) return;
 
 		drag.active = true;

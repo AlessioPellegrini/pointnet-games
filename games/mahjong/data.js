@@ -342,6 +342,10 @@ function buildProgression(count) {
 		var qt = item.playableTiles;
 		var quads = n >= 199 && qt >= 60 && (n % 2 === 0);
 
+		/* v0.9 blackout: solo nella zona finale (225+) e alternato —
+		   il piano base (z=0) è tutto oscurato e si auto-rivela. */
+		var blackout = n >= 224 && (n % 2 === 0);
+
 		var sym = symSets[(n + Math.floor(progress * 8) + zoneIdx) % symSets.length];
 
 		out.push({
@@ -351,6 +355,7 @@ function buildProgression(count) {
 			covered: cov,
 			maxStaging: staging,
 			quads: quads,
+			blackout: blackout,
 			index: n + 1
 		});
 	}
@@ -374,6 +379,7 @@ function getLevelDef(index) {
 		covered: p.covered,
 		maxStaging: p.maxStaging || 4,
 		quads: !!p.quads,
+		blackout: !!p.blackout,
 		min: p.index,
 		max: p.index
 	};
@@ -459,6 +465,7 @@ function generateLevel(levelIndex) {
 				removed: false,
 				staging: false,
 				faceDown: false,
+				obscured: false,
 				hinted: false
 			});
 		}
@@ -470,6 +477,7 @@ function generateLevel(levelIndex) {
 		   4 free tiles — the staging box unlocks the rest. */
 		if (solvable) {
 			applyFaceDown(tiles, level.covered);
+			if (level.blackout) applyBlackout(tiles);
 			return tiles;
 		}
 		if (!solvable) {
@@ -479,19 +487,22 @@ function generateLevel(levelIndex) {
 			}
 			if (freeCount >= 4) {
 				applyFaceDown(tiles, level.covered);
+				if (level.blackout) applyBlackout(tiles);
 				return tiles;
 			}
 		}
 		lastBest = tiles;
 	}
 	applyFaceDown(lastBest, level.covered);
+	if (level.blackout) applyBlackout(lastBest);
 	return lastBest;
 }
 
 /* Cover numPairs SINGLE tiles (memory mechanic).
-   IMPORTANT: only ONE tile per pair is covered — the twin stays
-   face-up. This way a covered tile can match with its uncovered
-   twin (or with another covered tile of the same symbol). */
+   The tiles are chosen at RANDOM (uniform over the board) — it is
+   absolutely possible that BOTH copies of a symbol get covered, or
+   that the covered tiles are unrelated symbols. The layout/blackout
+   mechanics do NOT influence this random selection. */
 function applyFaceDown(tiles, numPairs) {
 	var done = 0;
 	var guard = 0;
@@ -499,8 +510,18 @@ function applyFaceDown(tiles, numPairs) {
 		guard++;
 		var idx = Math.floor(Math.random() * tiles.length);
 		if (tiles[idx].faceDown) continue;
-		/* Only cover the selected tile; the matching tile remains visible. */
 		tiles[idx].faceDown = true;
 		done++;
+	}
+}
+
+/* BLACKOUT (v0.9): oscura TUTTE le tile del piano base (z=0).
+   Ogni tile oscurata è inerte finché non diventa LIBERA (isFree):
+   l'auto-reveal in ui.js la rivela appena non ha più tile sopra e
+   almeno un lato aperto. COESISTE con covered (memory random):
+   una tile z=0 può essere sia obscured che faceDown. */
+function applyBlackout(tiles) {
+	for (var i = 0; i < tiles.length; i++) {
+		if (tiles[i].z === 0) tiles[i].obscured = true;
 	}
 }

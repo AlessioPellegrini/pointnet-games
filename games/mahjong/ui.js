@@ -84,6 +84,16 @@
 	}
 
 	function updateStates() {
+		/* AUTO-REVEAL (v0.9 blackout): una tile oscurata diventa GIOCABILE
+		   da sola appena è LIBERA (niente sopra e almeno un lato aperto).
+		   Viene eseguito PRIMA di marcare le classi, così il flip non
+		   appare mai a metà. */
+		for (var r = 0; r < app.tiles.length; r++) {
+			var tr = app.tiles[r];
+			if (tr.obscured && !tr.removed && !tr.staging && isFree(app.board, tr)) {
+				tr.obscured = false;
+			}
+		}
 		for (var i = 0; i < app.tiles.length; i++) {
 			var t = app.tiles[i];
 			var el = app.tileEls[i];
@@ -92,9 +102,10 @@
 			el.classList.toggle('in-staging', t.staging && !t.removed);
 			el.classList.toggle('blocked', !t.removed && !t.staging && !isFree(app.board, t));
 			el.classList.toggle('face-down', t.faceDown && !t.staging && !t.removed);
+			el.classList.toggle('obscured', !t.removed && !t.staging && !!t.obscured);
 			el.classList.toggle('hinted', !!t.hinted);
 			if (el._symEl) {
-				el._symEl.textContent = t.faceDown ? '🀄' : t.symbol;
+				el._symEl.textContent = t.obscured ? '🀄' : (t.faceDown ? '🀄' : t.symbol);
 			}
 		}
 	}

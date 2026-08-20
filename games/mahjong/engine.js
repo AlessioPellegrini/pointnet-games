@@ -26,6 +26,23 @@ function hasTile(board, z, x, y) {
 	return !!t && !t.removed && !t.staging;
 }
 
+/* FULL-only lookup (x even). Used by the classic offset stacking rule
+   (v0.9): a FULL on an upper plane can rest on 4 HALF supports, and a
+   HALF is covered by FULL tiles sitting on its crossing. */
+function hasFullAt(board, z, x, y) {
+	var t = board.get(makeKey(z, x, y));
+	return !!t && !t.removed && !t.staging && !t.isHalf;
+}
+
+/* Classic offset rule: a FULL tile at (x even, y) rests on the CROSSING
+   of 4 HALF tiles at (x±1, y) and (x±1, y+1) — same geometry as a HALF
+   over FULL, mirrored one plane up. Returns true when such supports
+   exist. */
+function hasHalfSupports(board, z, x, y) {
+	return hasTile(board, z, x - 1, y) && hasTile(board, z, x + 1, y) &&
+	       hasTile(board, z, x - 1, y + 1) && hasTile(board, z, x + 1, y + 1);
+}
+
 /* Half-cover: a tile at odd x AND odd-spaced y in the layer above
    sits exactly on the CROSSING of FOUR tiles below (x±1, y±1)
    and blocks all four. */
@@ -44,10 +61,24 @@ function hasHalfCoverAbove(board, tile) {
 	       halfAt(aboveY, tile.x + 1, tile.y + 1);
 }
 
+/* Classic offset rule (mirror of hasHalfCoverAbove): a HALF tile at
+   (x odd, y) is also covered when FULL tiles sit on the crossing ABOVE
+   it — i.e. at (x±1, y) and (x±1, y+1) on the plane above. This only
+   triggers on offset layouts where FULL planes rest on HALF planes. */
+function hasFullCoverAbove(board, tile) {
+	if (!tile.isHalf) return false;
+	var aboveY = tile.z + 1;
+	return hasFullAt(board, aboveY, tile.x - 1, tile.y) ||
+	       hasFullAt(board, aboveY, tile.x + 1, tile.y) ||
+	       hasFullAt(board, aboveY, tile.x - 1, tile.y + 1) ||
+	       hasFullAt(board, aboveY, tile.x + 1, tile.y + 1);
+}
+
 function isFree(board, tile) {
 	if (tile.removed || tile.staging) return false;
 	if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
 	if (hasHalfCoverAbove(board, tile)) return false;
+	if (tile.isHalf && hasFullCoverAbove(board, tile)) return false;
 	var hasLeft = hasTile(board, tile.z, tile.x - 2, tile.y);
 	var hasRight = hasTile(board, tile.z, tile.x + 2, tile.y);
 	return !(hasLeft && hasRight);
@@ -76,7 +107,17 @@ function validateSupport(layout) {
 			         has[t.z - 1 + ',' + (t.x + 1) + ',' + (t.y + 1)];
 			if (!ok) bad.push('half ' + t.z + '/' + t.x + '/' + t.y);
 		} else {
-			if (!has[t.z - 1 + ',' + t.x + ',' + t.y]) {
+			/* v0.9 classic offset: a FULL is valid if there is a FULL
+			   directly below (straight stack) OR 4 HALF supports under
+			   its crossing (offset stack, planes alternate). */
+			var direct = has[t.z - 1 + ',' + t.x + ',' + t.y];
+			var h1 = has[t.z - 1 + ',' + (t.x - 1) + ',' + t.y];
+			var h2 = has[t.z - 1 + ',' + (t.x + 1) + ',' + t.y];
+			var h3 = has[t.z - 1 + ',' + (t.x - 1) + ',' + (t.y + 1)];
+			var h4 = has[t.z - 1 + ',' + (t.x + 1) + ',' + (t.y + 1)];
+			var onHalfs = h1 && h2 && h3 && h4 &&
+			              h1.isHalf && h2.isHalf && h3.isHalf && h4.isHalf;
+			if (!direct && !onHalfs) {
 				bad.push('full ' + t.z + '/' + t.x + '/' + t.y);
 			}
 		}
@@ -108,6 +149,12 @@ function solveBoard(board) {
 		return !!t && !t.removed && !t.staging && !removed.has(t.key) && t.isHalf;
 	}
 
+	/* FULL-only lookup respecting the solver's temporary state. */
+	function hasLiveFull(z, x, y) {
+		var t = board.get(makeKey(z, x, y));
+		return !!t && !t.removed && !t.staging && !removed.has(t.key) && !t.isHalf;
+	}
+
 	function isFreeForSolver(t) {
 		if (removed.has(t.key)) return false;
 		if (hasLive(t.z + 1, t.x, t.y)) return false;
@@ -115,6 +162,13 @@ function solveBoard(board) {
 		    hasLiveHalf(t.z + 1, t.x + 1, t.y) ||
 		    hasLiveHalf(t.z + 1, t.x - 1, t.y + 1) ||
 		    hasLiveHalf(t.z + 1, t.x + 1, t.y + 1)) return false;
+		/* v0.9 classic offset: a HALF is also covered by FULL tiles
+		   sitting on its crossing on the plane above. */
+		if (t.isHalf &&
+		    (hasLiveFull(t.z + 1, t.x - 1, t.y) ||
+		     hasLiveFull(t.z + 1, t.x + 1, t.y) ||
+		     hasLiveFull(t.z + 1, t.x - 1, t.y + 1) ||
+		     hasLiveFull(t.z + 1, t.x + 1, t.y + 1))) return false;
 		var hasLeft = hasLive(t.z, t.x - 2, t.y);
 		var hasRight = hasLive(t.z, t.x + 2, t.y);
 		return !(hasLeft && hasRight);

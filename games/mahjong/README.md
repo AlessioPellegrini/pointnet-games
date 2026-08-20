@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.8.2** — 37 layout figure (chalice, mushroom, ship, anchor, windmill, harp, lyre, skyscraper, crane + 28 esistenti) con **300 livelli progressivi a difficoltà automatica** e tile-count monotono (mai un calo > 8 tra livelli adiacenti), combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 124 tile (finale boss). Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.9.0** — 38 layout figure (nuovo `temple_steps` a **stacking classico a offset multi-livello**: FULL → HALF → FULL → HALF) con **300 livelli progressivi a difficoltà automatica** e tile-count monotono (mai un calo > 8 tra livelli adiacenti), **BLACKOUT nella zona finale (225–299)**: il piano base (z=0) parte tutto oscurato e le tile si **auto-rivelano** appena diventano libere, in **coesistenza** con la meccanica memory (`covered`). Combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 124 tile (finale boss). Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## 🔖 Version bump checklist
 
@@ -182,7 +182,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.8.2 — Progressione monotona + 9 nuove figure (current)
+### v0.9.0 — Blackout + stacking classico a offset (current)
+- **BLACKOUT (new mechanic)**: nei livelli 225–299 (alternati), tutto il piano base `z=0` parte OSCURATO (`obscured`) — le tile sono inerti (non cliccabili, non trascinabili) e si **auto-rivelano** da sole appena diventano LIBERE (`isFree`), grazie all'auto-reveal in `ui.js updateStates()`. Convive con la memoria `covered` (una tile z=0 può essere sia oscurata che a faccia in giù)
+- **Stacking classico a offset**: nuova regola fisica in `engine.js` — una tile FULL può poggiare sull'incrocio di **4 HALF** (`validateSupport`, `isFree`, solver aggiornati). Abilita "half su half" nello stile classico del Mahjong solitaire: piano 1 griglia → piano 2 sfalsato → piano 3 sfalsato sul 2 → ecc.
+- **Nuovo layout `temple_steps`** (38 totali): piramide a gradoni a offset puro, varianti 20/40/68 tile, multi-livello FULL→HALF→FULL→HALF. I 37 layout esistenti restano intatti (regressione verificata)
+- **Fix commento `applyFaceDown`**: la selezione delle tile `covered` è CASUALE (possono coprire entrambe le copie di un simbolo) — il commento precedente diceva erroneamente "una tile per coppia"
+- **Test permanenti**: nuovo `games/mahjong/tests/test-blackout.js` (zona 225+, alternanza, obscured solo su z=0, multipli di 4, auto-reveal giocabile) — `node games/mahjong/tests/test-*.js` lancia tutta la suite
+
+### v0.8.2 — Progressione monotona + 9 nuove figure
 - **Tile-count monotono**: la progressione (`buildProgression`) non fa MAI calare il numero di tile di più di 8 tra livelli adiacenti (prima c'erano salti tipo `124 → 56`); floor globale come quantile dei tile-count reali del pool (`tileLevels`) con curva `progress^2.2`; banda `[minTiles, minTiles+16]` con cap 108 → `spiral/medium` (124 tile) come **finale boss** negli ultimi 3 livelli
 - **9 nuove figure**: `chalice, mushroom, ship, anchor, windmill, harp, lyre, skyscraper, crane` (totale 37 layout)
 - **Script di test permanenti**: creati `games/mahjong/tests/test-layouts.js` e `test-progression.js` (non più in /tmp — si lanciano con `node games/mahjong/tests/test-*.js`)

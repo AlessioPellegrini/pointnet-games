@@ -1694,5 +1694,70 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
 			return pts; // 6 + 8 + 6 + 3 + 1 + 2 = 26
 		}
+	},
+
+	'temple_steps': {
+		/* v0.9 — STACKING CLASSICO A OFFSET. Piramide a gradoni dove
+		   ogni piano si appoggia sull'INCROCIO del piano sotto:
+		     z0 FULL (x pari)         griglia base
+		     z1 HALF (x dispari)      sugli incroci delle FULL
+		     z2 FULL (x pari)         sugli incroci delle HALF (classico
+		                              "half su half", reso possibile da
+		                              engine.js validateSupport v0.9)
+		     z3 HALF (x dispari)      sugli incroci delle FULL di z2
+		   Conteggi volutamente multipli di 4 (il generatore usa 4 copie
+		   per simbolo). */
+		'small': function () {
+			var pts = [];
+			/* z0: FULL 4×3 */
+			for (var y = 0; y < 3; y++) {
+				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: HALF 3×2 (sugli incroci delle FULL) */
+			for (var y1 = 0; y1 < 2; y1++) {
+				for (var x1 = 1; x1 <= 5; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
+			}
+			/* z2: FULL 2×1 (sugli incroci delle HALF) */
+			pts.push({ z: 2, x: 2, y: 0 }, { z: 2, x: 4, y: 0 });
+			return pts; // 12 + 6 + 2 = 20
+		},
+		'medium': function () {
+			var pts = [];
+			/* z0: FULL 5×4 */
+			for (var y = 0; y < 4; y++) {
+				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: HALF 4×3 */
+			for (var y1 = 0; y1 < 3; y1++) {
+				for (var x1 = 1; x1 <= 7; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
+			}
+			/* z2: FULL 3×2 */
+			for (var y2 = 0; y2 < 2; y2++) {
+				for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: y2 });
+			}
+			/* z3: HALF 2×1 */
+			pts.push({ z: 3, x: 3, y: 0, isHalf: true }, { z: 3, x: 5, y: 0, isHalf: true });
+			return pts; // 20 + 12 + 6 + 2 = 40
+		},
+		'large': function () {
+			var pts = [];
+			/* z0: FULL 6×5 */
+			for (var y = 0; y < 5; y++) {
+				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			}
+			/* z1: HALF 5×4 */
+			for (var y1 = 0; y1 < 4; y1++) {
+				for (var x1 = 1; x1 <= 9; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
+			}
+			/* z2: FULL 4×3 */
+			for (var y2 = 0; y2 < 3; y2++) {
+				for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 2, x: x2, y: y2 });
+			}
+			/* z3: HALF 3×2 */
+			for (var y3 = 0; y3 < 2; y3++) {
+				for (var x3 = 3; x3 <= 7; x3 += 2) pts.push({ z: 3, x: x3, y: y3, isHalf: true });
+			}
+			return pts; // 30 + 20 + 12 + 6 = 68
+		}
 	}
 };

@@ -251,6 +251,33 @@ html, body {
 .tile.face-down.blocked:hover .tile-overlay { opacity: 0; }
 .tile.face-down.blocked:hover { opacity: 1; }
 
+/* v0.9 BLACKOUT — piano base oscurato. Più scuro del memory face-down
+   (quasi nero): si auto-rivela da solo quando la tile diventa LIBERA
+   (auto-reveal in ui.js). Non è cliccabile (input.js) e non mostra
+   hover. Nasconde sia il simbolo emoji che l'SVG classico. */
+.tile.obscured {
+	background: linear-gradient(135deg, #0a0f1c 0%, #05080f 100%);
+	color: #94a3b8;
+	opacity: 1;
+	cursor: default;
+}
+.tile.obscured .tile-sym { visibility: hidden; }
+.tile.obscured .tile-svg { visibility: hidden; }
+.tile.obscured::after {
+	content: '◼';
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	font-weight: 900;
+	color: rgba(148, 163, 184, 0.35);
+	pointer-events: none;
+}
+.tile.obscured:hover { transform: translate(var(--tx), var(--ty)); }
+.tile.obscured:hover .tile-overlay { opacity: 0; }
+
 .tile:hover { transform: translate(var(--tx), var(--ty)) scale(1.05); }
 
 .tile-overlay {

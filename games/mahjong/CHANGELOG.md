@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 0.8.2** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 0.9.0** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -14,6 +14,9 @@ node games/mahjong/tests/test-layouts.js
 
 # Verifica progressione: drop <= 8, tutte le figure usate, finale boss 124
 node games/mahjong/tests/test-progression.js
+
+# Verifica blackout: zona 225+, alternanza, obscured solo su z=0, auto-reveal
+node games/mahjong/tests/test-blackout.js
 ```
 
 Gli script caricano `layouts.js` + `data.js` + `engine.js` in Node `vm` e chiamano
@@ -23,7 +26,14 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v0.8.2 — Progressione monotona + 9 nuove figure (HEAD)
+### v0.9.0 — Blackout + stacking classico a offset (HEAD)
+- **BLACKOUT**: piano base `z=0` tutto OSCURATO nei livelli 225–299 (alternati); le tile si auto-rivelano quando diventano libere (auto-reveal in `ui.js`), convivono con `covered`.
+- **Stacking classico a offset**: in `engine.js` una FULL può poggiare sull'incrocio di 4 HALF (validateSupport + isFree + solver) → "half su half" multi-livello.
+- Nuovo layout **`temple_steps`** (38 totali): FULL→HALF→FULL→HALF, 20/40/68 tile.
+- Fix commento `applyFaceDown`: selezione covered CASUALE (non "una per coppia").
+- Nuovo test permanente `tests/test-blackout.js` (zona, alternanza, z=0, %4, auto-reveal).
+
+### v0.8.2 — Progressione monotona + 9 nuove figure
 - Tile-count MAI in calo > 8 tra livelli adiacenti (era `124 → 56`).
 - Floor globale = quantile dei tile-count reali del pool (`tileLevels`), curva `progress^2.2`.
 - Banda `[minTiles, minTiles+16]`, cap 108: `spiral/medium` (124 tile) come FINALE BOSS (ultimi 3 livelli).
