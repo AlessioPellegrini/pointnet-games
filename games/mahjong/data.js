@@ -470,6 +470,23 @@ function generateLevel(levelIndex) {
 			});
 		}
 
+		/* v0.9.3 playability guard: dopo il covered, deve esistere ALMENO
+		   una coppia di tile libere (isFree, non coperta) — altrimenti
+		   lo shuffle viene RIGIRATO. Senza questo check, covered casuale
+		   può coprire tutte le potenziali coppie e il livello parte
+		   bloccato (come capitava sul livello 175). */
+		function hasFreePair() {
+			var freeSym = {};
+			for (var p = 0; p < tiles.length; p++) {
+				var tp = tiles[p];
+				if (tp.removed || tp.staging || tp.faceDown) continue;
+				if (!isFree(board, tp)) continue;
+				freeSym[tp.symbol] = (freeSym[tp.symbol] || 0) + 1;
+			}
+			for (var s in freeSym) { if (freeSym[s] >= 2) return true; }
+			return false;
+		}
+
 		var board = buildBoard(tiles);
 		var solvable = solveBoard(board);
 		/* Heuristic fallback: if the DFS timed out (or is just too
@@ -478,7 +495,9 @@ function generateLevel(levelIndex) {
 		if (solvable) {
 			applyFaceDown(tiles, level.covered);
 			if (level.blackout) applyBlackout(tiles);
-			return tiles;
+			if (hasFreePair()) return tiles;
+			else lastBest = tiles;
+			continue;
 		}
 		if (!solvable) {
 			var freeCount = 0;
@@ -488,7 +507,9 @@ function generateLevel(levelIndex) {
 			if (freeCount >= 4) {
 				applyFaceDown(tiles, level.covered);
 				if (level.blackout) applyBlackout(tiles);
-				return tiles;
+				if (hasFreePair()) return tiles;
+				else lastBest = tiles;
+				continue;
 			}
 		}
 		lastBest = tiles;

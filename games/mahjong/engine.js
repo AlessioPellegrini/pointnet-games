@@ -34,15 +34,6 @@ function hasFullAt(board, z, x, y) {
 	return !!t && !t.removed && !t.staging && !t.isHalf;
 }
 
-/* Classic offset rule: a FULL tile at (x even, y) rests on the CROSSING
-   of 4 HALF tiles at (x±1, y) and (x±1, y+1) — same geometry as a HALF
-   over FULL, mirrored one plane up. Returns true when such supports
-   exist. */
-function hasHalfSupports(board, z, x, y) {
-	return hasTile(board, z, x - 1, y) && hasTile(board, z, x + 1, y) &&
-	       hasTile(board, z, x - 1, y + 1) && hasTile(board, z, x + 1, y + 1);
-}
-
 /* Half-cover: a tile at odd x AND odd-spaced y in the layer above
    sits exactly on the CROSSING of FOUR tiles below (x±1, y±1)
    and blocks all four. */
@@ -51,14 +42,16 @@ function hasHalfCoverAbove(board, tile) {
 		var t = board.get(makeKey(z, x, y));
 		return !!t && !t.removed && !t.staging && t.isHalf;
 	}
-	/* The half tile's grid row (y) coincides with the lower of the
-	   two base rows it straddles. Base row y is covered by a half
-	   on the SAME row (above it) or on the row ABOVE (y+1). */
+	/* A half at grid row (y) straddles the two base rows y and y+1.
+	   So a base tile at row `tile.y` is covered by a half whose grid
+	   row is tile.y-1 (straddling y-1,y) or tile.y (straddling y,y+1).
+	   v0.9.1 off-by-one fix: it was checking tile.y+1 → the top row
+	   of the base was wrongly blocked and the bottom row wrongly free. */
 	var aboveY = tile.z + 1;
 	return halfAt(aboveY, tile.x - 1, tile.y) ||
 	       halfAt(aboveY, tile.x + 1, tile.y) ||
-	       halfAt(aboveY, tile.x - 1, tile.y + 1) ||
-	       halfAt(aboveY, tile.x + 1, tile.y + 1);
+	       halfAt(aboveY, tile.x - 1, tile.y - 1) ||
+	       halfAt(aboveY, tile.x + 1, tile.y - 1);
 }
 
 /* Classic offset rule (mirror of hasHalfCoverAbove): a HALF tile at
@@ -67,11 +60,13 @@ function hasHalfCoverAbove(board, tile) {
    triggers on offset layouts where FULL planes rest on HALF planes. */
 function hasFullCoverAbove(board, tile) {
 	if (!tile.isHalf) return false;
+	/* Mirror of hasHalfCoverAbove: FULL tiles resting on this HALF
+	   straddle its grid row and the one below (y-1). */
 	var aboveY = tile.z + 1;
 	return hasFullAt(board, aboveY, tile.x - 1, tile.y) ||
 	       hasFullAt(board, aboveY, tile.x + 1, tile.y) ||
-	       hasFullAt(board, aboveY, tile.x - 1, tile.y + 1) ||
-	       hasFullAt(board, aboveY, tile.x + 1, tile.y + 1);
+	       hasFullAt(board, aboveY, tile.x - 1, tile.y - 1) ||
+	       hasFullAt(board, aboveY, tile.x + 1, tile.y - 1);
 }
 
 function isFree(board, tile) {
@@ -160,15 +155,15 @@ function solveBoard(board) {
 		if (hasLive(t.z + 1, t.x, t.y)) return false;
 		if (hasLiveHalf(t.z + 1, t.x - 1, t.y) ||
 		    hasLiveHalf(t.z + 1, t.x + 1, t.y) ||
-		    hasLiveHalf(t.z + 1, t.x - 1, t.y + 1) ||
-		    hasLiveHalf(t.z + 1, t.x + 1, t.y + 1)) return false;
+		    hasLiveHalf(t.z + 1, t.x - 1, t.y - 1) ||
+		    hasLiveHalf(t.z + 1, t.x + 1, t.y - 1)) return false;
 		/* v0.9 classic offset: a HALF is also covered by FULL tiles
 		   sitting on its crossing on the plane above. */
 		if (t.isHalf &&
 		    (hasLiveFull(t.z + 1, t.x - 1, t.y) ||
 		     hasLiveFull(t.z + 1, t.x + 1, t.y) ||
-		     hasLiveFull(t.z + 1, t.x - 1, t.y + 1) ||
-		     hasLiveFull(t.z + 1, t.x + 1, t.y + 1))) return false;
+		     hasLiveFull(t.z + 1, t.x - 1, t.y - 1) ||
+		     hasLiveFull(t.z + 1, t.x + 1, t.y - 1))) return false;
 		var hasLeft = hasLive(t.z, t.x - 2, t.y);
 		var hasRight = hasLive(t.z, t.x + 2, t.y);
 		return !(hasLeft && hasRight);

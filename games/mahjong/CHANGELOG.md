@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 0.9.0** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 0.9.1** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -17,6 +17,9 @@ node games/mahjong/tests/test-progression.js
 
 # Verifica blackout: zona 225+, alternanza, obscured solo su z=0, auto-reveal
 node games/mahjong/tests/test-blackout.js
+
+# Regressione off-by-one HALF: (0,0) libera, (0,4) bloccata
+node games/mahjong/tests/test-free.js
 ```
 
 Gli script caricano `layouts.js` + `data.js` + `engine.js` in Node `vm` e chiamano
@@ -26,7 +29,14 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v0.9.0 — Blackout + stacking classico a offset (HEAD)
+### v0.9.1 — Fix off-by-one HALF + playability guard + temple_steps (HEAD)
+- **Fix critico `hasHalfCoverAbove`/`isFreeForSolver`/`hasFullCoverAbove`**: l'off-by-one ricercava la HALF coprente a `y+1` invece di `y-1` → la prima riga del piano base risultava iper-bloccata ("tile libere ma non risultano tali") e l'ultima ipo-bloccata ("tile bloccate ma cliccabili"). Colpiva i layout con HALF (halfcover, checker, temple_steps).
+- **`generateLevel` playability guard (nuovo)**: dopo l'applicazione di `covered`, se tra le tile libere e scoperte non esiste almeno UNA COPPIA lo shuffle viene rigirato. Senza questo check, il `covered` casuale poteva coprire tutte le potenziali coppie libere → livelli bloccati all'avvio (es. livello 175).
+- **`temple_steps` ridisegnato**: geometria ziggurat con HALF che partono dalla fila 0 della base (tagliano a metà la prima fila, niente "fluttuazione"), piani centrati, conteggi multipli di 4: small 24 / medium 40 / large 56.
+- Rimosso `hasHalfSupports` (funzione inutilizzata).
+- Nuovo test permanente `tests/test-free.js`: verifica `halfcover/small` (0,0) libera e (0,4) bloccata — con la vecchia logica erano INVERTITE.
+
+### v0.9.0 — Blackout + stacking classico a offset
 - **BLACKOUT**: piano base `z=0` tutto OSCURATO nei livelli 225–299 (alternati); le tile si auto-rivelano quando diventano libere (auto-reveal in `ui.js`), convivono con `covered`.
 - **Stacking classico a offset**: in `engine.js` una FULL può poggiare sull'incrocio di 4 HALF (validateSupport + isFree + solver) → "half su half" multi-livello.
 - Nuovo layout **`temple_steps`** (38 totali): FULL→HALF→FULL→HALF, 20/40/68 tile.
