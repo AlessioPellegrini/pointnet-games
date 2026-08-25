@@ -514,7 +514,9 @@ var LAYOUT_BUILDERS = {
 			for (var x3 = 4; x3 <= 8; x3 += 2) pts.push({ z: 2, x: x3, y: 4 });
 			/* layer 3: pilastri interni per profondità (supportati da z2) */
 			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 6, y: 4 }, { z: 3, x: 8, y: 4 });
-			return evenTrim(pts); // 42 + 24 perim + 7 piatt + 6 mura + 3 pill = 82 → 82
+			/* v0.9.2: dedupe — la piattaforma (1,2,4) era pushata 2 volte
+			   (loop x3 a y4 + esplicita a y4) → tile sovrapposta. */
+			return evenTrim(dedupePts(pts)); // 101 uniche → 100
 		},
 		'medium': function () {
 			/* LABIRINTO grande: base piena 6×8 + perimetro + più corridoi. */
@@ -542,7 +544,8 @@ var LAYOUT_BUILDERS = {
 			for (var x2b = 2; x2b <= 8; x2b += 2) pts.push({ z: 2, x: x2b, y: 2 });
 			for (var x3b = 2; x3b <= 6; x3b += 2) pts.push({ z: 2, x: x3b, y: 4 });
 			for (var x4b = 4; x4b <= 8; x4b += 2) pts.push({ z: 2, x: x4b, y: 6 });
-			return evenTrim(pts); // 48+28+15+12 = 103 → 102
+			/* v0.9.2: dedupe — (1,2,4) era pushata 2 volte (loop x3 + esplicita) */
+			return evenTrim(dedupePts(pts)); // 101 uniche → 100
 			/* (rimossi: z2/z3 colonne verticali x8/x2 y3..5 — troppo dense,
 			   il solver andava in timeout su quasi tutti gli shuffle) */
 		}
@@ -707,7 +710,9 @@ var LAYOUT_BUILDERS = {
 			   non avevano z1 sotto (solo x8 era supportata). */
 			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
 			for (var xm2 = 2; xm2 < 5; xm2++) pts.push({ z: 2, x: xm2 * 2, y: 2 });
-			return pts; // 24 base + 12 torri + 8 torri2 + 5 piloni + 3 ponte + 3 ponte2 = 50+2 = 52
+			/* v0.9.2: dedupe — il ponte z1/z2 a x8,y1 e x8,y2 duplicava
+			   le torri destre già presenti. */
+			return dedupePts(pts); // 48 uniche
 		}
 	},
 
@@ -769,7 +774,9 @@ var LAYOUT_BUILDERS = {
 				pts.push({ z: 3, x: 4, y: y8 }, { z: 3, x: 6, y: y8 });
 			}
 			pts.push({ z: 4, x: 4, y: 4 });
-			return evenTrim(pts); // 48 + 24 + 20 + 6 + 1 = 99
+			/* v0.9.2: dedupe — il giro z2 (8,1) e (2,1) duplicava i
+			   lati verticali x8/x2 (inizio da y1). */
+			return evenTrim(dedupePts(pts)); // 97 uniche → 96
 		}
 	},
 
@@ -799,7 +806,9 @@ var LAYOUT_BUILDERS = {
 			/* layer 2-3: incrocio centrale marcato */
 			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
 			pts.push({ z: 3, x: 6, y: 3 });
-			return evenTrim(pts); // 42 + 31 + 3 = 76
+			/* v0.9.2: dedupe — le due bande diagonali si incrociano:
+			   (4,3)/(6,3) e le celle di bordo erano pushate 2 volte. */
+			return evenTrim(dedupePts(pts)); // 65 uniche → 64
 		},
 		'medium': function () {
 			/* ELICA grande: base piena 6×9 + bande diagonali lunghe. */
@@ -828,7 +837,8 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 2, x: 4, y: 4 }, { z: 2, x: 6, y: 4 });
 			pts.push({ z: 2, x: 4, y: 5 }, { z: 2, x: 6, y: 5 });
 			pts.push({ z: 3, x: 6, y: 4 });
-			return evenTrim(pts); // 54 + 48 + 5 = 107 → 106
+			/* v0.9.2: dedupe — bande diagonali che si incrociano (vedi small). */
+			return evenTrim(dedupePts(pts)); // 90 uniche → 88
 		}
 	},
 
@@ -1479,7 +1489,9 @@ var LAYOUT_BUILDERS = {
 			}
 			/* piede/collinetta ai lati (z0) */
 			for (var s = 0; s < 3; s++) pts.push({ z: 0, x: 0, y: s }, { z: 0, x: 10, y: s });
-			return pts; // 12 + 4 + 4 + 6 = 26
+			/* v0.9.2: dedupe — (0,0),(10,0),(0,1),(10,1) erano già nella
+			   base 6×2 e venivano ripushate dalla collinetta. */
+			return dedupePts(pts); // 22 uniche
 		}
 	},
 
@@ -1550,7 +1562,9 @@ var LAYOUT_BUILDERS = {
 			for (var o = 0; o < 5; o++) pts.push({ z: 0, x: o * 2, y: 2 });
 			for (var v = 0; v < 5; v++) pts.push({ z: 0, x: 4, y: v });
 			pts.push({ z: 1, x: 4, y: 2 });
-			return pts; // 5+4+5+5+1 = 20
+			/* v0.9.2: dedupe — il centro (0,4,2) era pushato da diagonale A,
+			   asse orizzontale e asse verticale → 3 tile nella stessa cella. */
+			return dedupePts(pts); // 18 uniche
 		}
 	},
 
@@ -1567,7 +1581,8 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 8, y: 1 });
 			/* corda interna (z0) */
 			pts.push({ z: 0, x: 4, y: 1 }, { z: 0, x: 4, y: 2 });
-			return evenTrim(pts); // 5 + 6 + 3 + 2 = 16 → 16
+			/* v0.9.2: dedupe — (0,2,4) era nella colonna E nella base. */
+			return evenTrim(dedupePts(pts)); // 15 uniche → 14
 		},
 		'medium': function () {
 			var pts = [];
@@ -1580,16 +1595,22 @@ var LAYOUT_BUILDERS = {
 				pts.push({ z: 0, x: 4, y: y2 });
 				pts.push({ z: 0, x: 6, y: y2 });
 			}
-			return evenTrim(pts); // 6 + 6 + 4 + 8 = 24 → 24
+			/* v0.9.2: dedupe — (0,2,5) colonna+base, (0,6,3)/(0,4,4)
+			   braccio+corde. */
+			return evenTrim(dedupePts(pts)); // 21 uniche → 20
 		}
 	},
 
 	'lyre': {
-		/* LIRA: due bracci laterali + traversa + piede al centro. */
+		/* LIRA: due bracci laterali + traversa + piede al centro.
+		   v0.9.2: i bracci partono da y=1 così la traversa di y=0 non
+		   duplica (0,0) e (8,0) — prima la stessa cella riceveva 2
+		   tile → parità rotta e tile sovrapposte. Conteggi unici:
+		   small 6+5+3+2=16, medium 8+5+3+4=20. */
 		'small': function () {
 			var pts = [];
-			/* bracci (z0) */
-			for (var y = 0; y < 3; y++) {
+			/* bracci (z0): y 1..3 (la traversa copre y=0) */
+			for (var y = 1; y < 4; y++) {
 				pts.push({ z: 0, x: 0, y: y });
 				pts.push({ z: 0, x: 8, y: y });
 			}
@@ -1599,12 +1620,12 @@ var LAYOUT_BUILDERS = {
 			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 3 });
 			/* piede (z0) */
 			pts.push({ z: 0, x: 4, y: 4 }, { z: 0, x: 6, y: 4 });
-			return evenTrim(pts); // 6 + 5 + 3 + 2 = 16 → 16
+			return evenTrim(pts); // 16 uniche
 		},
 		'medium': function () {
 			var pts = [];
-			/* bracci più lunghi + traversa + base + doppio piede */
-			for (var y = 0; y < 4; y++) {
+			/* bracci più lunghi (z0): y 1..4 */
+			for (var y = 1; y < 5; y++) {
 				pts.push({ z: 0, x: 0, y: y });
 				pts.push({ z: 0, x: 8, y: y });
 			}
@@ -1612,7 +1633,7 @@ var LAYOUT_BUILDERS = {
 			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 4 });
 			pts.push({ z: 0, x: 4, y: 5 }, { z: 0, x: 6, y: 5 });
 			pts.push({ z: 0, x: 4, y: 6 }, { z: 0, x: 6, y: 6 });
-			return pts; // 8 + 5 + 3 + 2 + 2 = 20
+			return pts; // 20 uniche
 		}
 	},
 
@@ -1692,7 +1713,8 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 0, x: 8, y: 3 });
 			/* crest doppio rialzato */
 			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
-			return pts; // 6 + 8 + 6 + 3 + 1 + 2 = 26
+			/* v0.9.2: dedupe — (0,8,2) era nell'ala destra E nel corpo. */
+			return dedupePts(pts); // 18 uniche
 		}
 	},
 

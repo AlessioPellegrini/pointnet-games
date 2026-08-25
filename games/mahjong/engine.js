@@ -16,6 +16,51 @@ function buildBoard(tiles) {
 		t.key = makeKey(t.z, t.x, t.y);
 		board.set(t.key, t);
 	}
+	/* v0.9.2 — GEOGRAFIA VISIVA della scala a offset, calcolata
+	   ricorsivamente (per z crescente):
+	     - onHalf:     FULL senza supporto dritto sotto, su 4 HALF
+	     - rowOff:     offset in RIGHE del centro della tile rispetto
+	                   al suo y nominale (0.5 per HALF, 1.0 per FULL
+	                   su 4 HALF; le FULL dritte EREDITANO il rowOff
+	                   del supporto così l'apice resta sopra di esso)
+	     - stackDepth: piani dritti consecutivi sopra l'ultimo
+	                   supporto non-dritto (effetto 3D di profondità)
+	   layoutPos() usa questi valori per centrare OGNI tile sul proprio
+	   incrocio. Senza l'ereditarietà, l'apice z3 di temple_steps/large
+	   riceveva l'offset 3D puro (z*Z_OFFSET_Y → in alto) mentre il suo
+	   supporto stava sulla scala (più in basso) → la FULL sotto
+	   sembrava libera ma era bloccata (es. livello 210). */
+	var order = tiles.slice().sort(function (a, b) { return a.z - b.z; });
+	for (var k = 0; k < order.length; k++) {
+		var u = order[k];
+		if (u.z === 0) { u.rowOff = 0; u.stackDepth = 0; u.onHalf = false; continue; }
+		var direct = board.get(makeKey(u.z - 1, u.x, u.y));
+		var a = board.get(makeKey(u.z - 1, u.x - 1, u.y));
+		var b = board.get(makeKey(u.z - 1, u.x + 1, u.y));
+		var c = board.get(makeKey(u.z - 1, u.x - 1, u.y + 1));
+		var d = board.get(makeKey(u.z - 1, u.x + 1, u.y + 1));
+		if (u.isHalf) {
+			u.onHalf = false;
+			u.stackDepth = 0;
+			var supAvg = (a && b && c && d) ? (a.rowOff + b.rowOff + c.rowOff + d.rowOff) / 4 : 0;
+			u.rowOff = supAvg + 0.5;
+			continue;
+		}
+		var onHalfs = a && b && c && d && a.isHalf && b.isHalf && c.isHalf && d.isHalf;
+		if (direct) {
+			u.onHalf = false;
+			u.rowOff = direct.rowOff || 0; /* resta sulla riga del supporto */
+			u.stackDepth = (direct.stackDepth || 0) + 1;
+		} else if (onHalfs) {
+			u.onHalf = true;
+			u.stackDepth = 0;
+			u.rowOff = (a.rowOff + b.rowOff + c.rowOff + d.rowOff) / 4 + 0.5;
+		} else {
+			u.onHalf = false;
+			u.rowOff = 0;
+			u.stackDepth = 0;
+		}
+	}
 	return board;
 }
 
@@ -227,6 +272,7 @@ var TOP_PAD_EXTRA = 2;          // extra top clearance — LOWER = board sits hi
 function computeMetrics(tiles) {
 	var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
 	var hasHalf = false;
+	var maxRowOff = 0; /* max offset in righe della scala a offset */
 	tiles.forEach(function (t) {
 		if (t.x < minX) minX = t.x;
 		if (t.x > maxX) maxX = t.x;
@@ -234,8 +280,9 @@ function computeMetrics(tiles) {
 		if (t.y > maxY) maxY = t.y;
 		if (t.z > maxZ) maxZ = t.z;
 		if (t.isHalf) hasHalf = true;
+		if ((t.rowOff || 0) > maxRowOff) maxRowOff = t.rowOff;
 	});
-	return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ, hasHalf: hasHalf };
+	return { minX: minX, maxX: maxX, minY: minY, maxY: maxY, maxZ: maxZ, hasHalf: hasHalf, maxRowOff: maxRowOff };
 }
 
 /* Top pad = max plane thickness. Pushes the whole stack down so
@@ -249,19 +296,28 @@ function topPadOf(m) {
 
 function layoutPos(t, m) {
 	var topPad = topPadOf(m);
-	var shiftX = t.isHalf ? 0 : t.z * Z_OFFSET_X;
-	/* Full tiles on upper planes shift slightly UP (shiftY positive
-	   → y subtracts z*Z_OFFSET_Y), so stacked tiles sit just above
-	   the tile beneath — a subtle pseudo-3D offset without ever
-	   dipping below the lower grid.
-	   Half tiles straddle the two support rows below (t.y and t.y+1):
-	   centering on the crossing means shifting DOWN half a row, i.e.
-	   NEGATIVE shiftY. (v0.8.1: was +STEP_Y/2 → tiles sat half a row
-	   ABOVE their supports; the whole second plane looked shifted up.) */
-	var shiftY = t.isHalf ? -Math.round(STEP_Y / 2) : t.z * Z_OFFSET_Y;
+	var rowOff = t.rowOff || 0;
+	var stack = t.stackDepth || 0;
+	/* HALF e FULL-on-HALF seguono la SCALA A OFFSET: il centro è
+	   spostato in basso di rowOff righe rispetto al loro y nominale
+	   (z1 HALF → ½, z2 FULL su HALF → 1, …), shiftX = 0 perché
+	   l'incrocio è già centrato sulla colonna. Le FULL DITTE invece
+	   ereditano il rowOff del supporto (così una FULL sopra una
+	   scala resta sopra di essa) e aggiungono stack piani di effetto
+	   3D (stackDepth × Z_OFFSET) — v0.9.2. Prima l'apice z3 di
+	   temple_steps/large riceveva l'offset 3D puro (z*Z_OFFSET_Y →
+	   in alto) mentre il suo supporto era in basso sulla scala: la
+	   FULL sotto sembrava libera ma era bloccata (livello 210). */
+	if (t.isHalf || t.onHalf) {
+		return {
+			x: PAD + (t.x - m.minX) * STEP_X,
+			y: PAD + topPad + (t.y - m.minY) * STEP_Y + Math.round(rowOff * STEP_Y),
+			tz: 0
+		};
+	}
 	return {
-		x: PAD + (t.x - m.minX) * STEP_X + shiftX,
-		y: PAD + topPad + (t.y - m.minY) * STEP_Y - shiftY,
+		x: PAD + (t.x - m.minX) * STEP_X + stack * Z_OFFSET_X,
+		y: PAD + topPad + (t.y - m.minY) * STEP_Y + Math.round(rowOff * STEP_Y) - stack * Z_OFFSET_Y,
 		/* translateZ neutral — tiles perfectly stacked. */
 		tz: 0
 	};
@@ -269,10 +325,11 @@ function layoutPos(t, m) {
 
 function boardSize(m) {
 	var topPad = topPadOf(m);
-	/* Half tiles render DOWN by half a row (centered on their 2x2
-	   supports), so the last row needs a bit more room below, not
-	   above. Only when the level actually contains half tiles. */
-	var halfBottomPad = m.hasHalf ? Math.round(STEP_Y / 2) : 0;
+	/* Half tiles render DOWN (centered on their 2x2 support crossing),
+	   so the last row needs extra room below. v0.9.2: pad basato sul
+	   rowOff massimo della scala a offset (½ riga per HALF, 1 riga
+	   per FULL-su-HALF). */
+	var halfBottomPad = Math.round((m.maxRowOff || 0) * STEP_Y);
 	return {
 		/* The right shift of upper planes (maxZ * Z_OFFSET_X) is included
 		   in the width so the board stays exactly centered. */

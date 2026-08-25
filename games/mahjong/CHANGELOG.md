@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 0.9.1** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 0.9.2** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -20,6 +20,9 @@ node games/mahjong/tests/test-blackout.js
 
 # Regressione off-by-one HALF: (0,0) libera, (0,4) bloccata
 node games/mahjong/tests/test-free.js
+
+# Rendering FULL-su-HALF: onHalf, centratura sull'incrocio, apice dritto
+node games/mahjong/tests/test-temple-steps.js
 ```
 
 Gli script caricano `layouts.js` + `data.js` + `engine.js` in Node `vm` e chiamano
@@ -29,7 +32,14 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v0.9.1 — Fix off-by-one HALF + playability guard + temple_steps (HEAD)
+### v0.9.2 — Rendering FULL-su-HALF + zero duplicati (HEAD)
+- **Fix critico rendering stacking a offset** (`layoutPos` + geografia `rowOff`/`stackDepth`/`onHalf` in `buildBoard`, `engine.js`): le FULL che poggiano sull'incrocio di 4 HALF (temple_steps z2) venivano disegnate con l'offset 3D delle FULL dritte → in alto a destra, lontano dai supporti. Le HALF sotto *sembravano* libere ma erano correttamente bloccate ("libere ma non cliccabili", es. livello 175). Ora ogni tile della **scala a offset** è centrata sul proprio incrocio (z1 HALF → ½ riga, z2 FULL-su-HALF → 1 riga) e le FULL dritte **ereditano il rowOff del supporto** (stackDepth per l'effetto 3D): così anche l'apice z3 di `temple_steps/large` resta appena SOPRA la FULL che lo sostiene (8px) invece di "volare" in alto lasciandola apparentemente libera (es. livello 210).
+- **Fix layout `lyre`** (layouts.js): i bracci partivano da y=0 e la traversa ripushava `(0,0)` e `(8,0)` → 2 tile nella stessa cella (parità rotta). Ora bracci da y=1: small 16 e medium 20 tile **uniche**.
+- **Zero duplicati su tutti i builder**: audit `test-layouts.js` esteso con controllo coordinate ripetute → corretti con `dedupePts` anche `helix` (small/medium), `bridge/medium`, `spiral/medium`, `labyrinth/medium`, `mushroom/medium`, `windmill/medium`, `harp` (small/medium), `crane/medium`. Prima ogni duplicato creava 2 tile nella stessa cella (tile fantasma nel deck).
+- **Progressione blackout sicura** (`buildProgression` + helper `hasFreeBase`): i livelli blackout (225+) scelgono solo layout con **almeno una tile z0 libera** all'avvio, altrimenti nessuna tile oscurata si auto-rivela e il livello parte bloccato (es. labyrinth/medium su L275).
+- Nuovo test permanente `tests/test-temple-steps.js`: onHalf su FULL z2, centratura sull'incrocio in `layoutPos`, apice z3 come stacking dritto, conteggi %4.
+
+### v0.9.1 — Fix off-by-one HALF + playability guard + temple_steps
 - **Fix critico `hasHalfCoverAbove`/`isFreeForSolver`/`hasFullCoverAbove`**: l'off-by-one ricercava la HALF coprente a `y+1` invece di `y-1` → la prima riga del piano base risultava iper-bloccata ("tile libere ma non risultano tali") e l'ultima ipo-bloccata ("tile bloccate ma cliccabili"). Colpiva i layout con HALF (halfcover, checker, temple_steps).
 - **`generateLevel` playability guard (nuovo)**: dopo l'applicazione di `covered`, se tra le tile libere e scoperte non esiste almeno UNA COPPIA lo shuffle viene rigirato. Senza questo check, il `covered` casuale poteva coprire tutte le potenziali coppie libere → livelli bloccati all'avvio (es. livello 175).
 - **`temple_steps` ridisegnato**: geometria ziggurat con HALF che partono dalla fila 0 della base (tagliano a metà la prima fila, niente "fluttuazione"), piani centrati, conteggi multipli di 4: small 24 / medium 40 / large 56.

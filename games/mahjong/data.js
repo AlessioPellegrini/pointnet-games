@@ -200,6 +200,32 @@ function computeDifficulty(layout, covered) {
    ============================================================ */
 function buildProgression(count) {
 	var out = [];
+	/* v0.9.2: un layout è blackout-compatibile se ha ALMENO una tile
+	   z0 libera all'avvio (auto-reveal). labyrinth/medium dopo la
+	   dedupe era finito su un livello blackout con base 100% coperta
+	   → nessuna tile oscurata libera → partenza bloccata. */
+	function hasFreeBase(layout) {
+		var has = {};
+		for (var h = 0; h < layout.length; h++) {
+			var p = layout[h];
+			has[p.z + ',' + p.x + ',' + p.y] = p;
+		}
+		for (var j = 0; j < layout.length; j++) {
+			var t = layout[j];
+			if (t.z !== 0) continue;
+			if (has['1,' + t.x + ',' + t.y]) continue;                 /* FULL sopra */
+			var hh = has['1,' + (t.x - 1) + ',' + t.y] ||
+			         has['1,' + (t.x + 1) + ',' + t.y] ||
+			         has['1,' + (t.x - 1) + ',' + (t.y - 1)] ||
+			         has['1,' + (t.x + 1) + ',' + (t.y - 1)];
+			if (hh && hh.isHalf) continue;                             /* HALF sopra */
+			var left = has['0,' + (t.x - 2) + ',' + t.y];
+			var right = has['0,' + (t.x + 2) + ',' + t.y];
+			if (left && right) continue;                               /* bloccata laterale */
+			return true;
+		}
+		return false;
+	}
 	/* pool di tutte le combinazioni layout×variante */
 	var pool = [];
 	Object.keys(LAYOUT_BUILDERS).forEach(function (layout) {
@@ -214,7 +240,8 @@ function buildProgression(count) {
 				tiles: tc,
 				playableTiles: tc - (tc % 4),
 				score: computeDifficulty(nb, 0),
-				isHalf: nb.some(function (t) { return t.isHalf; })
+				isHalf: nb.some(function (t) { return t.isHalf; }),
+				freeBase: hasFreeBase(nb)
 			});
 		});
 	});
@@ -278,6 +305,10 @@ function buildProgression(count) {
 		var minTiles = Math.max(floorTiles, lastTiles - 8);
 		var bandMax = (floorTiles >= 124) ? 124 : Math.min(108, minTiles + 16);
 
+		/* v0.9 blackout: solo nella zona finale (225+) e alternato —
+		   il piano base (z=0) è tutto oscurato e si auto-rivela. */
+		var blackout = n >= 224 && (n % 2 === 0);
+
 		var candidates = pool.filter(function (item) {
 			return item.playableTiles >= minTiles && item.playableTiles <= bandMax;
 		});
@@ -293,6 +324,15 @@ function buildProgression(count) {
 			candidates = pool.filter(function (item) {
 				return item.playableTiles === lastTiles;
 			});
+		}
+		/* v0.9.2: i livelli blackout scelgono SOLO layout con base
+		   libera all'avvio (freeBase) — altrimenti nessuna tile
+		   oscurata si rivela e il livello parte bloccato (es.
+		   labyrinth/medium su L275 dopo la dedupe). Se nella banda
+		   non c'è nessuno, ripiega sui candidati normali. */
+		if (blackout) {
+			var fbCandidates = candidates.filter(function (c) { return c.freeBase; });
+			if (fbCandidates.length) candidates = fbCandidates;
 		}
 
 		/* round-robin sulla rosa dei candidati: variazione senza blocchi */
@@ -326,6 +366,15 @@ function buildProgression(count) {
 				item = halfCandidates[hIdx];
 				halfCount++;
 				prevLayout = item.layout;
+				/* v0.9.2: se blackout e il half scelto non ha base libera,
+				   ripiega sul primo candidato freeBase della banda. */
+				if (blackout && !item.freeBase) {
+					var fb2 = candidates.filter(function (c) { return c.freeBase; });
+					if (fb2.length) {
+						item = fb2[0];
+						prevLayout = item.layout;
+					}
+				}
 			}
 		}
 
@@ -341,10 +390,6 @@ function buildProgression(count) {
 		/* quads: solo livelli ≥ 200, layout ≥ 60 tile, alternati */
 		var qt = item.playableTiles;
 		var quads = n >= 199 && qt >= 60 && (n % 2 === 0);
-
-		/* v0.9 blackout: solo nella zona finale (225+) e alternato —
-		   il piano base (z=0) è tutto oscurato e si auto-rivela. */
-		var blackout = n >= 224 && (n % 2 === 0);
 
 		var sym = symSets[(n + Math.floor(progress * 8) + zoneIdx) % symSets.length];
 
