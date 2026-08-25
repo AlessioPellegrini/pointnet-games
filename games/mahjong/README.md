@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.9.2** — 38 layout figure (nuovo `temple_steps` a **stacking classico a offset multi-livello**: FULL → HALF → FULL → HALF) con **300 livelli progressivi a difficoltà automatica** e tile-count monotono (mai un calo > 8 tra livelli adiacenti), **BLACKOUT nella zona finale (225–299)**: il piano base (z=0) parte tutto oscurato e le tile si **auto-rivelano** appena diventano libere, in **coesistenza** con la meccanica memory (`covered`). Combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 124 tile (finale boss). Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.9.3** — 38 layout figure (nuovo `temple_steps` a **stacking classico a offset multi-livello**: FULL → HALF → FULL → HALF) con **300 livelli progressivi a difficoltà automatica** e tile-count monotono (mai un calo > 8 tra livelli adiacenti), **BLACKOUT (101–299, alternati, metà con HALF)**: il piano base (z=0) parte tutto oscurato e le tile si **auto-rivelano** appena diventano libere, in **coesistenza** con la meccanica memory (`covered`). Combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 124 tile (finale boss). Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## 🔖 Version bump checklist
 
@@ -182,7 +182,13 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.9.2 — Rendering FULL-su-HALF + zero duplicati (current)
+### v0.9.3 — Blackout HALF esteso + copertura layout (current)
+- **Blackout anticipato da ~101 in poi** (alternato, prima solo 225+): 100 livelli oscurati su 300, distribuiti in tutta la seconda metà del gioco
+- **Preferenza HALF nei blackout** (effetto "half sopra base oscurata"): metà dei blackout usa un layout HALF con base libera, l'altra metà un layout `freeBase` → ~50 blackout con HALF (prima 3) e ~82 livelli totali con HALF
+- **Garanzia di copertura dei 38 layout** (es. `crown`, `star`, `harp` non vengono più esclusi dalla rotazione)
+- `test-blackout.js` aggiornato (zona 101+, campioni nuovi)
+
+### v0.9.2 — Rendering FULL-su-HALF + zero duplicati
 - **Fix critico rendering stacking a offset** (`layoutPos` + geografia `rowOff`/`stackDepth`/`onHalf` in `buildBoard`, `engine.js`): le FULL che poggiano sull'incrocio di 4 HALF (temple_steps z2) venivano disegnate con l'offset 3D delle FULL dritte → in alto a destra, lontano dai supporti. Le HALF sotto *sembravano* libere ma erano correttamente bloccate ("libere ma non cliccabili", es. livello 175). Ora ogni tile della **scala a offset** è centrata sul proprio incrocio (z1 HALF → ½ riga, z2 FULL-su-HALF → 1 riga) e le FULL dritte **ereditano il rowOff del supporto** (stackDepth per l'effetto 3D): così anche l'apice z3 di `temple_steps/large` resta appena SOPRA la FULL che lo sostiene (8px) invece di "volare" in alto lasciandola apparentemente libera (es. livello 210).
 - **Fix layout `lyre`** (layouts.js): i bracci partivano da y=0 e la traversa ripushava `(0,0)` e `(8,0)` → 2 tile nella stessa cella (parità rotta). Ora bracci da y=1: small 16 e medium 20 tile **uniche**.
 - **Zero duplicati su tutti i builder**: audit `test-layouts.js` esteso con controllo coordinate ripetute → corretti con `dedupePts` anche `helix` (small/medium), `bridge/medium`, `spiral/medium`, `labyrinth/medium`, `mushroom/medium`, `windmill/medium`, `harp` (small/medium), `crane/medium`. Prima ogni duplicato creava 2 tile nella stessa cella (tile fantasma nel deck).

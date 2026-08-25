@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 0.9.2** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 0.9.3** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -15,7 +15,7 @@ node games/mahjong/tests/test-layouts.js
 # Verifica progressione: drop <= 8, tutte le figure usate, finale boss 124
 node games/mahjong/tests/test-progression.js
 
-# Verifica blackout: zona 225+, alternanza, obscured solo su z=0, auto-reveal
+# Verifica blackout: zona 101+, alternanza, obscured solo su z=0, auto-reveal
 node games/mahjong/tests/test-blackout.js
 
 # Regressione off-by-one HALF: (0,0) libera, (0,4) bloccata
@@ -32,7 +32,14 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v0.9.2 — Rendering FULL-su-HALF + zero duplicati (HEAD)
+### v0.9.3 — Blackout HALF esteso + copertura layout (HEAD)
+- **Blackout anticipato da ~101 in poi** (`buildProgression`: `n >= 100`, alternato — prima era solo 225+): i livelli oscurati passano da 38 a **100** e ora compaiono in tutta la seconda metà del gioco, non solo nel finale.
+- **Preferenza HALF nei blackout** (effetto "half sopra base oscurata", richiesto): metà dei blackout sceglie un layout HALF con base libera (alternanza `blackCount % 2`), l'altra metà un qualsiasi layout `freeBase`. Ora **~50 dei 100 blackout usano HALF** (prima 3 su 38) e ~82 livelli totali hanno HALF. `halfcover` (28→~42 occorrenze), `checker` e `temple_steps` diventano molto più frequenti.
+- **Garanzia di copertura dei 38 layout**: la preferenza HALF/rotazione blackout poteva escludere per sempre layout piccoli (es. `crown`, `star`, `harp`). Prima della scelta, se esiste un layout mai usato nella banda corrente (rispettando `freeBase` nei blackout) viene selezionato → **38/38 layout usati** (verificato da `test-progression`).
+- **`test-blackout.js` aggiornato**: soglia 100 (da 224), campioni ampliati (100, 99, 120, 224, 249, 274, 298).
+- `README.md`/`CHANGELOG.md`/`manifest.json`/`index.html`: bump **0.9.3**, zona blackout aggiornata a 101–299.
+
+### v0.9.2 — Rendering FULL-su-HALF + zero duplicati
 - **Fix critico rendering stacking a offset** (`layoutPos` + geografia `rowOff`/`stackDepth`/`onHalf` in `buildBoard`, `engine.js`): le FULL che poggiano sull'incrocio di 4 HALF (temple_steps z2) venivano disegnate con l'offset 3D delle FULL dritte → in alto a destra, lontano dai supporti. Le HALF sotto *sembravano* libere ma erano correttamente bloccate ("libere ma non cliccabili", es. livello 175). Ora ogni tile della **scala a offset** è centrata sul proprio incrocio (z1 HALF → ½ riga, z2 FULL-su-HALF → 1 riga) e le FULL dritte **ereditano il rowOff del supporto** (stackDepth per l'effetto 3D): così anche l'apice z3 di `temple_steps/large` resta appena SOPRA la FULL che lo sostiene (8px) invece di "volare" in alto lasciandola apparentemente libera (es. livello 210).
 - **Fix layout `lyre`** (layouts.js): i bracci partivano da y=0 e la traversa ripushava `(0,0)` e `(8,0)` → 2 tile nella stessa cella (parità rotta). Ora bracci da y=1: small 16 e medium 20 tile **uniche**.
 - **Zero duplicati su tutti i builder**: audit `test-layouts.js` esteso con controllo coordinate ripetute → corretti con `dedupePts` anche `helix` (small/medium), `bridge/medium`, `spiral/medium`, `labyrinth/medium`, `mushroom/medium`, `windmill/medium`, `harp` (small/medium), `crane/medium`. Prima ogni duplicato creava 2 tile nella stessa cella (tile fantasma nel deck).

@@ -277,6 +277,11 @@ function buildProgression(count) {
 	var rr0 = 0;
 	var prevLayout = null;
 	var lastTiles = 0;
+	/* v0.9.3: garanzia di copertura dei 38 layout — la preferenza HALF
+	   sui blackout può far uscire per sempre un layout dalla rotazione
+	   (es. crown, unico a 52 tile). Teniamo traccia di quelli già usati. */
+	var usedLayouts = {};
+	var blackCount = 0; /* contatore blackout per l'alternanza HALF/freeBase */
 
 	for (var n = 0; n < count; n++) {
 		var progress = n / count;
@@ -305,9 +310,11 @@ function buildProgression(count) {
 		var minTiles = Math.max(floorTiles, lastTiles - 8);
 		var bandMax = (floorTiles >= 124) ? 124 : Math.min(108, minTiles + 16);
 
-		/* v0.9 blackout: solo nella zona finale (225+) e alternato —
-		   il piano base (z=0) è tutto oscurato e si auto-rivela. */
-		var blackout = n >= 224 && (n % 2 === 0);
+		/* v0.9 blackout: piano base (z=0) tutto oscurato, si auto-rivela.
+		   v0.9.3: anticipato da livello ~101 in poi (prima era solo
+		   225+) e alternato — così i layout HALF piccoli/medi entrano
+		   in gioco anche a livelli intermedi. */
+		var blackout = n >= 100 && (n % 2 === 0);
 
 		var candidates = pool.filter(function (item) {
 			return item.playableTiles >= minTiles && item.playableTiles <= bandMax;
@@ -325,14 +332,24 @@ function buildProgression(count) {
 				return item.playableTiles === lastTiles;
 			});
 		}
-		/* v0.9.2: i livelli blackout scelgono SOLO layout con base
+		/* v0.9.2: i livelli blackout devono avere almeno una tile z0
 		   libera all'avvio (freeBase) — altrimenti nessuna tile
 		   oscurata si rivela e il livello parte bloccato (es.
-		   labyrinth/medium su L275 dopo la dedupe). Se nella banda
-		   non c'è nessuno, ripiega sui candidati normali. */
+		   labyrinth/medium su L275 dopo la dedupe).
+		   v0.9.3: PREFERISCI i layout HALF (effetto "half sopra base
+		   oscurata", richiesto) ALTERNATO — metà dei blackout usa un
+		   HALF con base libera, metà un qualsiasi freeBase, così
+		   l'effetto è frequente ma la varietà dei layout FULL resta. */
 		if (blackout) {
-			var fbCandidates = candidates.filter(function (c) { return c.freeBase; });
-			if (fbCandidates.length) candidates = fbCandidates;
+			var wantHalf = (blackCount % 2 === 0);
+			var halfFb = candidates.filter(function (c) { return c.isHalf && c.freeBase; });
+			if (wantHalf && halfFb.length) {
+				candidates = halfFb;
+			} else {
+				var fbCandidates = candidates.filter(function (c) { return c.freeBase; });
+				if (fbCandidates.length) candidates = fbCandidates;
+			}
+			blackCount++;
 		}
 
 		/* round-robin sulla rosa dei candidati: variazione senza blocchi */
@@ -366,17 +383,37 @@ function buildProgression(count) {
 				item = halfCandidates[hIdx];
 				halfCount++;
 				prevLayout = item.layout;
-				/* v0.9.2: se blackout e il half scelto non ha base libera,
-				   ripiega sul primo candidato freeBase della banda. */
+				/* v0.9.3: se blackout e il half scelto non ha base
+				   libera (es. halfcover/xl), ripiega su un HALF
+				   freeBase o su un qualsiasi freeBase della banda. */
 				if (blackout && !item.freeBase) {
-					var fb2 = candidates.filter(function (c) { return c.freeBase; });
-					if (fb2.length) {
-						item = fb2[0];
+					var hb2 = candidates.filter(function (c) { return c.isHalf && c.freeBase; });
+					if (!hb2.length) hb2 = candidates.filter(function (c) { return c.freeBase; });
+					if (hb2.length) {
+						item = hb2[0];
 						prevLayout = item.layout;
 					}
 				}
 			}
 		}
+
+		/* v0.9.3: garanzia di copertura — se ci sono layout mai usati
+		   che rientrano nella banda corrente (e rispettano freeBase
+		   nei blackout), scegli quello con meno tile. Previene
+		   l'esclusione permanente di layout piccoli (es. star, harp)
+		   dovuta alla preferenza HALF / rotazione blackout. */
+		var unused = pool.filter(function (c) {
+			if (usedLayouts[c.layout]) return false;
+			if (c.playableTiles < minTiles || c.playableTiles > bandMax) return false;
+			if (blackout && !c.freeBase) return false;
+			return true;
+		});
+		if (unused.length) {
+			unused.sort(function (a, b) { return a.playableTiles - b.playableTiles || a.score - b.score; });
+			item = unused[0];
+			prevLayout = item.layout;
+		}
+		usedLayouts[item.layout] = true;
 
 		lastTiles = item.playableTiles;
 
