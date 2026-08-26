@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 0.9.3** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 0.9.4** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -32,7 +32,14 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v0.9.3 — Blackout HALF esteso + copertura layout (HEAD)
+### v0.9.4 — UI mobile compatta + action drawer (HEAD)
+- **Header rimosso** (titolo già nella splash): più spazio verticale al board.
+- **Action drawer**: Hint/Undo/Shuffle/New/Level spostati in un pannello apribile con ⚙️ (fixed bottom, slide-up) — il board occupa tutto lo spazio che prima era dell'action bar.
+- **Staging box più leggibile**: slot ingranditi (44×52 desktop, 38×46 mobile) e `min-height` ridotto → più spazio senza rimpicciolire le tile in staging.
+- **Status bar compatta**: gap e padding ridotti.
+- `index.html`/`style.css`/`input.js` modificati; gli ID dei bottoni sono invariati (i listener esistenti restano validi). Bump **0.9.4** su `manifest.json`/`index.html`/`README.md`/`CHANGELOG.md`.
+
+### v0.9.3 — Blackout HALF esteso + copertura layout
 - **Blackout anticipato da ~101 in poi** (`buildProgression`: `n >= 100`, alternato — prima era solo 225+): i livelli oscurati passano da 38 a **100** e ora compaiono in tutta la seconda metà del gioco, non solo nel finale.
 - **Preferenza HALF nei blackout** (effetto "half sopra base oscurata", richiesto): metà dei blackout sceglie un layout HALF con base libera (alternanza `blackCount % 2`), l'altra metà un qualsiasi layout `freeBase`. Ora **~50 dei 100 blackout usano HALF** (prima 3 su 38) e ~82 livelli totali hanno HALF. `halfcover` (28→~42 occorrenze), `checker` e `temple_steps` diventano molto più frequenti.
 - **Garanzia di copertura dei 38 layout**: la preferenza HALF/rotazione blackout poteva escludere per sempre layout piccoli (es. `crown`, `star`, `harp`). Prima della scelta, se esiste un layout mai usato nella banda corrente (rispettando `freeBase` nei blackout) viene selezionato → **38/38 layout usati** (verificato da `test-progression`).

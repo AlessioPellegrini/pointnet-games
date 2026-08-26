@@ -451,6 +451,25 @@
 		startGame();
 	});
 
+	/* v0.9.4 — Action drawer: apri/chiudi il pannello ⚙️, chiudi su tap
+	   fuori. Gli ID interni sono invariati, i listener dei bottoni
+	   restano quelli sopra. */
+	var actionPanel = document.getElementById('action-panel');
+	var actionsBtn = document.getElementById('btn-actions');
+	if (actionsBtn && actionPanel) {
+		actionsBtn.addEventListener('click', function (e) {
+			e.stopPropagation();
+			actionPanel.classList.toggle('open');
+		});
+		document.addEventListener('click', function (e) {
+			if (actionPanel.classList.contains('open') &&
+			    !actionPanel.contains(e.target) &&
+			    e.target !== actionsBtn) {
+				actionPanel.classList.remove('open');
+			}
+		});
+	}
+
 	window.addEventListener('resize', function () {
 		if (app.tiles.length) fitBoard();
 	});

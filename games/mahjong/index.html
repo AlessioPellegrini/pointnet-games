@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>Mahjong Arcade</title>
-	<link rel="stylesheet" href="style.css?v=0.9.3">
+	<link rel="stylesheet" href="style.css?v=0.9.4">
 	<style>
 		/* ============================================================
 		   SPLASH SCREEN + FULLSCREEN — game styles live in style.css
@@ -144,7 +144,7 @@
 	<div id="splash">
 		<div class="splash-inner">
 			<div class="splash-emoji">🀄</div>
-			<h1 class="splash-title">Mahjong Arcade<sup class="splash-version">v0.9.3</sup></h1>
+			<h1 class="splash-title">Mahjong Arcade<sup class="splash-version">v0.9.4</sup></h1>
 			<p class="splash-subtitle">Match identical tiles to clear the board. Free tiles go to the tray — two of the same symbol auto-match!</p>
 			<button id="splash-play" class="splash-play">🎮 PLAY</button>
 			<p class="splash-hint">Tap a free tile to lift it · tap again to send it to the tray</p>
@@ -156,10 +156,6 @@
 	<button id="btn-music" class="music-btn" title="Toggle music">🔇</button>
 
 	<div class="game-container" id="game" data-game-id="" data-game-slug="mahjong-arcade">
-		<div class="game-header">
-			<h1 class="game-title">🀄 Mahjong Arcade</h1>
-		</div>
-
 		<div class="status-bar">
 			<div class="status-item">🎯 <span class="status-value level-value" id="level-label">1</span></div>
 			<div class="status-item">⏱️ <span class="status-value" id="timer">0</span></div>
@@ -173,15 +169,21 @@
 		<div class="board-wrap" id="board-wrap">
 			<div id="board"></div>
 		</div>
+	</div>
 
-		<div class="action-bar">
-			<button class="btn" id="btn-hint">💡 Hint</button>
-			<button class="btn" id="btn-undo">↩️ Undo</button>
-			<button class="btn" id="btn-shuffle">🔀 Shuffle <span id="shuffle-count">x3</span></button>
-			<button class="btn" id="btn-new">🔄 New</button>
-			<input type="number" id="level-input" class="btn-level-input" min="1" max="300" value="1" aria-label="Level number">
-			<button class="btn" id="btn-level-go">Level</button>
-		</div>
+	<button id="btn-actions" class="music-btn actions-btn" title="Actions">⚙️</button>
+
+	<!-- Action drawer (v0.9.4): le azioni secondarie sono in un pannello
+	     apribile con ⚙️ per non rubare spazio verticale al board su mobile.
+	     Gli ID dei bottoni sono invariati → i listener in input.js restano
+	     validi. -->
+	<div class="action-panel" id="action-panel">
+		<button class="btn" id="btn-hint">💡 Hint</button>
+		<button class="btn" id="btn-undo">↩️ Undo</button>
+		<button class="btn" id="btn-shuffle">🔀 Shuffle <span id="shuffle-count">x3</span></button>
+		<button class="btn" id="btn-new">🔄 New</button>
+		<input type="number" id="level-input" class="btn-level-input" min="1" max="300" value="1" aria-label="Level number">
+		<button class="btn" id="btn-level-go">Level</button>
 	</div>
 
 	<div class="overlay" id="overlay">
@@ -193,13 +195,13 @@
 		</div>
 	</div>
 
-	<script src="layouts.js?v=0.9.3"></script>
-	<script src="data.js?v=0.9.3"></script>
-	<script src="engine.js?v=0.9.3"></script>
-	<script src="app.js?v=0.9.3"></script>
-	<script src="ui.js?v=0.9.3"></script>
-	<script src="input.js?v=0.9.3"></script>
-	<script src="progress.js?v=0.9.3"></script>
-	<script src="audio.js?v=0.9.3"></script>
+	<script src="layouts.js?v=0.9.4"></script>
+	<script src="data.js?v=0.9.4"></script>
+	<script src="engine.js?v=0.9.4"></script>
+	<script src="app.js?v=0.9.4"></script>
+	<script src="ui.js?v=0.9.4"></script>
+	<script src="input.js?v=0.9.4"></script>
+	<script src="progress.js?v=0.9.4"></script>
+	<script src="audio.js?v=0.9.4"></script>
 </body>
 </html>
