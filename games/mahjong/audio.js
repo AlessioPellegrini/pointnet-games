@@ -10,7 +10,8 @@
 
 var AUDIO_PLAYLIST = [
 	{ src: 'assets/music/bamboo-shadows.mp3', title: 'Bamboo Shadows' },
-	{ src: 'assets/music/bamboo-shadows-remix.mp3', title: 'Bamboo Shadows (Remix)' }
+	{ src: 'assets/music/bamboo-shadows-remix.mp3', title: 'Bamboo Shadows (Remix)' },
+	{ src: 'assets/music/Zen arcade.mp3', title: 'Zen Arcade' }
 ];
 
 var audioState = {

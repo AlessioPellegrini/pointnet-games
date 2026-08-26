@@ -37,6 +37,7 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 - **Preferenza HALF nei blackout** (effetto "half sopra base oscurata", richiesto): metà dei blackout sceglie un layout HALF con base libera (alternanza `blackCount % 2`), l'altra metà un qualsiasi layout `freeBase`. Ora **~50 dei 100 blackout usano HALF** (prima 3 su 38) e ~82 livelli totali hanno HALF. `halfcover` (28→~42 occorrenze), `checker` e `temple_steps` diventano molto più frequenti.
 - **Garanzia di copertura dei 38 layout**: la preferenza HALF/rotazione blackout poteva escludere per sempre layout piccoli (es. `crown`, `star`, `harp`). Prima della scelta, se esiste un layout mai usato nella banda corrente (rispettando `freeBase` nei blackout) viene selezionato → **38/38 layout usati** (verificato da `test-progression`).
 - **`test-blackout.js` aggiornato**: soglia 100 (da 224), campioni ampliati (100, 99, 120, 224, 249, 274, 298).
+- **Playlist musica**: aggiunta traccia "Zen Arcade" in `audio.js` (il file mp3 resta locale, non versionato).
 - `README.md`/`CHANGELOG.md`/`manifest.json`/`index.html`: bump **0.9.3**, zona blackout aggiornata a 101–299.
 
 ### v0.9.2 — Rendering FULL-su-HALF + zero duplicati
