@@ -18,8 +18,8 @@ function evenTrim(pts) {
 	return pts;
 }
 
-/* Rimuove coordinate duplicate (stessa z,x,y) mantenendo il primo.
-   Usato dai builder le cui figure si sovrappongono (es. helix). */
+/* Removes duplicate coordinates (same z,x,y), keeping the first.
+   Used by builders whose shapes overlap (e.g. helix). */
 function dedupePts(pts) {
 	var seen = {}, out = [];
 	for (var i = 0; i < pts.length; i++) {
@@ -32,7 +32,7 @@ function dedupePts(pts) {
 var LAYOUT_BUILDERS = {
 	'halfcover': {
 		'small': function () {
-			/* 4×5 base + 3×3 half-cover sopra (riga extra per supporto) */
+			/* 4×5 base + 3×3 half-cover on top (extra row for support) */
 			var pts = [];
 			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
@@ -58,8 +58,8 @@ var LAYOUT_BUILDERS = {
 			return pts; // 30
 		},
 		'large': function () {
-			/* v0.6.0 — base piena 6×8 + mezza copertura 5×7 sopra.
-			   Ogni mezza tile sta sull'incrocio di 4 tile piene. */
+			/* v0.6.0 — full 6×8 base + half-cover 5×7 on top.
+			   Each half tile sits on the crossing of 4 full tiles. */
 			var pts = [];
 			for (var y = 0; y < 8; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
@@ -70,7 +70,7 @@ var LAYOUT_BUILDERS = {
 			return evenTrim(pts); // 48 + 35 = 83 → 82
 		},
 		'xl': function () {
-			/* v0.6.0 — base piena 6×9 (max righe) + mezza copertura 5×8. */
+			/* v0.6.0 — full 6×9 base (max rows) + half-cover 5×8. */
 			var pts = [];
 			for (var y = 0; y < 9; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
@@ -84,14 +84,14 @@ var LAYOUT_BUILDERS = {
 
 	'cross': {
 		'small': function () {
-			/* Croce a bracci spessi: 5×5 con barra centrale 3×5 + 5×3 */
+			/* Thick-arm cross: 5×5 with a central 3×5 + 5×3 bar */
 			var pts = [];
 			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 5; x++) {
 					if (Math.abs(y - 2) <= 1 || Math.abs(x - 2) <= 1) pts.push({ z: 0, x: x * 2, y: y });
 				}
 			}
-			/* layer 1: centro 3×3 */
+			/* layer 1: 3×3 center */
 			for (var y1 = 1; y1 < 4; y1++) {
 				for (var x1 = 1; x1 < 4; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
 			}
@@ -112,7 +112,7 @@ var LAYOUT_BUILDERS = {
 			return pts; // 32
 		},
 		'large': function () {
-			/* v0.6.0 — z1 3 righe (y1..3) e non 4: la riga 4 (x8)
+			/* v0.6.0 — z1 3 rows (y1..3) instead of 4: row 4 (x8)
 			   non aveva supporto nella base a croce. */
 			var pts = [];
 			for (var y = 0; y < 5; y++) {
@@ -130,8 +130,8 @@ var LAYOUT_BUILDERS = {
 			return evenTrim(pts); // 21+12+4+1 = 38
 		},
 		'xl': function () {
-			/* CROCE XL rimbalzata: z1 solo sulle righe piene della base
-			   (y2..3), z2 ridotta, vertice unico — zero tile sospese. */
+			/* BOUNCED XL CROSS: z1 only on the full rows of the base
+			   (y2..3), reduced z2, single apex — zero floating tiles. */
 			var pts = [];
 			for (var y = 0; y < 9; y++) {
 				for (var x = 0; x < 6; x++) {
@@ -250,8 +250,8 @@ var LAYOUT_BUILDERS = {
 			[[0, 0], [5, 0], [0, 7], [5, 7]].forEach(function (c) {
 				pts.push({ z: 2, x: c[0] * 2, y: c[1] });
 			});
-			/* v0.6.0: le 4 torri interne (x2/x8, y3/y4) erano a z2
-			   senza z1 sotto → sospese. Le metto a z1 (supportate
+			/* v0.6.0: the 4 inner towers (x2/x8, y3/y4) were at z2
+			   without z1 below → floating. I move them to z1 (supported
 			   dalla base piena) così il disegno resta ma la fisica è valida. */
 			pts.push({ z: 1, x: 2, y: 3 }, { z: 1, x: 8, y: 3 }, { z: 1, x: 2, y: 4 }, { z: 1, x: 8, y: 4 });
 			return pts; // 48+20+4+4 = 76
@@ -260,7 +260,7 @@ var LAYOUT_BUILDERS = {
 
 	'dragon': {
 		'small': function () {
-			/* 5 righe: 6,4,6,4,6 + layer superiore 4,2,4,2 */
+			/* 5 rows: 6,4,6,4,6 + upper layer 4,2,4,2 */
 			var pts = [];
 			for (var x0 = 0; x0 < 6; x0++) pts.push({ z: 0, x: x0 * 2, y: 0 });
 			for (var x1 = 1; x1 < 5; x1++) pts.push({ z: 0, x: x1 * 2, y: 1 });
@@ -301,26 +301,26 @@ var LAYOUT_BUILDERS = {
 
 	'turtle': {
 		'small': function () {
-			/* TARTARUGA pulita: carapace = anello 5×5 (x0..8, y1..5),
-			   interno 2×2 rialzato, testa x10, coda, zampe.
-			   Nessuna tile sospesa, nessun duplicato, bounds ≤ 10×8. */
+			/* CLEAN TURTLE: shell = 5×5 ring (x0..8, y1..5),
+			   inner raised 2×2, head x10, tail, legs.
+			   No floating tiles, no duplicates, bounds ≤ 10×8. */
 			var pts = [];
-			/* anello: x ogni 2, y 1..5 */
+			/* ring: x every 2, y 1..5 */
 			for (var y = 1; y < 6; y++) {
 				for (var x = 0; x < 5; x++) {
 					if (y === 1 || y === 5 || x === 0 || x === 4) pts.push({ z: 0, x: x * 2, y: y });
 				}
 			}
-			/* interno 2×2 (x 4..6, y 2..3): base + colmo */
+			/* inner 2×2 (x 4..6, y 2..3): base + ridge */
 			pts.push({ z: 0, x: 4, y: 2 }, { z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 6, y: 3 });
 			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 2 }, { z: 1, x: 6, y: 3 });
-			/* testa (x10, y2..4) */
+			/* head (x10, y2..4) */
 			pts.push({ z: 0, x: 10, y: 2 }, { z: 0, x: 10, y: 3 }, { z: 0, x: 10, y: 4 });
-			/* coda (sopra a sinistra) */
+			/* tail (top-left) */
 			pts.push({ z: 0, x: 2, y: 0 });
-			/* zampe in basso */
+			/* legs at the bottom */
 			pts.push({ z: 0, x: 2, y: 6 }, { z: 0, x: 8, y: 6 });
-			return pts; // 16 anello + 8 interno + 3 testa + 1 coda + 2 zampe = 30
+			return pts; // 16 ring + 8 inner + 3 head + 1 tail + 2 legs = 30
 		},
 		'medium': function () {
 			var pts = [];
@@ -360,8 +360,8 @@ var LAYOUT_BUILDERS = {
 
 	'diamond': {
 		'small': function () {
-			/* Rombo: righe 1,3,5,6,5,3,1 (max 6 tile = span 0..10).
-			   Interno 1,3,1 sopra; pinnacolo centrato. */
+			/* DIAMOND: rows 1,3,5,6,5,3,1 (max 6 tiles = span 0..10).
+			   Inner 1,3,1 on top; centered pinnacle. */
 			var pts = [];
 			var w = [1, 3, 5, 6, 5, 3, 1];
 			for (var y = 0; y < w.length; y++) {
@@ -426,61 +426,61 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'wall': {
-		/* FISICA: ogni tile a z>0 è FULL e poggia su una FULL tile
-		   direttamente sotto (z-1, stessa x, stessa y). Piani pieni
-		   che si restringono di 2 colonne/2 righe — niente half-cover,
-		   niente tile sospese. */
+		/* PHYSICS: every tile at z>0 is FULL and rests on a FULL tile
+		   directly below (z-1, same x, same y). Full planes
+		   shrinking by 2 columns/2 rows — no half-cover,
+		   no floating tiles. */
 		'medium': function () {
 			var pts = [];
-			/* base piena 5×6 (x 0..8, y 0..5) */
+			/* full 5×6 base (x 0..8, y 0..5) */
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* piano 1: full 3×4 (x 2,4,6; y 1..4) */
+			/* tier 1: full 3×4 (x 2,4,6; y 1..4) */
 			for (var y1 = 1; y1 < 5; y1++) {
 				for (var x1 = 2; x1 <= 6; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			/* piano 2: full 1×2 (x 4; y 2..3) */
+			/* tier 2: full 1×2 (x 4; y 2..3) */
 			for (var y2 = 2; y2 < 4; y2++) pts.push({ z: 2, x: 4, y: y2 });
-			/* vertice */
+			/* apex */
 			pts.push({ z: 3, x: 4, y: 3 });
 			return evenTrim(pts); // 30+12+2+1 = 45
 		},
 		'large': function () {
 			var pts = [];
-			/* base piena 6×7 (x 0..10, y 0..6) */
+			/* full 6×7 base (x 0..10, y 0..6) */
 			for (var y = 0; y < 7; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* piano 1: full 4×5 (x 2,4,6,8; y 1..5) */
+			/* tier 1: full 4×5 (x 2,4,6,8; y 1..5) */
 			for (var y1 = 1; y1 < 6; y1++) {
 				for (var x1 = 2; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			/* piano 2: full 2×3 (x 4,6; y 2..4) */
+			/* tier 2: full 2×3 (x 4,6; y 2..4) */
 			for (var y2 = 2; y2 < 5; y2++) {
 				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
 			}
-			/* vertice */
+			/* apex */
 			pts.push({ z: 3, x: 6, y: 3 });
 			return evenTrim(pts); // 42+20+6+1 = 69
 		},
 		'xl': function () {
 			var pts = [];
-			/* base piena 6×9 (x 0..10, y 0..8) */
+			/* full 6×9 base (x 0..10, y 0..8) */
 			for (var y = 0; y < 9; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* piano 1: full 5×7 (x 0,2,4,6,8; y 1..7) */
+			/* tier 1: full 5×7 (x 0,2,4,6,8; y 1..7) */
 			for (var y1 = 1; y1 < 8; y1++) {
 				for (var x1 = 0; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			/* piano 2: full 3×5 (x 2,4,6; y 2..6) */
+			/* tier 2: full 3×5 (x 2,4,6; y 2..6) */
 			for (var y2 = 2; y2 < 7; y2++) {
 				for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: y2 });
 			}
-			/* piano 3: full 1×3 (x 4; y 3..5) */
+			/* tier 3: full 1×3 (x 4; y 3..5) */
 			for (var y3 = 3; y3 < 6; y3++) pts.push({ z: 3, x: 4, y: y3 });
-			/* vertice */
+			/* apex */
 			pts.push({ z: 4, x: 4, y: 4 });
 			return evenTrim(pts); // 54+35+15+3+1 = 108
 		}
@@ -488,15 +488,15 @@ var LAYOUT_BUILDERS = {
 
 	'labyrinth': {
 		'small': function () {
-			/* LABIRINTO: base piena (supporto universale) + MURO
-			   PERIMETRALE rialzato + muri interni con aperture
-			   → corridoi di un labirinto ben visibili in 3D. */
+			/* LABYRINTH: full base (universal support) + RAISED
+			   PERIMETER + inner walls with openings
+			   → clearly visible 3D maze corridors. */
 			var pts = [];
-			/* layer 0: base piena 6×7 (x 0..10, y 0..6) */
+			/* layer 0: full 6×7 base (x 0..10, y 0..6) */
 			for (var by = 0; by < 7; by++) {
 				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* layer 1: muro perimetrale rialzato */
+			/* layer 1: raised perimeter wall */
 			for (var x0 = 0; x0 <= 10; x0 += 2) {
 				pts.push({ z: 1, x: x0, y: 0 });
 				pts.push({ z: 1, x: x0, y: 6 });
@@ -505,27 +505,27 @@ var LAYOUT_BUILDERS = {
 				pts.push({ z: 1, x: 0, y: y1 });
 				pts.push({ z: 1, x: 10, y: y1 });
 			}
-			/* layer 1: piattaforme sotto i muri interni (supporto) */
+			/* layer 1: platforms under the inner walls (support) */
 			pts.push({ z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
 			pts.push({ z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 4 }, { z: 1, x: 8, y: 4 });
 			pts.push({ z: 1, x: 8, y: 3 });
-			/* layer 2: muri interni sfalsati con aperture (corridoio a S) */
+			/* layer 2: staggered inner walls with openings (S corridor) */
 			for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: 2 });
 			for (var x3 = 4; x3 <= 8; x3 += 2) pts.push({ z: 2, x: x3, y: 4 });
-			/* layer 3: pilastri interni per profondità (supportati da z2) */
+			/* layer 3: inner pillars for depth (supported by z2) */
 			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 6, y: 4 }, { z: 3, x: 8, y: 4 });
-			/* v0.9.2: dedupe — la piattaforma (1,2,4) era pushata 2 volte
-			   (loop x3 a y4 + esplicita a y4) → tile sovrapposta. */
-			return evenTrim(dedupePts(pts)); // 101 uniche → 100
+			/* v0.9.2: dedupe — platform (1,2,4) was pushed twice
+			   (loop x3 at y4 + explicit at y4) → overlapping tile. */
+			return evenTrim(dedupePts(pts)); // 101 unique → 100
 		},
 		'medium': function () {
-			/* LABIRINTO grande: base piena 6×8 + perimetro + più corridoi. */
+			/* LARGE LABYRINTH: full 6×8 base + perimeter + more corridors. */
 			var pts = [];
-			/* layer 0: base piena 6×8 (x 0..10, y 0..7) */
+			/* layer 0: full 6×8 base (x 0..10, y 0..7) */
 			for (var by = 0; by < 8; by++) {
 				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* layer 1: perimetro rialzato */
+			/* layer 1: raised perimeter */
 			for (var x0 = 0; x0 <= 10; x0 += 2) {
 				pts.push({ z: 1, x: x0, y: 0 });
 				pts.push({ z: 1, x: x0, y: 7 });
@@ -534,65 +534,65 @@ var LAYOUT_BUILDERS = {
 				pts.push({ z: 1, x: 0, y: y1 });
 				pts.push({ z: 1, x: 10, y: y1 });
 			}
-			/* layer 1: piattaforme sotto i muri interni (supporto) */
+			/* layer 1: platforms under the inner walls (support) */
 			for (var x2 = 2; x2 <= 8; x2 += 2) { pts.push({ z: 1, x: x2, y: 2 }); }
 			for (var x3 = 2; x3 <= 6; x3 += 2) { pts.push({ z: 1, x: x3, y: 4 }); }
 			for (var x4 = 4; x4 <= 8; x4 += 2) { pts.push({ z: 1, x: x4, y: 6 }); }
 			pts.push({ z: 1, x: 8, y: 3 }, { z: 1, x: 8, y: 4 }, { z: 1, x: 8, y: 5 });
 			pts.push({ z: 1, x: 2, y: 3 }, { z: 1, x: 2, y: 4 }, { z: 1, x: 2, y: 5 });
-			/* layer 2: muri interni alternati (S allargata) */
+			/* layer 2: alternating inner walls (widened S) */
 			for (var x2b = 2; x2b <= 8; x2b += 2) pts.push({ z: 2, x: x2b, y: 2 });
 			for (var x3b = 2; x3b <= 6; x3b += 2) pts.push({ z: 2, x: x3b, y: 4 });
 			for (var x4b = 4; x4b <= 8; x4b += 2) pts.push({ z: 2, x: x4b, y: 6 });
-			/* v0.9.2: dedupe — (1,2,4) era pushata 2 volte (loop x3 + esplicita) */
-			return evenTrim(dedupePts(pts)); // 101 uniche → 100
-			/* (rimossi: z2/z3 colonne verticali x8/x2 y3..5 — troppo dense,
-			   il solver andava in timeout su quasi tutti gli shuffle) */
+			/* v0.9.2: dedupe — (1,2,4) was pushed 2 times (loop x3 + explicit) */
+			return evenTrim(dedupePts(pts)); // 101 unique → 100
+			/* (removed: z2/z3 vertical columns x8/x2 y3..5 — too dense,
+			   the solver timed out on almost every shuffle) */
 		}
 	},
 
 	'pyramid_half': {
 		'small': function () {
-			/* PIRAMIDE EGIZIANA: piani full centrati che si restringono
-			   5×6 → 3×4 → 1×2 → vertice. Ogni piano poggia su quello sotto. */
+			/* EGYPTIAN PYRAMID: centered full planes that shrink
+			   5×6 → 3×4 → 1×2 → apex. Each plane rests on the one below. */
 			var pts = [];
-			/* base piena 5×6 (x 0..8, y 0..5) */
+			/* full 5×6 base (x 0..8, y 0..5) */
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* piano 1: 3×4 (x 2,4,6; y 1..4) */
+			/* tier 1: 3×4 (x 2,4,6; y 1..4) */
 			for (var y1 = 1; y1 < 5; y1++) {
 				for (var x1 = 2; x1 <= 6; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			/* piano 2: 1×2 (x 4; y 2..3) */
+			/* tier 2: 1×2 (x 4; y 2..3) */
 			for (var y2 = 2; y2 < 4; y2++) pts.push({ z: 2, x: 4, y: y2 });
-			/* vertice (x 4, y 3) */
+			/* apex (x 4, y 3) */
 			pts.push({ z: 3, x: 4, y: 3 });
 			return evenTrim(pts); // 30+12+2+1 = 45
 		},
 		'medium': function () {
-			/* PIRAMIDE EGIZIANA 4 piani: 6×7 → 4×5 → 2×3 → vertice. */
+			/* EGYPTIAN PYRAMID 4 planes: 6×7 → 4×5 → 2×3 → apex. */
 			var pts = [];
-			/* base piena 6×7 (x 0..10, y 0..6) */
+			/* full 6×7 base (x 0..10, y 0..6) */
 			for (var y = 0; y < 7; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* piano 1: 4×5 (x 2,4,6,8; y 1..5) */
+			/* tier 1: 4×5 (x 2,4,6,8; y 1..5) */
 			for (var y1 = 1; y1 < 6; y1++) {
 				for (var x1 = 2; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			/* piano 2: 2×3 (x 4,6; y 2..4) */
+			/* tier 2: 2×3 (x 4,6; y 2..4) */
 			for (var y2 = 2; y2 < 5; y2++) {
 				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
 			}
-			/* vertice (x 6, y 3) */
+			/* apex (x 6, y 3) */
 			pts.push({ z: 3, x: 6, y: 3 });
 			return evenTrim(pts); // 42+20+6+1 = 69
 		},
 		'large': function () {
-			/* PIRAMIDE EGIZIANA 4 piani: 6×8 → 4×6 → 2×4 → vertice. */
+			/* EGYPTIAN PYRAMID 4 planes: 6×8 → 4×6 → 2×4 → apex. */
 			var pts = [];
-			/* base piena 6×8 (x 0..10, y 0..7) */
+			/* full 6×8 base (x 0..10, y 0..7) */
 			for (var y = 0; y < 8; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
@@ -604,29 +604,29 @@ var LAYOUT_BUILDERS = {
 			for (var y2 = 2; y2 < 6; y2++) {
 				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
 			}
-			/* vertice (x 6, y 4) */
+			/* apex (x 6, y 4) */
 			pts.push({ z: 3, x: 6, y: 4 });
 			return evenTrim(pts); // 48+24+8+1 = 81
 		},
 		'xl': function () {
-			/* PIRAMIDE EGIZIANA 5 piani: 6×9 → 5×7 → 3×5 → 1×3 → vertice.
-			   Dal più largo al più stretto, centrato, fino alla punta. */
+			/* EGYPTIAN PYRAMID 5 planes: 6×9 → 5×7 → 3×5 → 1×3 → apex.
+			   From the widest to the narrowest, centered, up to the tip. */
 			var pts = [];
-			/* base piena 6×9 (x 0..10, y 0..8) */
+			/* full 6×9 base (x 0..10, y 0..8) */
 			for (var y = 0; y < 9; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* piano 1: 5×7 (x 0,2,4,6,8; y 1..7) */
+			/* tier 1: 5×7 (x 0,2,4,6,8; y 1..7) */
 			for (var y1 = 1; y1 < 8; y1++) {
 				for (var x1 = 0; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			/* piano 2: 3×5 (x 2,4,6; y 2..6) */
+			/* tier 2: 3×5 (x 2,4,6; y 2..6) */
 			for (var y2 = 2; y2 < 7; y2++) {
 				for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: y2 });
 			}
-			/* piano 3: 1×3 (x 4; y 3..5) */
+			/* tier 3: 1×3 (x 4; y 3..5) */
 			for (var y3 = 3; y3 < 6; y3++) pts.push({ z: 3, x: 4, y: y3 });
-			/* vertice (x 4, y 4) */
+			/* apex (x 4, y 4) */
 			pts.push({ z: 4, x: 4, y: 4 });
 			return evenTrim(pts); // 54+35+15+3+1 = 108
 		}
@@ -634,8 +634,8 @@ var LAYOUT_BUILDERS = {
 
 	'checker': {
 		'small': function () {
-			/* SCACCHIERA rialzata: base piena di supporto + celle pari
-			   rialzate (pattern visivo a scacchiera) — tutte supportate. */
+			/* RAISED CHECKERBOARD: solid support base + even cells
+			   raised (checkerboard visual pattern) — all supported. */
 			var pts = [];
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
@@ -648,9 +648,9 @@ var LAYOUT_BUILDERS = {
 			return pts; // 36 + 8 = 44
 		},
 		'medium': function () {
-			/* v0.6.0: base PIENA 6×7 (una mezza tile a z1 richiede 4
-			   tile piene sotto nell'incrocio — la scacchiera era troppo
-			   rada e 15 mezze restavano sospese). */
+			/* v0.6.0: SOLID 6×7 base (a half tile at z1 needs 4
+			   full tiles below at the crossing — the checkerboard was too
+			   sparse and 15 halves were left floating). */
 			var pts = [];
 			for (var y = 0; y < 7; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
@@ -666,25 +666,25 @@ var LAYOUT_BUILDERS = {
 
 	'bridge': {
 		'small': function () {
-			/* Silhouette a U: due torri (2×2 in pianta) + ponte largo sopra */
+			/* U silhouette: two towers (2×2 footprint) + wide bridge on top */
 			var pts = [];
-			/* torre sinistra: base 2×3 + layer 2×2 */
+			/* left tower: 2×3 base + 2×2 layer */
 			for (var y0 = 0; y0 < 3; y0++) {
 				pts.push({ z: 0, x: 0, y: y0 }, { z: 0, x: 2, y: y0 });
 			}
 			for (var y1 = 0; y1 < 2; y1++) {
 				pts.push({ z: 1, x: 0, y: y1 }, { z: 1, x: 2, y: y1 });
 			}
-			/* torre destra: base 2×3 + layer 2×2 */
+			/* right tower: 2×3 base + 2×2 layer */
 			for (var y2 = 0; y2 < 3; y2++) {
 				pts.push({ z: 0, x: 6, y: y2 }, { z: 0, x: 8, y: y2 });
 			}
 			for (var y3 = 0; y3 < 2; y3++) {
 				pts.push({ z: 1, x: 6, y: y3 }, { z: 1, x: 8, y: y3 });
 			}
-			/* ponte: fila di 5 tile sopra le due torri (layer 2) */
+			/* bridge: row of 5 tiles above the two towers (layer 2) */
 			for (var x4 = 0; x4 < 5; x4++) pts.push({ z: 2, x: x4 * 2, y: 0 });
-			/* piloni centrali + ponte laterale (supporto incluso) */
+			/* central pylons + side bridge (support included) */
 			pts.push({ z: 0, x: 4, y: 0 }, { z: 0, x: 4, y: 1 });
 			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 4, y: 1 });
 			return evenTrim(pts); // 12+8+5+4 = 29 → 28
@@ -706,70 +706,70 @@ var LAYOUT_BUILDERS = {
 				for (var x2b = 4; x2b < 6; x2b++) pts.push({ z: 2, x: x2b * 2, y: y2 });
 			}
 			for (var xm = 2; xm < 5; xm++) pts.push({ z: 1, x: xm * 2, y: 1 });
-			/* v0.6.0: piloni sotto il ponte centrale — z2 x4/x6 a y2
-			   non avevano z1 sotto (solo x8 era supportata). */
+			/* v0.6.0: pylons under the central bridge — z2 x4/x6 at y2
+			   had no z1 below (only x8 was supported). */
 			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
 			for (var xm2 = 2; xm2 < 5; xm2++) pts.push({ z: 2, x: xm2 * 2, y: 2 });
-			/* v0.9.2: dedupe — il ponte z1/z2 a x8,y1 e x8,y2 duplicava
-			   le torri destre già presenti. */
-			return dedupePts(pts); // 48 uniche
+			/* v0.9.2: dedupe — bridge z1/z2 at x8,y1 and x8,y2 duplicated
+			   the already-present right towers. */
+			return dedupePts(pts); // 48 unique
 		}
 	},
 
 	'spiral': {
 		'small': function () {
-			/* SPIRALE VERA: base piena 6×6 + anelli rialzati con
-			   APERTURE che collegano i giri verso il centro. */
+			/* TRUE SPIRAL: full 6×6 base + raised rings with
+			   OPENINGS connecting the turns towards the center. */
 			var pts = [];
-			/* layer 0: base piena 6×6 */
+			/* layer 0: full 6×6 base */
 			for (var by = 0; by < 6; by++) {
 				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* layer 1: anello esterno con GAP in basso a destra.
+			/* layer 1: outer ring with a GAP at the bottom right.
 			   Top completo, sx completo, bottom da sx, dx dall'alto. */
 			for (var x0 = 0; x0 <= 10; x0 += 2) pts.push({ z: 1, x: x0, y: 0 });
 			for (var y1 = 1; y1 < 6; y1++) pts.push({ z: 1, x: 0, y: y1 });
 			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 1, x: x2, y: 5 });
 			for (var y3 = 1; y3 < 5; y3++) pts.push({ z: 1, x: 10, y: y3 });
-			/* piattaforma interna z1 (poggia sulla base, supporta il giro) */
+			/* inner platform z1 (rests on the base, supports the turn) */
 			for (var py = 1; py < 5; py++) {
 				for (var px = 2; px <= 8; px += 2) pts.push({ z: 1, x: px, y: py });
 			}
-			/* layer 2: CORRIDOIO A S (aperto) — niente anello chiuso attorno
-			   al centro. Le tile centrali restano raggiungibili e il livello
-			   diventa risolvibile. Gap reali in (8,3) e (2,2). */
+			/* layer 2: S-SHAPED CORRIDOR (open) — no closed ring around
+			   the center. The central tiles stay reachable and the level
+			   becomes solvable. Real gaps at (8,3) and (2,2). */
 			for (var x4 = 2; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 1 });
 			pts.push({ z: 2, x: 8, y: 2 }, { z: 2, x: 8, y: 4 });   // gap in (8,3)
 			for (var x6 = 6; x6 >= 2; x6 -= 2) pts.push({ z: 2, x: x6, y: 4 });
 			pts.push({ z: 2, x: 2, y: 3 });                          // gap in (2,2)
-			return evenTrim(pts); // 36+19+16+9 = 80 → 80 (anello aperto)
+			return evenTrim(pts); // 36+19+16+9 = 80 → 80 (open ring)
 		},
 		'medium': function () {
-			/* SPIRALE grande: base piena 6×8 + tre giri di anelli con gap. */
+			/* LARGE SPIRAL: full 6×8 base + three ring turns with gaps. */
 			var pts = [];
-			/* layer 0: base piena 6×8 (y 0..7) */
+			/* layer 0: full 6×8 base (y 0..7) */
 			for (var by = 0; by < 8; by++) {
 				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* layer 1: anello esterno con gap in basso a destra */
+			/* layer 1: outer ring with a gap at the bottom right */
 			for (var x0 = 0; x0 <= 10; x0 += 2) pts.push({ z: 1, x: x0, y: 0 });
 			for (var y1 = 1; y1 < 8; y1++) pts.push({ z: 1, x: 0, y: y1 });
 			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 1, x: x2, y: 7 });
 			for (var y3 = 1; y3 < 7; y3++) pts.push({ z: 1, x: 10, y: y3 });
-			/* piattaforma interna z1 (supporto per il giro) */
+			/* inner platform z1 (support for the turn) */
 			for (var py = 1; py < 7; py++) {
 				for (var px = 2; px <= 8; px += 2) pts.push({ z: 1, x: px, y: py });
 			}
-			/* layer 2: giro medio */
+			/* layer 2: middle turn */
 			for (var x4 = 2; x4 <= 8; x4 += 2) pts.push({ z: 2, x: x4, y: 1 });
 			for (var y5 = 1; y5 < 7; y5++) pts.push({ z: 2, x: 8, y: y5 });
 			for (var x6 = 6; x6 >= 2; x6 -= 2) pts.push({ z: 2, x: x6, y: 6 });
 			for (var y7 = 1; y7 < 6; y7++) pts.push({ z: 2, x: 2, y: y7 });
-			/* supporto centro (z2 interno, poggia sulla piattaforma z1) */
+			/* center support (z2 inner, rests on the z1 platform) */
 			for (var yc = 2; yc < 5; yc++) {
 				pts.push({ z: 2, x: 4, y: yc }, { z: 2, x: 6, y: yc });
 			}
-			/* layer 3: centro rialzato */
+			/* layer 3: raised center */
 			for (var y8 = 2; y8 < 5; y8++) {
 				pts.push({ z: 3, x: 4, y: y8 }, { z: 3, x: 6, y: y8 });
 			}
@@ -782,72 +782,72 @@ var LAYOUT_BUILDERS = {
 
 	'helix': {
 		'small': function () {
-			/* ELICA/DOPPIA X: base piena + due BANDE DIAGONALI rialzate
-			   che si incrociano → doppia elica vista dall'alto. */
+			/* HELIX/DOUBLE X: full base + two RAISED DIAGONAL BANDS
+			   that cross → double helix seen from above. */
 			var pts = [];
-			/* layer 0: base piena 6×7 (y 0..6) */
+			/* layer 0: full 6×7 base (y 0..6) */
 			for (var by = 0; by < 7; by++) {
 				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* layer 1: banda ↘ (gradini + riempitivi, spessa) */
+			/* layer 1: ↘ band (steps + fillers, thick) */
 			for (var i = 0; i < 5; i++) {
 				pts.push({ z: 1, x: i * 2, y: i });
 				pts.push({ z: 1, x: i * 2, y: i + 1 });
 				pts.push({ z: 1, x: (i + 1) * 2, y: i + 1 });
 			}
-			/* layer 1: banda ↗ (speculare) */
+			/* layer 1: ↗ band (mirror) */
 			for (var j = 0; j < 5; j++) {
 				pts.push({ z: 1, x: j * 2, y: 6 - j });
 				pts.push({ z: 1, x: j * 2, y: 5 - j });
 				pts.push({ z: 1, x: (j + 1) * 2, y: 5 - j });
 			}
-			/* supporto per l'incrocio centrale (x=6, y=3) */
+			/* support for the central crossing (x=6, y=3) */
 			pts.push({ z: 1, x: 6, y: 3 });
-			/* layer 2-3: incrocio centrale marcato */
+			/* layer 2-3: marked central crossing */
 			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
 			pts.push({ z: 3, x: 6, y: 3 });
-			/* v0.9.2: dedupe — le due bande diagonali si incrociano:
-			   (4,3)/(6,3) e le celle di bordo erano pushate 2 volte. */
-			return evenTrim(dedupePts(pts)); // 65 uniche → 64
+			/* v0.9.2: dedupe — the two diagonal bands cross:
+			   (4,3)/(6,3) and the edge cells were pushed twice. */
+			return evenTrim(dedupePts(pts)); // 65 unique → 64
 		},
 		'medium': function () {
-			/* ELICA grande: base piena 6×9 + bande diagonali lunghe. */
+			/* LARGE HELIX: full 6×9 base + long diagonal bands. */
 			var pts = [];
-			/* layer 0: base piena 6×9 (y 0..8) */
+			/* layer 0: full 6×9 base (y 0..8) */
 			for (var by = 0; by < 9; by++) {
 				for (var bx = 0; bx < 6; bx++) pts.push({ z: 0, x: bx * 2, y: by });
 			}
-			/* layer 1: banda ↘ estesa (6 gradini + riempitivi).
-			   v0.6.0: (i+1)*2 va in x=12 a i=5 → fuori griglia.
-			   L'ultimo gradino aggiunge solo la riga verticale x=10. */
+			/* layer 1: extended ↘ band (6 steps + fillers).
+			   v0.6.0: (i+1)*2 goes to x=12 at i=5 → off-grid.
+			   The last step adds only the vertical row x=10. */
 			for (var i = 0; i < 6; i++) {
 				pts.push({ z: 1, x: i * 2, y: i });
 				pts.push({ z: 1, x: i * 2, y: i + 1 });
 				if (i < 5) pts.push({ z: 1, x: (i + 1) * 2, y: i + 1 });
 				pts.push({ z: 1, x: i * 2, y: i + 2 });
 			}
-			/* layer 1: banda ↗ estesa (stesso fix: niente x=12) */
+			/* layer 1: extended ↗ band (same fix: no x=12) */
 			for (var j = 0; j < 6; j++) {
 				pts.push({ z: 1, x: j * 2, y: 8 - j });
 				pts.push({ z: 1, x: j * 2, y: 7 - j });
 				if (j < 5) pts.push({ z: 1, x: (j + 1) * 2, y: 7 - j });
 				pts.push({ z: 1, x: j * 2, y: 6 - j });
 			}
-			/* layer 2-3: incrocio centrale */
+			/* layer 2-3: central crossing */
 			pts.push({ z: 2, x: 4, y: 4 }, { z: 2, x: 6, y: 4 });
 			pts.push({ z: 2, x: 4, y: 5 }, { z: 2, x: 6, y: 5 });
 			pts.push({ z: 3, x: 6, y: 4 });
-			/* v0.9.2: dedupe — bande diagonali che si incrociano (vedi small). */
-			return evenTrim(dedupePts(pts)); // 90 uniche → 88
+			/* v0.9.2: dedupe — crossing diagonal bands (see small). */
+			return evenTrim(dedupePts(pts)); // 90 unique → 88
 		}
 	},
 
 	/* ---- NEW v0.5.0 FIGURE LAYOUTS ---- */
 
 	'pagoda': {
-		/* PAGODA: torre a piani convergenti. Ogni piano superiore è
-		   centrato e poggia interamente su quello sotto (nessuna
-		   sporgenza). Solo tile FULL. */
+		/* PAGODA: converging tier tower. Each upper tier is
+		   centered and rests entirely on the one below (no
+		   overhang). FULL tiles only. */
 		'small': function () {
 			var pts = [];
 			/* piano 0: 4×4 (x 0..6, y 0..3) */
@@ -862,7 +862,7 @@ var LAYOUT_BUILDERS = {
 			for (var y2 = 1; y2 < 3; y2++) {
 				for (var x2 = 1; x2 < 3; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
 			}
-			/* vertice */
+			/* apex */
 			pts.push({ z: 3, x: 4, y: 2 });
 			return evenTrim(pts); // 16+12+4+1 = 33 → 32
 		},
@@ -899,43 +899,43 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'butterfly': {
-		/* FARFALLA: due ali speculari (triangoli che si allargano
-		   verso il basso) + corpo centrale verticale. Solo FULL. */
+		/* BUTTERFLY: two mirror wings (triangles widening
+		   downwards) + a central vertical body. FULL only. */
 		'small': function () {
 			var pts = [];
-			/* Z0: ali (5 righe, simmetriche attorno a x=4) */
+			/* Z0: wings (5 rows, symmetrical around x=4) */
 			[[0, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 4, 6, 8], [2, 4, 6]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 0, x: row[i], y: y });
 			});
-			/* Z1: ali interne (4 righe, partono dalla 2a) */
+			/* Z1: inner wings (4 rows, start from the 2nd) */
 			[[2, 6], [2, 4, 6], [2, 4, 6]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 1, x: row[i], y: y + 1 });
 			});
-			/* Z2: vertice corpo — poggia su Z1 (4,3) */
+			/* Z2: body apex — rests on Z1 (4,3) */
 			pts.push({ z: 2, x: 4, y: 3 });
 			return pts; // 19 + 8 + 1 = 28
 		},
 		'medium': function () {
 			var pts = [];
-			/* Z0: ali (6 righe, simmetriche attorno a x=4) */
+			/* Z0: wings (6 rows, symmetrical around x=4) */
 			[[0, 8], [0, 2, 6, 8], [0, 2, 4, 6, 8], [0, 2, 4, 6, 8], [0, 2, 4, 6, 8], [2, 4, 6]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 0, x: row[i], y: y });
 			});
-			/* Z1: ali interne + corpo (4 righe, partono dalla 2a) */
+			/* Z1: inner wings + body (4 rows, start from the 2nd) */
 			[[2, 6], [2, 4, 6], [2, 4, 6], [2, 4, 6]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 1, x: row[i], y: y + 1 });
 			});
-			/* Z2: corpo (2 tile) */
+			/* Z2: body (2 tiles) */
 			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
-			/* Z3: vertice */
+			/* Z3: apex */
 			pts.push({ z: 3, x: 4, y: 3 });
 			return pts; // 24 + 11 + 2 + 1 = 38
 		}
 	},
 
 	'arrow': {
-		/* FRECCIA: punta verso destra — testa a freccia + asta.
-		   Piani pieni, solo FULL. */
+		/* ARROW: point towards the right — arrowhead + shaft.
+		   Full planes, FULL only. */
 		'small': function () {
 			var pts = [];
 			var rows0 = [[0, 2, 4, 6, 8], [0, 2, 4, 6, 8, 10], [0, 2, 4, 6, 8]];
@@ -964,31 +964,31 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'star': {
-		/* STELLA a 4 punte: due barre incrociate (verticale + orizzontale,
-		   centro NON duplicato) + riempitivi diagonali. Solo FULL. */
+		/* 4-POINT STAR: two crossing bars (vertical + horizontal,
+		   center NOT duplicated) + diagonal fillers. FULL only. */
 		'small': function () {
 			var pts = [];
-			/* Z0: barra verticale + bracci orizzontali senza duplicati */
+			/* Z0: vertical bar + horizontal arms without duplicates */
 			for (var y = 0; y < 5; y++) pts.push({ z: 0, x: 4, y: y });
 			pts.push({ z: 0, x: 0, y: 2 }, { z: 0, x: 2, y: 2 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 8, y: 2 });
-			/* Z1: punte interne + antenna superiore */
+			/* Z1: inner points + top antenna */
 			pts.push({ z: 1, x: 4, y: 0 });
 			pts.push({ z: 1, x: 4, y: 1 }, { z: 1, x: 4, y: 3 });
 			pts.push({ z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
-			/* Z2: centro */
+			/* Z2: center */
 			pts.push({ z: 2, x: 4, y: 2 });
 			return pts; // 9 + 6 + 1 = 16
 		},
 		'medium': function () {
 			var pts = [];
-			/* Z0: barra verticale + orizzontale (centro non duplicato) + diagonali */
+			/* Z0: vertical + horizontal bar (center not duplicated) + diagonals */
 			for (var y = 0; y < 7; y++) pts.push({ z: 0, x: 4, y: y });
 			pts.push({ z: 0, x: 0, y: 3 }, { z: 0, x: 2, y: 3 }, { z: 0, x: 6, y: 3 }, { z: 0, x: 8, y: 3 }, { z: 0, x: 10, y: 3 });
 			pts.push({ z: 0, x: 2, y: 1 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 2, y: 5 }, { z: 0, x: 6, y: 5 });
-			/* Z1: bracci interni */
+			/* Z1: inner arms */
 			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 4, y: 3 }, { z: 1, x: 4, y: 4 });
 			pts.push({ z: 1, x: 2, y: 3 }, { z: 1, x: 6, y: 3 });
-			/* Z2: centro */
+			/* Z2: center */
 			pts.push({ z: 2, x: 4, y: 3 });
 			return pts; // 16 + 5 + 1 = 22
 		}
@@ -1044,34 +1044,34 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'castle': {
-		/* CASTELLO: base piena + mura perimetrali + torrione centrale
-		   che supera le torri d'angolo. Più ricco di fortress:
+		/* CASTLE: full base + perimeter walls + central keep
+		   that towers over the corner towers. Richer than fortress:
 		   doppio giro di mura e mastio centrale. Solo FULL. */
 		'small': function () {
 			var pts = [];
 			for (var y = 0; y < 4; y++) {
 				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: anello perimetrale + keep centrale 2×2 */
+			/* z1: perimeter ring + central 2×2 keep */
 			for (var y1 = 0; y1 < 4; y1++) {
 				for (var x1 = 0; x1 < 4; x1++) {
 					if (y1 === 0 || y1 === 3 || x1 === 0 || x1 === 3) pts.push({ z: 1, x: x1 * 2, y: y1 });
 				}
 			}
 			pts.push({ z: 1, x: 2, y: 1 }, { z: 1, x: 4, y: 1 }, { z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 });
-			/* z2: torri d'angolo + keep */
+			/* z2: corner towers + keep */
 			[[0, 0], [6, 0], [0, 3], [6, 3]].forEach(function (c) {
 				pts.push({ z: 2, x: c[0], y: c[1] });
 			});
 			pts.push({ z: 2, x: 2, y: 1 }, { z: 2, x: 4, y: 1 }, { z: 2, x: 2, y: 2 }, { z: 2, x: 4, y: 2 });
-			return evenTrim(pts); // 16+16+8 = 40 → 40 (niente z3: troppo rado per il solver)
+			return evenTrim(pts); // 16+16+8 = 40 → 40 (no z3: too sparse for the solver)
 		},
 		'medium': function () {
 			var pts = [];
 			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: anello + keep 3×3 */
+			/* z1: ring + 3×3 keep */
 			for (var y1 = 0; y1 < 5; y1++) {
 				for (var x1 = 0; x1 < 5; x1++) {
 					if (y1 === 0 || y1 === 4 || x1 === 0 || x1 === 4) pts.push({ z: 1, x: x1 * 2, y: y1 });
@@ -1080,12 +1080,12 @@ var LAYOUT_BUILDERS = {
 			for (var y2 = 1; y2 < 4; y2++) {
 				for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 1, x: x2 * 2, y: y2 });
 			}
-			/* z2: torri angolo + keep interno 2×2 */
+			/* z2: corner towers + inner 2×2 keep */
 			[[0, 0], [8, 0], [0, 4], [8, 4]].forEach(function (c) {
 				pts.push({ z: 2, x: c[0], y: c[1] });
 			});
 			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 6, y: 2 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
-			/* z3: torri top + keep top */
+			/* z3: top towers + top keep */
 			[[0, 0], [8, 0], [0, 4], [8, 4]].forEach(function (c) {
 				pts.push({ z: 3, x: c[0], y: c[1] });
 			});
@@ -1097,7 +1097,7 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: anello (20) + keep 4×4 interno */
+			/* z1: ring (20) + inner 4×4 keep */
 			for (var y1 = 0; y1 < 6; y1++) {
 				for (var x1 = 0; x1 < 6; x1++) {
 					if (y1 === 0 || y1 === 5 || x1 === 0 || x1 === 5) pts.push({ z: 1, x: x1 * 2, y: y1 });
@@ -1106,12 +1106,12 @@ var LAYOUT_BUILDERS = {
 			for (var y2 = 1; y2 < 5; y2++) {
 				for (var x2 = 1; x2 < 5; x2++) pts.push({ z: 1, x: x2 * 2, y: y2 });
 			}
-			/* z2: torri angolo + keep 2×2 */
+			/* z2: corner towers + 2×2 keep */
 			[[0, 0], [10, 0], [0, 5], [10, 5]].forEach(function (c) {
 				pts.push({ z: 2, x: c[0], y: c[1] });
 			});
 			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 6, y: 2 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
-			/* z3: torri top + keep top */
+			/* z3: top towers + top keep */
 			[[0, 0], [10, 0], [0, 5], [10, 5]].forEach(function (c) {
 				pts.push({ z: 3, x: c[0], y: c[1] });
 			});
@@ -1123,44 +1123,44 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'zigzag': {
-		/* ZIG-ZAG (fulmine): fasce sfalsate a destra/sinistra,
+		/* ZIG-ZAG (lightning): bands staggered right/left,
 		   con un piano superiore sui tratti larghi. Solo FULL. */
 		'small': function () {
 			var pts = [];
-			/* Z0: fasce alternate */
+			/* Z0: alternating bands */
 			[[0, 2, 4, 6], [4, 6, 8, 10], [0, 2, 4, 6, 8], [2, 4, 6, 8, 10], [0, 2, 4]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 0, x: row[i], y: y });
 			});
-			/* Z1: piano sopra le due righe centrali larghe */
+			/* Z1: tier above the two wide central rows */
 			[[4, 6], [4, 6], [4, 6]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 1, x: row[i], y: y + 1 });
 			});
-			/* Z2: vertice (poggia su Z1 x4,y2) */
+			/* Z2: apex (rests on Z1 x4,y2) */
 			pts.push({ z: 2, x: 4, y: 2 });
 			return pts; // 21 + 6 + 1 = 28
 		},
 		'medium': function () {
 			var pts = [];
-			/* Z0: fasce alternate (6 righe) */
+			/* Z0: alternating bands (6 rows) */
 			[[0, 2, 4, 6], [4, 6, 8, 10], [0, 2, 4, 6], [4, 6, 8, 10], [0, 2, 4, 6], [4, 6, 8]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 0, x: row[i], y: y });
 			});
-			/* Z1: piano su tutte le righe interne */
+			/* Z1: tier on all inner rows */
 			[[4, 6], [4, 6], [4, 6], [4, 6]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 1, x: row[i], y: y + 1 });
 			});
-			/* Z2: secondo piano (sopra Z1) */
+			/* Z2: second tier (above Z1) */
 			[[4, 6], [4, 6]].forEach(function (row, y) {
 				for (var i = 0; i < row.length; i++) pts.push({ z: 2, x: row[i], y: y + 2 });
 			});
-			/* Z3: vertice (poggia su Z2 x4,y3) */
+			/* Z3: apex (rests on Z2 x4,y3) */
 			pts.push({ z: 3, x: 4, y: 3 });
 			return pts; // 23 + 8 + 4 + 1 = 36
 		}
 	},
 
 	'rings': {
-		/* DOPPIO ANELLO: due cornici quadrate rialzate (in alto a
+		/* DOUBLE RING: two raised square frames (at the top-
 		   sinistra e in basso a destra) su base piena + angoli
 		   marcati. Solo FULL (la base piena dà supporto ovunque). */
 		'small': function () {
@@ -1169,7 +1169,7 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 4; y++) {
 				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* Z1: anello A 2×2 (x0..2, y0..1) + anello B 2×2 (x4..6, y2..3) */
+			/* Z1: ring A 2×2 (x0..2, y0..1) + ring B 2×2 (x4..6, y2..3) */
 			for (var xa = 0; xa <= 2; xa += 2) {
 				pts.push({ z: 1, x: xa, y: 0 });
 				pts.push({ z: 1, x: xa, y: 1 });
@@ -1180,7 +1180,7 @@ var LAYOUT_BUILDERS = {
 			}
 			/* Z2: angoli marcati */
 			pts.push({ z: 2, x: 0, y: 0 }, { z: 2, x: 6, y: 3 });
-			/* Z3: vertici gemelli (parità pari) */
+			/* Z3: twin apexes (even parity) */
 			pts.push({ z: 3, x: 0, y: 0 }, { z: 3, x: 6, y: 3 });
 			return pts; // 16 + 8 + 2 + 2 = 28
 		},
@@ -1190,7 +1190,7 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* Z1: anello A (cornice 3×4, x0..4, y0..3) */
+			/* Z1: ring A (3×4 frame, x0..4, y0..3) */
 			for (var xa = 0; xa <= 4; xa += 2) {
 				pts.push({ z: 1, x: xa, y: 0 });
 				pts.push({ z: 1, x: xa, y: 3 });
@@ -1199,7 +1199,7 @@ var LAYOUT_BUILDERS = {
 				pts.push({ z: 1, x: 0, y: ya });
 				pts.push({ z: 1, x: 4, y: ya });
 			}
-			/* Z1: anello B (cornice 3×4, x6..10, y2..5) */
+			/* Z1: ring B (3×4 frame, x6..10, y2..5) */
 			for (var xb = 6; xb <= 10; xb += 2) {
 				pts.push({ z: 1, x: xb, y: 2 });
 				pts.push({ z: 1, x: xb, y: 5 });
@@ -1210,23 +1210,23 @@ var LAYOUT_BUILDERS = {
 			}
 			/* Z2: angoli marcati */
 			pts.push({ z: 2, x: 0, y: 0 }, { z: 2, x: 10, y: 5 });
-			/* Z3: vertici gemelli (parità pari) */
+			/* Z3: twin apexes (even parity) */
 			pts.push({ z: 3, x: 0, y: 0 }, { z: 3, x: 10, y: 5 });
 			return pts; // 36 + 20 + 2 + 2 = 60
 		}
 	},
 
 	'temple': {
-		/* TEMPIO: base piena + sala interna rialzata + doppio tetto
+		/* TEMPLE: full base + raised inner hall + double roof
 		   spiovente (fronte/retro) con guglia centrale. Solo FULL.
-		   Conteggi pari senza trim: small 38, medium 52. */
+		   Even counts without trim: small 38, medium 52. */
 		'small': function () {
 			var pts = [];
 			/* Z0: base solida 5×5 */
 			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* Z1: colonne laterali (4) */
+			/* Z1: side columns (4) */
 			pts.push({ z: 1, x: 0, y: 1 }, { z: 1, x: 0, y: 3 });
 			pts.push({ z: 1, x: 8, y: 1 }, { z: 1, x: 8, y: 3 });
 			/* Z1: tetti fronte/retro */
@@ -1263,19 +1263,19 @@ var LAYOUT_BUILDERS = {
 	},
 
 	/* ---- NEW v0.6.0 FIGURE LAYOUTS (lotus, sphinx, crown, galaxy, totem) ----
-	   Tutte le tile sono FULL e ogni tile a z>0 poggia su una tile piena
-	   alla stessa (x,y) a z-1 (conteggi sempre pari). */
+	   All tiles are FULL and every tile at z>0 rests on a full tile
+	   at the same (x,y) at z-1 (counts always even). */
 
 	'lotus': {
-		/* LOTO: base piena 6×5 + corolla di petali rialzati attorno
-		   al centro + cuore rialzato (2×2). */
+		/* LOTUS: full 6×5 base + raised petal corolla around
+		   at the center + raised heart (2×2). */
 		'small': function () {
 			var pts = [];
 			/* z0: base 6×5 (x 0..10, y 0..4) = 30 */
 			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: petali corona + centro */
+			/* z1: crown petals + center */
 			[[2, 1], [4, 1], [6, 1], [2, 2], [6, 2], [2, 3], [6, 3], [2, 4], [4, 4], [6, 4], [4, 2], [4, 3]].forEach(function (c) {
 				pts.push({ z: 1, x: c[0], y: c[1] });
 			});
@@ -1289,20 +1289,20 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: corolla doppia (16) */
+			/* z1: double corolla (16) */
 			[[2, 0], [6, 0], [2, 1], [4, 1], [6, 1], [2, 2], [6, 2], [2, 3], [6, 3], [2, 4], [4, 4], [6, 4], [2, 5], [6, 5], [4, 2], [4, 3]].forEach(function (c) {
 				pts.push({ z: 1, x: c[0], y: c[1] });
 			});
-			/* z2: cuore doppio (4) — v0.6.1: x=3 dispari non ha supporto
-			   in z1 (tile solo su x pari). Usiamo le 4 celle intorno
-			   al centro che esistono in z1: (2,2),(6,2),(2,3),(6,3). */
+			/* z2: double heart (4) — v0.6.1: odd x=3 has no support
+			   in z1 (tiles only on even x). We use the 4 cells around
+			   the center that exist in z1: (2,2),(6,2),(2,3),(6,3). */
 			pts.push({ z: 2, x: 2, y: 2 }, { z: 2, x: 6, y: 2 }, { z: 2, x: 2, y: 3 }, { z: 2, x: 6, y: 3 });
 			return evenTrim(pts); // 36 + 16 + 4 = 56
 		}
 	},
 
 	'sphinx': {
-		/* SFINGE: corpo base + zampa-sfondo rialzato + testa che si
+		/* SPHINX: base body + raised background paw + head that
 		   innalza al centro. */
 		'small': function () {
 			var pts = [];
@@ -1310,32 +1310,32 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: "zampe" + corpo centrale */
+			/* z1: "legs" + central body */
 			[[2, 1], [8, 1], [2, 4], [8, 4], [4, 2], [4, 3], [6, 2], [6, 3]].forEach(function (c) {
 				pts.push({ z: 1, x: c[0], y: c[1] });
 			});
-			/* z2: torace */
+			/* z2: thorax */
 			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
-			/* z3: testa */
+			/* z3: head */
 			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 4, y: 3 });
 			return pts; // 36 + 8 + 2 + 2 = 48
 		}
 	},
 
 	'crown': {
-		/* CORONA: base piena 6×6 + punte alternate su due file. */
+		/* CROWN: full 6×6 base + alternating points on two rows. */
 		'small': function () {
 			var pts = [];
 			/* z0: base 6×6 = 36 */
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: punte file 0 e 5 (6 ciascuna = 12) */
+			/* z1: points on rows 0 and 5 (6 each = 12) */
 			for (var x1 = 0; x1 < 6; x1++) {
 				pts.push({ z: 1, x: x1 * 2, y: 0 });
 				pts.push({ z: 1, x: x1 * 2, y: 5 });
 			}
-			/* z2: punte intermedie (3+3 = 6) */
+			/* z2: intermediate points (3+3 = 6) */
 			pts.push({ z: 2, x: 2, y: 0 }, { z: 2, x: 6, y: 0 }, { z: 2, x: 10, y: 0 });
 			pts.push({ z: 2, x: 2, y: 5 }, { z: 2, x: 6, y: 5 }, { z: 2, x: 10, y: 5 });
 			return pts; // 36 + 12 + 6 = 54
@@ -1343,7 +1343,7 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'galaxy': {
-		/* GALASSIA: base piena + ammassi di stelle rialzati in gruppi
+		/* GALAXY: full base + raised star clusters in groups
 		   separati + nucleo centrale su più livelli. */
 		'small': function () {
 			var pts = [];
@@ -1355,7 +1355,7 @@ var LAYOUT_BUILDERS = {
 			[[2, 1], [4, 1], [2, 2], [4, 2], [6, 4], [8, 4], [6, 5], [8, 5], [4, 3], [6, 3]].forEach(function (c) {
 				pts.push({ z: 1, x: c[0], y: c[1] });
 			});
-			/* z2: centri ammassi + supporti nucleo (v0.6.1: z3 deve
+			/* z2: cluster centers + nucleus supports (v0.6.1: z3 must
 			   poggiare su z2 — aggiunti (4,3),(6,3)). */
 			pts.push({ z: 2, x: 2, y: 1 }, { z: 2, x: 4, y: 1 }, { z: 2, x: 8, y: 4 }, { z: 2, x: 8, y: 5 });
 			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
@@ -1369,13 +1369,13 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 8; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: ammassi estesi + bracci */
+			/* z1: extended clusters + arms */
 			var b1 = [[2, 1], [4, 1], [2, 2], [4, 2], [6, 3], [8, 3], [6, 4], [8, 4],
 			         [2, 5], [4, 5], [2, 6], [4, 6], [4, 3], [6, 5], [6, 2], [4, 4]];
 			b1.forEach(function (c) {
 				pts.push({ z: 1, x: c[0], y: c[1] });
 			});
-			/* z2: centri + bracci interni */
+			/* z2: centers + inner arms */
 			var b2 = [[2, 1], [4, 1], [6, 3], [8, 4], [2, 6], [4, 6], [4, 3], [6, 4]];
 			b2.forEach(function (c) {
 				pts.push({ z: 2, x: c[0], y: c[1] });
@@ -1386,27 +1386,27 @@ var LAYOUT_BUILDERS = {
 			b3.forEach(function (c) {
 				pts.push({ z: 2, x: c[0], y: c[1] });
 			});
-			/* z3: nucleo doppio (supportato da z2) */
+			/* z3: double nucleus (supported by z2) */
 			pts.push({ z: 3, x: 4, y: 3 }, { z: 3, x: 6, y: 4 }, { z: 3, x: 4, y: 4 }, { z: 3, x: 6, y: 3 });
 			return pts; // 48 + 16 + 10 + 4 = 78
 		}
 	},
 
 	'totem': {
-		/* TOTEM: base piena + colonna centrale a 3 livelli. */
+		/* TOTEM: full base + central 3-tier column. */
 		'small': function () {
 			var pts = [];
 			/* z0: base 5×6 = 30 */
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: colonna larga 3×2 */
+			/* z1: wide 3×2 column */
 			[[2, 2], [4, 2], [6, 2], [2, 3], [4, 3], [6, 3]].forEach(function (c) {
 				pts.push({ z: 1, x: c[0], y: c[1] });
 			});
-			/* z2: colonna stretta 1×2 */
+			/* z2: narrow 1×2 column */
 			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
-			/* z3: vertice doppio */
+			/* z3: double apex */
 			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 4, y: 3 });
 			return pts; // 30 + 6 + 2 + 2 = 40
 		},
@@ -1416,35 +1416,35 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: colonna larga 3×3 + basi laterali */
+			/* z1: wide 3×3 column + side bases */
 			[[0, 1], [1 * 1, 1], [2, 2], [4, 2], [6, 2], [2, 3], [4, 3], [6, 3], [2, 4], [4, 4], [6, 4]].forEach(function (c) {
 				pts.push({ z: 1, x: c[0] * (c[0] === 1 ? 2 : 1), y: c[1] });
 			});
-			/* z2: colonna stretta 1×2 */
+			/* z2: narrow 1×2 column */
 			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 4, y: 3 });
-			/* z3: vertice doppio */
+			/* z3: double apex */
 			pts.push({ z: 3, x: 4, y: 2 }, { z: 3, x: 4, y: 3 });
 			return evenTrim(pts); // 36 + 11 + 2 + 2 = 51 → 50
 		}
 	},
 
 	/* ============================================================
-	   NUOVE FIGURE v0.8.3 — 9 layout (chalice, mushroom, ship,
+	   NEW v0.8.3 FIGURES — 9 layouts (chalice, mushroom, ship,
 	   anchor, windmill, harp, lyre, skyscraper, crane).
-	   Regole fisiche rispettate: FULL a z>0 poggia su FULL identica
-	   sotto; niente half nuove (rischio zero supporti).
+	   Physics rules respected: FULL at z>0 rests on an identical FULL
+	   below; no new halves (zero support risk).
 	   ============================================================ */
 	'chalice': {
 		'small': function () {
 			var pts = [];
-			/* base larga (z0) + vasca rialzata (z1) sopra di essa */
+			/* wide base (z0) + raised basin (z1) on top of it */
 			for (var y = 0; y < 2; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 				pts.push({ z: 1, x: 4, y: y }, { z: 1, x: 6, y: y });
 			}
 			/* fusto (z0) */
 			for (var f = 0; f < 2; f++) pts.push({ z: 0, x: 4, y: f + 2 }, { z: 0, x: 6, y: f + 2 });
-			/* piede (z0) */
+			/* foot (z0) */
 			for (var p = 0; p < 2; p++) {
 				for (var x2 = 0; x2 < 6; x2++) pts.push({ z: 0, x: x2 * 2, y: p + 4 });
 			}
@@ -1467,11 +1467,11 @@ var LAYOUT_BUILDERS = {
 	'mushroom': {
 		'small': function () {
 			var pts = [];
-			/* radici larghe (z0) */
+			/* wide roots (z0) */
 			for (var y = 0; y < 3; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* gambo z1 + cappello z2 (allineati, poggiano corretti) */
+			/* stem z1 + cap z2 (aligned, rest correctly) */
 			for (var g = 0; g < 3; g++) {
 				pts.push({ z: 1, x: 4, y: g }, { z: 1, x: 6, y: g });
 				pts.push({ z: 2, x: 4, y: g }, { z: 2, x: 6, y: g });
@@ -1487,22 +1487,22 @@ var LAYOUT_BUILDERS = {
 				pts.push({ z: 1, x: 4, y: g }, { z: 1, x: 6, y: g });
 				pts.push({ z: 2, x: 4, y: g }, { z: 2, x: 6, y: g });
 			}
-			/* piede/collinetta ai lati (z0) */
+			/* foot/hillock on the sides (z0) */
 			for (var s = 0; s < 3; s++) pts.push({ z: 0, x: 0, y: s }, { z: 0, x: 10, y: s });
-			/* v0.9.2: dedupe — (0,0),(10,0),(0,1),(10,1) erano già nella
+			/* v0.9.2: dedupe — (0,0),(10,0),(0,1),(10,1) were already in the
 			   base 6×2 e venivano ripushate dalla collinetta. */
-			return dedupePts(pts); // 22 uniche
+			return dedupePts(pts); // 22 unique
 		}
 	},
 
 	'ship': {
 		'small': function () {
 			var pts = [];
-			/* chiglia + scafo + coperta (z0) */
+			/* keel + hull + deck (z0) */
 			for (var c = 1; c < 5; c++) pts.push({ z: 0, x: c * 2, y: 4 });
 			for (var s = 0; s < 6; s++) pts.push({ z: 0, x: s * 2, y: 3 });
 			for (var d = 0; d < 6; d++) pts.push({ z: 0, x: d * 2, y: 2 });
-			/* ponte rialzato z1 (poggia sulla coperta) */
+			/* raised bridge z1 (rests on the deck) */
 			for (var p = 1; p < 5; p++) pts.push({ z: 1, x: p * 2, y: 2 });
 			return pts; // 4 + 6 + 6 + 4 = 20
 		},
@@ -1521,13 +1521,13 @@ var LAYOUT_BUILDERS = {
 	'anchor': {
 		'small': function () {
 			var pts = [];
-			/* anello + asta (z0) */
+			/* ring + shaft (z0) */
 			for (var a = 0; a < 5; a++) pts.push({ z: 0, x: a * 2, y: 0 });
 			pts.push({ z: 0, x: 4, y: 1 }, { z: 0, x: 4, y: 2 });
 			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 4, y: 4 });
-			/* traversa */
+			/* crossbar */
 			for (var t = 0; t < 6; t++) pts.push({ z: 0, x: t * 2, y: 5 });
-			/* bracci */
+			/* arms */
 			pts.push({ z: 0, x: 0, y: 6 }, { z: 0, x: 10, y: 6 });
 			return evenTrim(pts); // 5+2+2+6+2 = 17 → 16
 		},
@@ -1548,7 +1548,7 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 0, x: 0, y: 2 }, { z: 0, x: 2, y: 2 }, { z: 0, x: 4, y: 2 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 8, y: 2 });
 			pts.push({ z: 0, x: 2, y: 0 }, { z: 0, x: 2, y: 1 }, { z: 0, x: 2, y: 3 }, { z: 0, x: 2, y: 4 });
 			pts.push({ z: 0, x: 6, y: 0 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 6, y: 3 }, { z: 0, x: 6, y: 4 });
-			/* perno rialzato (poggia sulla pala centrale z0) */
+			/* raised pivot (rests on the central blade z0) */
 			pts.push({ z: 1, x: 4, y: 2 });
 			return pts; // 13 + 1 = 14
 		},
@@ -1562,69 +1562,69 @@ var LAYOUT_BUILDERS = {
 			for (var o = 0; o < 5; o++) pts.push({ z: 0, x: o * 2, y: 2 });
 			for (var v = 0; v < 5; v++) pts.push({ z: 0, x: 4, y: v });
 			pts.push({ z: 1, x: 4, y: 2 });
-			/* v0.9.2: dedupe — il centro (0,4,2) era pushato da diagonale A,
+			/* v0.9.2: dedupe — center (0,4,2) was pushed by diagonal A,
 			   asse orizzontale e asse verticale → 3 tile nella stessa cella. */
-			return dedupePts(pts); // 18 uniche
+			return dedupePts(pts); // 18 unique
 		}
 	},
 
 	'harp': {
-		/* ARPA: colonna sinistra + braccio obliquo discendente + base
-		   piena con corde interne. Solo FULL. */
+		/* HARP: left column + descending oblique arm + base
+		   full base with inner strings. FULL only. */
 		'small': function () {
 			var pts = [];
-			/* colonna sinistra (z0) */
+			/* left column (z0) */
 			for (var y = 0; y < 5; y++) pts.push({ z: 0, x: 2, y: y });
-			/* base piena (z0) */
+			/* full base (z0) */
 			for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: 4 });
-			/* braccio obliquo: diagonale verso il basso-destra */
+			/* oblique arm: diagonal towards the bottom-right */
 			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 8, y: 1 });
 			/* corda interna (z0) */
 			pts.push({ z: 0, x: 4, y: 1 }, { z: 0, x: 4, y: 2 });
-			/* v0.9.2: dedupe — (0,2,4) era nella colonna E nella base. */
+			/* v0.9.2: dedupe — (0,2,4) was in the column E and the base. */
 			return evenTrim(dedupePts(pts)); // 15 uniche → 14
 		},
 		'medium': function () {
 			var pts = [];
-			/* colonna sinistra + base + braccio obliquo + corde doppie */
+			/* left column + base + oblique arm + double strings */
 			for (var y = 0; y < 6; y++) pts.push({ z: 0, x: 2, y: y });
 			for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: 5 });
 			pts.push({ z: 0, x: 4, y: 4 }, { z: 0, x: 6, y: 3 }, { z: 0, x: 8, y: 2 }, { z: 0, x: 10, y: 1 });
-			/* corde interne doppie */
+			/* double inner strings */
 			for (var y2 = 1; y2 < 5; y2++) {
 				pts.push({ z: 0, x: 4, y: y2 });
 				pts.push({ z: 0, x: 6, y: y2 });
 			}
-			/* v0.9.2: dedupe — (0,2,5) colonna+base, (0,6,3)/(0,4,4)
+			/* v0.9.2: dedupe — (0,2,5) column+base, (0,6,3)/(0,4,4)
 			   braccio+corde. */
 			return evenTrim(dedupePts(pts)); // 21 uniche → 20
 		}
 	},
 
 	'lyre': {
-		/* LIRA: due bracci laterali + traversa + piede al centro.
-		   v0.9.2: i bracci partono da y=1 così la traversa di y=0 non
-		   duplica (0,0) e (8,0) — prima la stessa cella riceveva 2
-		   tile → parità rotta e tile sovrapposte. Conteggi unici:
+		/* LYRE: two side arms + crossbar + center foot.
+		   v0.9.2: arms start at y=1 so the y=0 crossbar no longer
+		   duplicates (0,0) and (8,0) — previously the same cell got 2
+		   tiles → broken parity and overlapping tiles. Unique counts:
 		   small 6+5+3+2=16, medium 8+5+3+4=20. */
 		'small': function () {
 			var pts = [];
-			/* bracci (z0): y 1..3 (la traversa copre y=0) */
+			/* arms (z0): y 1..3 (the crossbar covers y=0) */
 			for (var y = 1; y < 4; y++) {
 				pts.push({ z: 0, x: 0, y: y });
 				pts.push({ z: 0, x: 8, y: y });
 			}
-			/* traversa in alto (z0) */
+			/* top crossbar (z0) */
 			for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: 0 });
 			/* base (z0) */
 			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 3 });
-			/* piede (z0) */
+			/* foot (z0) */
 			pts.push({ z: 0, x: 4, y: 4 }, { z: 0, x: 6, y: 4 });
 			return evenTrim(pts); // 16 uniche
 		},
 		'medium': function () {
 			var pts = [];
-			/* bracci più lunghi (z0): y 1..4 */
+			/* longer arms (z0): y 1..4 */
 			for (var y = 1; y < 5; y++) {
 				pts.push({ z: 0, x: 0, y: y });
 				pts.push({ z: 0, x: 8, y: y });
@@ -1638,41 +1638,41 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'skyscraper': {
-		/* GRATTACIELO: torre centrata su base larga, 4 piani che si
+		/* SKYSCRAPER: tower centered on a wide base, 4 tiers that
 		   restringono verso l'alto. Molte tile nascoste sotto → alto. */
 		'small': function () {
 			var pts = [];
-			/* base larga 6×4 (z0) */
+			/* wide 6×4 base (z0) */
 			for (var y = 0; y < 4; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* torre z1: 2×2 (x 4,6; y 1..2) */
+			/* tower z1: 2×2 (x 4,6; y 1..2) */
 			for (var y1 = 1; y1 < 3; y1++) {
 				pts.push({ z: 1, x: 4, y: y1 }, { z: 1, x: 6, y: y1 });
 			}
-			/* torre z2: 2×2 (x 4,6; y 1..2) */
+			/* tower z2: 2×2 (x 4,6; y 1..2) */
 			for (var y2 = 1; y2 < 3; y2++) {
 				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
 			}
-			/* vertice z3 */
+			/* apex z3 */
 			pts.push({ z: 3, x: 4, y: 1 }, { z: 3, x: 4, y: 2 });
 			return pts; // 24 + 4 + 4 + 2 = 34
 		},
 		'medium': function () {
 			var pts = [];
-			/* base larga 6×6 (z0) */
+			/* wide 6×6 base (z0) */
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* torre z1: 4×4 (x 2..8, y 1..4) */
+			/* tower z1: 4×4 (x 2..8, y 1..4) */
 			for (var y1 = 1; y1 < 5; y1++) {
 				for (var x1 = 2; x1 <= 8; x1 += 2) pts.push({ z: 1, x: x1, y: y1 });
 			}
-			/* torre z2: 2×3 (x 4,6; y 2..4) */
+			/* tower z2: 2×3 (x 4,6; y 2..4) */
 			for (var y2 = 2; y2 < 5; y2++) {
 				pts.push({ z: 2, x: 4, y: y2 }, { z: 2, x: 6, y: y2 });
 			}
-			/* torre z3: 1×2 (x 4; y 3..4) */
+			/* tower z3: 1×2 (x 4; y 3..4) */
 			for (var y3 = 3; y3 < 5; y3++) pts.push({ z: 3, x: 4, y: y3 });
 			/* antenna z4 */
 			pts.push({ z: 4, x: 4, y: 3 });
@@ -1681,66 +1681,66 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'crane': {
-		/* GRU (uccello): ali diagonali spiegate + corpo + collo/becco.
-		   Tutto a z0 con un piccolo crest rialzato al centro. */
+		/* CRANE (bird): spread diagonal wings + body + neck/beak.
+		   All at z0 with a small raised crest at the center. */
 		'small': function () {
 			var pts = [];
-			/* ali spiegate (z0), simmetriche attorno a x=4 */
+			/* spread wings (z0), symmetrical around x=4 */
 			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 2, y: 0 });
 			pts.push({ z: 0, x: 8, y: 1 }, { z: 0, x: 6, y: 0 });
-			/* corpo (z0) */
+			/* body (z0) */
 			for (var x = 1; x < 4; x++) pts.push({ z: 0, x: x * 2, y: 1 });
 			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 2 });
 			/* collo + becco */
 			pts.push({ z: 0, x: 2, y: 3 }, { z: 0, x: 2, y: 4 });
-			/* coda */
+			/* tail */
 			pts.push({ z: 0, x: 8, y: 2 });
-			/* crest rialzato (poggia sul corpo z0) */
+			/* raised crest (rests on the body z0) */
 			pts.push({ z: 1, x: 4, y: 1 });
 			return evenTrim(pts); // 4 + 6 + 2 + 1 + 1 = 14 → 14
 		},
 		'medium': function () {
 			var pts = [];
-			/* ali più lunghe */
+			/* longer wings */
 			pts.push({ z: 0, x: 0, y: 2 }, { z: 0, x: 2, y: 1 }, { z: 0, x: 0, y: 1 });
 			pts.push({ z: 0, x: 8, y: 2 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 10, y: 1 });
-			/* corpo allungato */
+			/* elongated body */
 			for (var x = 1; x < 5; x++) pts.push({ z: 0, x: x * 2, y: 2 });
 			for (var x2 = 1; x2 < 4; x2++) pts.push({ z: 0, x: x2 * 2, y: 3 });
-			/* collo lungo + testa */
+			/* long neck + head */
 			pts.push({ z: 0, x: 2, y: 4 }, { z: 0, x: 2, y: 5 }, { z: 0, x: 4, y: 5 });
-			/* coda */
+			/* tail */
 			pts.push({ z: 0, x: 8, y: 3 });
-			/* crest doppio rialzato */
+			/* raised double crest */
 			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
-			/* v0.9.2: dedupe — (0,8,2) era nell'ala destra E nel corpo. */
-			return dedupePts(pts); // 18 uniche
+			/* v0.9.2: dedupe — (0,8,2) was in the right wing AND the body. */
+			return dedupePts(pts); // 18 unique
 		}
 	},
 
 	'temple_steps': {
-		/* v0.9.2 — STACKING CLASSICO A OFFSET (ziggurat). Ogni piano è
-		   CENTRATO e si appoggia sull'INCROCIO del piano sotto. Le HALF
-		   del piano 1 partono dalla FILA 0 della base → tagliano a metà
-		   la prima fila del piano base (niente "fluttuazione" / file
-		   intere sotto le half), mentre le righe inferiori della base
-		   restano intere come zoccolo stabile → bordi liberi e abbinabili.
-		     z0 FULL (x pari)            base griglia
-		     z1 HALF (x dispari)         da y=0 in giù, incroci delle FULL
-		     z2 FULL (x pari)            incroci delle HALF, centrato
-		   Conteggi multipli di 4: small 24, medium 40, large 52. */
+		/* v0.9.2 — CLASSIC OFFSET STACKING (ziggurat). Each tier is
+		   CENTERED and rests on the CROSSING of the tier below. The
+		   tier-1 HALF starts from ROW 0 of the base → they cut the
+		   first base row in half (no "floating" / full rows under the
+		   halves), while the lower base rows stay full as a stable
+		   plinth → free and matchable edges.
+		     z0 FULL (even x)            base grid
+		     z1 HALF (odd x)             from y=0 down, FULL crossings
+		     z2 FULL (even x)            HALF crossings, centered
+		   Counts multiple of 4: small 24, medium 40, large 52. */
 		'small': function () {
 			var pts = [];
 			/* z0: FULL 4×4 (x 0..6, y 0..3) */
 			for (var y = 0; y < 4; y++) {
 				for (var x = 0; x < 4; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: HALF 3×2 a partire da y=0 (tagliano a metà la fila 0):
-			   half y0 poggia su FULL y0,y1; half y1 su FULL y1,y2 */
+			/* z1: HALF 3×2 starting from y=0 (cut row 0 in half):
+			   half y0 rests on FULL y0,y1; half y1 on FULL y1,y2 */
 			for (var y1 = 0; y1 < 2; y1++) {
 				for (var x1 = 1; x1 <= 5; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
 			}
-			/* z2: FULL 2×1 (incroci delle half) */
+			/* z2: FULL 2×1 (half crossings) */
 			pts.push({ z: 2, x: 2, y: 0 }, { z: 2, x: 4, y: 0 });
 			return pts; // 16 + 6 + 2 = 24
 		},
@@ -1750,15 +1750,15 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 5; y++) {
 				for (var x = 0; x < 5; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: HALF 4×3 a partire da y=0 (tagliano la fila 0):
-			   half y0→FULL y0,1; y1→1,2; y2→2,3 — fila y4 zoccolo.
-			   Le HALF y0 sono SEMPRE libere (nessun piano sopra) e le
-			   FULL z0 dei bordi laterali lo sono altrettanto, quindi ci
-			   sono abbastanza tile libere abbinabili (livello giocabile). */
+			/* z1: HALF 4×3 starting from y=0 (cut row 0 in half):
+			   half y0→FULL y0,1; y1→1,2; y2→2,3 — row y4 plinth.
+			   The y0 HALFs are ALWAYS free (no tier above) and the
+			   z0 FULL side edges are too, so there are enough
+			   matchable free tiles (playable level). */
 			for (var y1 = 0; y1 < 3; y1++) {
 				for (var x1 = 1; x1 <= 7; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
 			}
-			/* z2: FULL 3×1 centrato (full x2,4,6 a y1 su half y1,y2) */
+			/* z2: FULL 3×1 centered (full x2,4,6 at y1 on half y1,y2) */
 			for (var x2 = 2; x2 <= 6; x2 += 2) pts.push({ z: 2, x: x2, y: 1 });
 			return pts; // 25 + 12 + 3 = 40
 		},
@@ -1768,14 +1768,14 @@ var LAYOUT_BUILDERS = {
 			for (var y = 0; y < 6; y++) {
 				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
 			}
-			/* z1: HALF 5×3 a partire da y=0 (tagliano la fila 0):
-			   half y0→FULL y0,1; y1→1,2; y2→2,3 — y4,y5 zoccolo */
+			/* z1: HALF 5×3 starting from y=0 (cut row 0 in half):
+			   half y0→FULL y0,1; y1→1,2; y2→2,3 — y4,y5 plinth */
 			for (var y1 = 0; y1 < 3; y1++) {
 				for (var x1 = 1; x1 <= 9; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
 			}
-			/* z2: FULL 4×1 (x2,4,6,8 a y1, sugli incroci delle half y1,y2) */
+			/* z2: FULL 4×1 (x2,4,6,8 at y1, on the y1,y2 half crossings) */
 			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 2, x: x2, y: 1 });
-			/* z3: apice (poggia sulla full x4,y1) */
+			/* z3: apex (rests on the full x4,y1) */
 			pts.push({ z: 3, x: 4, y: 1 });
 			return pts; // 36 + 15 + 4 + 1 = 56
 		}

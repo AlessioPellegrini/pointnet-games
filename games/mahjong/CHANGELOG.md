@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 0.9.4** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 0.9.5** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -32,7 +32,13 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v0.9.4 — UI mobile compatta + action drawer (HEAD)
+### v0.9.5 — Precompute solvability + staging ridotto + commenti in inglese (HEAD)
+- **Precompute solvability (Piano A)**: `tools/build-solvable.js` genera i 300 livelli offline e salva `solvable-levels.json` (seed vincente + metriche difficoltà). `generateLevel` legge dal JSON: **nessun DFS a runtime** → i livelli si caricano in millisecondi anche su mobile (prima 3-6s sui livelli densi).
+- **Metriche difficoltà**: nel JSON per ogni livello: sepoltura %, tile libere all'avvio, branch morti (deadlock potential), maxZ.
+- **Staging ridotto**: `maxStaging` 4→3→2 diventa **3→2→1** (più strategia classica).
+- **Commenti tradotti in inglese** in tutti i file del gioco (coerenza col resto del progetto).
+
+### v0.9.4 — UI mobile compatta + action drawer
 - **Header rimosso** (titolo già nella splash): più spazio verticale al board.
 - **Action drawer**: Hint/Undo/Shuffle/New/Level spostati in un pannello apribile con ⚙️ (fixed bottom, slide-up) — il board occupa tutto lo spazio che prima era dell'action bar.
 - **Staging box più leggibile**: slot ingranditi (44×52 desktop, 38×46 mobile) e `min-height` ridotto → più spazio senza rimpicciolire le tile in staging.

@@ -4,7 +4,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.1.8
+Stable tag: 0.1.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -100,6 +100,11 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 0.1.9 =
+* Mahjong Arcade updated to v0.9.5 - precomputed solvability (no runtime DFS), reduced staging box (3->2->1) for more strategy, compact mobile UI (action drawer, bigger staging slots)
+* Mahjong Arcade engine refinements: offset-stack rendering fixes, zero duplicate tile coordinates, HALF-heavy blackout levels from level 101
+* Mahjong Arcade comments translated to English for consistency
 
 = 0.1.8 =
 * Mahjong Arcade updated to v0.8.0 — game.js split into 4 modules (app/ui/input/progress)

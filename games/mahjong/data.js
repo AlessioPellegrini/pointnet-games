@@ -78,14 +78,14 @@ function buildStepRanges(count) {
 var STEP_RANGES = buildStepRanges(50);
 
 var ORDERED_STEPS = [
-	/* covered = NUMERO DI TILE COPERTE VISIBILI (da v0.4.0: una sola
-	   tile per coppia è coperta, la gemella è scoperta).
-	   quads = ogni simbolo ha 4 copie (2 coppie) — devi ricordare
-	   se una coppia è già uscita e la gemella è ancora in tavola.
-	   NOTA: i set tematici (default/red/green/blue/gold/dark) restano
-	   la norma; il set classic compare solo OGNI TANTO per non perdere
-	   il look emoji carino.
-	   v0.5.0: 50 step — 9 nuovi layout builder (pagoda, butterfly,
+	/* covered = NUMBER OF VISIBLE COVERED TILES (since v0.4.0: one tile
+	   per pair is covered, its twin is face-up).
+	   quads = each symbol has 4 copies (2 pairs) — you have to remember
+	   if a pair already came out and its twin is still on the board.
+	   NOTE: the themed sets (default/red/green/blue/gold/dark) remain
+	   the norm; the classic set appears only OCCASIONALLY so we don't
+	   lose the cute emoji look.
+	   v0.5.0: 50 steps — 9 new layout builders (pagoda, butterfly,
 	   arrow, star, hourglass, castle, zigzag, rings, temple). */
 	{ layout: 'dragon',      variant: 'small',  symSet: 'default', covered: 0, maxStaging: 4 },
 	{ layout: 'cross',       variant: 'small',  symSet: 'red',     covered: 0, maxStaging: 4 },
@@ -125,14 +125,14 @@ var ORDERED_STEPS = [
 	{ layout: 'wall',        variant: 'xl',     symSet: 'default', covered: 16, maxStaging: 2 },
 	{ layout: 'star',        variant: 'medium', symSet: 'classic', covered: 4, maxStaging: 2 },
 	{ layout: 'castle',      variant: 'small',  symSet: 'classic-dark', covered: 12, maxStaging: 2 },
-	/* v0.5.0 — 3 nuovi layout figura (zigzag, rings, temple) */
+	/* v0.5.0 — 3 new figure layouts (zigzag, rings, temple) */
 	{ layout: 'zigzag',      variant: 'small',  symSet: 'dark',    covered: 4, maxStaging: 3 },
 	{ layout: 'rings',       variant: 'small',  symSet: 'blue',    covered: 6, maxStaging: 3 },
 	{ layout: 'temple',      variant: 'small',  symSet: 'gold',    covered: 6, maxStaging: 3 },
 	{ layout: 'zigzag',      variant: 'medium', symSet: 'dark',    covered: 8, maxStaging: 2 },
 	{ layout: 'rings',       variant: 'medium', symSet: 'blue',    covered: 10, maxStaging: 2 },
 	{ layout: 'temple',      variant: 'medium', symSet: 'gold',    covered: 12, maxStaging: 2 },
-	/* QUAD MODE — mix: la maggior parte usa i temi, classic ogni tanto */
+	/* QUAD MODE — mix: mostly themed sets, classic every so often */
 	{ layout: 'dragon',      variant: 'small',  symSet: 'red',     covered: 0, maxStaging: 4, quads: true },
 	{ layout: 'cross',       variant: 'small',  symSet: 'classic', covered: 2, maxStaging: 4, quads: true },
 	{ layout: 'pyramid',     variant: 'small',  symSet: 'green',   covered: 4, maxStaging: 4, quads: true },
@@ -146,15 +146,15 @@ var ORDERED_STEPS = [
 var LAST_LEVEL_DEF = null;
 
 /* ============================================================
-   DIFFICOLTÀ (v0.5.0) — computeDifficulty() dà un punteggio
-   oggettivo ad ogni combinazione layout×variante, calcolato su
-   parametri geometrici (non dipende dal shuffle):
-     - tileCount : più tile = più lungo
-     - maxZ      : più livelli = più tile nascoste
-     - blocked   : tile a bordo con entrambi i lati occupati
-     - covered   : tile coperte visibili (memoria)
-   Base 0..100 divisa in: piccola (0-24), media (25-49),
-   grande (50-74), molto grande (75-100).
+   DIFFICULTY (v0.5.0) — computeDifficulty() gives an objective
+   score to every layout×variant combination, computed from
+   geometric parameters (independent of the shuffle):
+     - tileCount : more tiles = longer
+     - maxZ      : more tiers = more hidden tiles
+     - blocked   : edge tile with both sides occupied
+     - covered   : visible covered tiles (memory)
+   Base 0..100 split into: small (0-24), medium (25-49),
+   large (50-74), very large (75-100).
    ============================================================ */
 function computeDifficulty(layout, covered) {
 	var byZ = {}, maxZ = 0;
@@ -163,7 +163,7 @@ function computeDifficulty(layout, covered) {
 		if (z > maxZ) maxZ = z;
 		(byZ[z] = byZ[z] || []).push(layout[i]);
 	}
-	/* blocked: tile a z>0 o con vicino a sx E dx sulla stessa z */
+	/* blocked: tile at z>0 or with a neighbour on BOTH sides on the same z */
 	var blocked = 0;
 	for (var j = 0; j < layout.length; j++) {
 		var t = layout[j];
@@ -172,7 +172,7 @@ function computeDifficulty(layout, covered) {
 	var tilePart = Math.min(60, Math.round(layout.length * 60 / 108));
 	var layerPart = Math.min(20, maxZ * 7);
 	var coverPart = Math.min(15, covered * 3);
-	var freePart = 0; /* stimato: più tile bloccate sopra → più chiuse */
+	var freePart = 0; /* estimated: more blocked tiles above → more closed */
 	if (maxZ >= 3) freePart += 5;
 	if (layout.length >= 80) freePart += 5;
 	var score = tilePart + layerPart + coverPart + freePart;
@@ -180,30 +180,30 @@ function computeDifficulty(layout, covered) {
 }
 
 /* ============================================================
-   PROGRESSIONE AUTOMATICA (v0.6.0) — genera 300 livelli con
-   massima VARIETÀ e curva di difficoltà reale.
-   - Pool: TUTTE le combinazioni layout×variante, ordinate per
-     tile-count giocabile (multipli di 4).
-   - FLOOR GLOBALE crescente: quantile dei tile-count REALI del
-     pool senza buchi (tileLevels), curva progress^2.2 → il
-     trend del count sale verso le mega-table finali.
-   - Tra livelli adiacenti è permessa solo una piccola oscillazione
-     di -8 tile (per VARIETÀ), mai cali drastici.
-   - PICK round-robin GLOBALE sulla banda [minTiles, bandMax]:
-     MAI due layout uguali di fila.
-   - Banda bandMax = minTiles+16 (cap 108): il layout a 124
-     (spiral/medium, unico) è ESCLUSO fino al FINALE BOSS negli
-     ultimi 3 livelli.
-   - covered: proporzionale al livello e alla dimensione del layout.
-   - maxStaging: 4 → 3 → 2 con l'avanzare.
-   - Quads: da livello 200+, layout ≥ 60 tile, alternati.
+   AUTOMATIC PROGRESSION (v0.6.0) — generates 300 levels with
+   maximum VARIETY and a real difficulty curve.
+   - Pool: ALL layout×variant combinations, sorted by
+     playable tile-count (multiples of 4).
+   - GROWING GLOBAL FLOOR: quantile of the REAL pool tile-counts
+     with no gaps (tileLevels), progress^2.2 curve → the count
+     trend rises towards the final mega-tables.
+   - Between adjacent levels only a small -8 tile swing is
+     allowed (for VARIETY), never drastic drops.
+   - GLOBAL round-robin PICK on the [minTiles, bandMax] band:
+     NEVER two equal layouts in a row.
+   - Band bandMax = minTiles+16 (capped 108): the 124-tile layout
+     (spiral/medium, unique) is EXCLUDED until the FINAL BOSS in
+     the last 3 levels.
+   - covered: proportional to the level and layout size.
+   - maxStaging: 4 → 3 → 2 as you advance.
+   - Quads: from level 200+, layouts ≥ 60 tiles, alternating.
    ============================================================ */
 function buildProgression(count) {
 	var out = [];
-	/* v0.9.2: un layout è blackout-compatibile se ha ALMENO una tile
-	   z0 libera all'avvio (auto-reveal). labyrinth/medium dopo la
-	   dedupe era finito su un livello blackout con base 100% coperta
-	   → nessuna tile oscurata libera → partenza bloccata. */
+	/* v0.9.2: a layout is blackout-compatible if it has AT LEAST one
+	   free z0 tile at start (auto-reveal). labyrinth/medium after the
+	   dedupe ended up on a blackout level with a 100% covered base
+	   → no free obscured tile → blocked start. */
 	function hasFreeBase(layout) {
 		var has = {};
 		for (var h = 0; h < layout.length; h++) {
@@ -213,20 +213,20 @@ function buildProgression(count) {
 		for (var j = 0; j < layout.length; j++) {
 			var t = layout[j];
 			if (t.z !== 0) continue;
-			if (has['1,' + t.x + ',' + t.y]) continue;                 /* FULL sopra */
+			if (has['1,' + t.x + ',' + t.y]) continue;                 /* FULL above */
 			var hh = has['1,' + (t.x - 1) + ',' + t.y] ||
 			         has['1,' + (t.x + 1) + ',' + t.y] ||
 			         has['1,' + (t.x - 1) + ',' + (t.y - 1)] ||
 			         has['1,' + (t.x + 1) + ',' + (t.y - 1)];
-			if (hh && hh.isHalf) continue;                             /* HALF sopra */
+			if (hh && hh.isHalf) continue;                             /* HALF above */
 			var left = has['0,' + (t.x - 2) + ',' + t.y];
 			var right = has['0,' + (t.x + 2) + ',' + t.y];
-			if (left && right) continue;                               /* bloccata laterale */
+			if (left && right) continue;                               /* laterally blocked */
 			return true;
 		}
 		return false;
 	}
-	/* pool di tutte le combinazioni layout×variante */
+	/* pool of all layout×variant combinations */
 	var pool = [];
 	Object.keys(LAYOUT_BUILDERS).forEach(function (layout) {
 		Object.keys(LAYOUT_BUILDERS[layout]).forEach(function (variant) {
@@ -247,10 +247,9 @@ function buildProgression(count) {
 	});
 	pool.sort(function (a, b) { return a.playableTiles - b.playableTiles || a.score - b.score || a.tiles - b.tiles; });
 
-	/* Tile-count unici del pool in ordine (senza buchi): il floor di
-	   crescita verrà scelto come quantile di questo elenco, così non
-	   atterra mai in un valore inesistente fra i layout (es. non c'è
-	   nessun layout fra 108 e 124). */
+	/* Unique pool tile-counts in order (no gaps): the growth floor is
+	   picked as a quantile of this list, so it never lands on a value
+	   that no layout has (e.g. there is no layout between 108 and 124). */
 	var tileLevels = [];
 	var seenTileLevel = {};
 	for (var tl = 0; tl < pool.length; tl++) {
@@ -259,87 +258,87 @@ function buildProgression(count) {
 	}
 	tileLevels.sort(function (a, b) { return a - b; });
 
-	/* 4 zone di difficoltà (quartili del pool ordinato) */
+	/* 4 difficulty zones (quartiles of the sorted pool) */
 	var zones = [[], [], [], []];
 	for (var zi = 0; zi < pool.length; zi++) {
 		zones[Math.min(3, Math.floor(zi / pool.length * 4))].push(pool[zi]);
 	}
-	/* shuffle iniziale per zona: varia l'ordine di partenza */
+	/* initial shuffle per zone: varies the starting order */
 	var rng = createRng(1234);
 	for (var zi2 = 0; zi2 < zones.length; zi2++) shuffle(zones[zi2], rng);
 
-	/* half-cover veri, ordinati per score (per la zona giusta) */
+	/* real half-cover layouts, sorted by score (for the right zone) */
 	var halfPool = pool.filter(function (p) { return p.isHalf; });
 	var halfCount = 0;
 
 	var symSets = ['default', 'red', 'green', 'blue', 'gold', 'dark', 'classic', 'classic-dark'];
-	/* contatore round-robin globale */
+	/* global round-robin counter */
 	var rr0 = 0;
 	var prevLayout = null;
 	var lastTiles = 0;
-	/* v0.9.3: garanzia di copertura dei 38 layout — la preferenza HALF
-	   sui blackout può far uscire per sempre un layout dalla rotazione
-	   (es. crown, unico a 52 tile). Teniamo traccia di quelli già usati. */
+	/* v0.9.3: coverage guarantee for the 38 layouts — the HALF preference
+	   on blackouts could permanently drop a layout from rotation
+	   (e.g. crown, unique at 52 tiles). Track the ones already used. */
 	var usedLayouts = {};
-	var blackCount = 0; /* contatore blackout per l'alternanza HALF/freeBase */
+	var blackCount = 0; /* blackout counter for the HALF/freeBase alternation */
 
 	for (var n = 0; n < count; n++) {
 		var progress = n / count;
-		/* Zona solo per la selezione del symSet (mai indietro). */
+		/* Zone only for symSet selection (never back). */
 		var zoneIdx = Math.min(3, Math.floor(progress * 4));
 
-		/* v0.8.2: il TREND del tile-count è sempre crescente (i livelli
-		   avanzano verso le mega-table finali) ma tra livelli adiacenti
-		   è ammessa una piccola oscillazione di -8 tile. Questo tiene
-		   la VARIETÀ: il pool ha buchi (56→60→64→68→76→80→84→92→96) e
-		   pochi layout per fascia; con un no-drop rigoroso si resta
-		   incastrati sul minimo layout della fascia per decine di
-		   livelli. Il FLOOR GLOBALE è un quantile dei tile-count reali
-		   (tileLevels) con curva MOLTO RALLENTATA (progress^2.2) che
-		   garantisce il trend crescente di fondo.
-		   Banda di scelta: [minTiles, bandMax] dove
+		/* v0.8.2: the tile-count TREND is always growing (levels advance
+		   towards the final mega-tables) but a small -8 tile swing is
+		   allowed between adjacent levels. This keeps VARIETY: the pool
+		   has gaps (56→60→64→68→76→80→84→92→96) and few layouts per
+		   band; with a strict no-drop you'd get stuck on the band's
+		   minimum layout for dozens of levels. The GLOBAL FLOOR is a
+		   quantile of the real tile-counts (tileLevels) with a VERY
+		   SLOW curve (progress^2.2) that guarantees the underlying
+		   growing trend.
+		   Choice band: [minTiles, bandMax] where
 		     - minTiles = max(floorTiles, lastTiles - 8)  → trend +
-		       piccola oscillazione per varietà
-		     - bandMax  = minTiles + 16 (cap 108 finché floor<124) →
-		       più layout disponibili per fascia; il layout a 124
-		       (spiral/medium, unico) resta fuori fino al FINALE BOSS
-		       nell'ultimo 1%. */
+		       small swing for variety
+		     - bandMax  = minTiles + 16 (capped at 108 until floor<124) →
+		       more layouts available per band; the 124-tile layout
+		       (spiral/medium, unique) stays out until the FINAL BOSS
+		       in the last 1%. */
 		var floorIdx = Math.min(tileLevels.length - 1, Math.floor(Math.pow(progress, 2.2) * (tileLevels.length - 1)));
 		if (progress >= 0.99) floorIdx = tileLevels.length - 1;
 		var floorTiles = tileLevels[floorIdx];
 		var minTiles = Math.max(floorTiles, lastTiles - 8);
 		var bandMax = (floorTiles >= 124) ? 124 : Math.min(108, minTiles + 16);
 
-		/* v0.9 blackout: piano base (z=0) tutto oscurato, si auto-rivela.
-		   v0.9.3: anticipato da livello ~101 in poi (prima era solo
-		   225+) e alternato — così i layout HALF piccoli/medi entrano
-		   in gioco anche a livelli intermedi. */
+		/* v0.9 blackout: base plane (z=0) all obscured, auto-reveals.
+		   v0.9.3: moved earlier to ~level 101+ (was only 225+ before)
+		   and alternating — so the small/medium HALF layouts appear
+		   even at intermediate levels. */
 		var blackout = n >= 100 && (n % 2 === 0);
 
 		var candidates = pool.filter(function (item) {
 			return item.playableTiles >= minTiles && item.playableTiles <= bandMax;
 		});
 		if (!candidates.length) {
-			/* Fascia vuota (buchi del pool): apre fino a minTiles+24,
-			   mai a 124 prima del finale. */
+			/* Empty band (pool gaps): opens up to minTiles+24,
+			   never to 124 before the final. */
 			candidates = pool.filter(function (item) {
 				return item.playableTiles >= minTiles && item.playableTiles <= Math.min(108, minTiles + 24);
 			});
 		}
 		if (!candidates.length) {
-			/* Ultima rete: resta sullo stesso tile-count. */
+			/* Last resort: stay on the same tile-count. */
 			candidates = pool.filter(function (item) {
 				return item.playableTiles === lastTiles;
 			});
 		}
-		/* v0.9.2: i livelli blackout devono avere almeno una tile z0
-		   libera all'avvio (freeBase) — altrimenti nessuna tile
-		   oscurata si rivela e il livello parte bloccato (es.
-		   labyrinth/medium su L275 dopo la dedupe).
-		   v0.9.3: PREFERISCI i layout HALF (effetto "half sopra base
-		   oscurata", richiesto) ALTERNATO — metà dei blackout usa un
-		   HALF con base libera, metà un qualsiasi freeBase, così
-		   l'effetto è frequente ma la varietà dei layout FULL resta. */
+		/* v0.9.2: blackout levels must have at least one free z0 tile
+		   at start (freeBase) — otherwise no obscured tile can reveal
+		   and the level starts blocked (e.g. labyrinth/medium on L275
+		   after the dedupe).
+		   v0.9.3: PREFER the HALF layouts (the "half above obscured
+		   base" effect, requested) ALTERNATED — half of the blackouts
+		   use a HALF with a free base, half use any freeBase, so the
+		   effect is frequent but the FULL layout variety stays. */
 		if (blackout) {
 			var wantHalf = (blackCount % 2 === 0);
 			var halfFb = candidates.filter(function (c) { return c.isHalf && c.freeBase; });
@@ -352,7 +351,7 @@ function buildProgression(count) {
 			blackCount++;
 		}
 
-		/* round-robin sulla rosa dei candidati: variazione senza blocchi */
+		/* round-robin over the candidate set: variation without locks */
 		var idx = rr0 % candidates.length;
 		var item = candidates[idx];
 		var guard = 0;
@@ -364,8 +363,8 @@ function buildProgression(count) {
 		rr0++;
 		prevLayout = item.layout;
 
-		/* half-cover ogni 7 livelli: forzato SOLO se compatibile con la
-		   banda di crescita (niente cali e niente salti precoci). */
+		/* half-cover every 7 levels: forced ONLY if compatible with the
+		   growth band (no drops, no early jumps). */
 		var forceHalf = ((n + 1) % 7 === 0);
 		if (forceHalf && halfPool.length) {
 			var halfCandidates = halfPool.filter(function (p) {
@@ -383,9 +382,9 @@ function buildProgression(count) {
 				item = halfCandidates[hIdx];
 				halfCount++;
 				prevLayout = item.layout;
-				/* v0.9.3: se blackout e il half scelto non ha base
-				   libera (es. halfcover/xl), ripiega su un HALF
-				   freeBase o su un qualsiasi freeBase della banda. */
+				/* v0.9.3: if blackout and the chosen half has no free
+				   base (e.g. halfcover/xl), fall back to a HALF
+				   freeBase or any freeBase in the band. */
 				if (blackout && !item.freeBase) {
 					var hb2 = candidates.filter(function (c) { return c.isHalf && c.freeBase; });
 					if (!hb2.length) hb2 = candidates.filter(function (c) { return c.freeBase; });
@@ -397,11 +396,11 @@ function buildProgression(count) {
 			}
 		}
 
-		/* v0.9.3: garanzia di copertura — se ci sono layout mai usati
-		   che rientrano nella banda corrente (e rispettano freeBase
-		   nei blackout), scegli quello con meno tile. Previene
-		   l'esclusione permanente di layout piccoli (es. star, harp)
-		   dovuta alla preferenza HALF / rotazione blackout. */
+		/* v0.9.3: coverage guarantee — if there are layouts never used
+		   that fit the current band (and respect freeBase on
+		   blackouts), pick the one with fewest tiles. Prevents the
+		   permanent exclusion of small layouts (e.g. star, harp)
+		   caused by the HALF preference / blackout rotation. */
 		var unused = pool.filter(function (c) {
 			if (usedLayouts[c.layout]) return false;
 			if (c.playableTiles < minTiles || c.playableTiles > bandMax) return false;
@@ -417,14 +416,14 @@ function buildProgression(count) {
 
 		lastTiles = item.playableTiles;
 
-		/* covered: cresce col livello ma mai oltre floor(tiles/6) coppie */
+		/* covered: grows with the level but never beyond floor(tiles/6) pairs */
 		var maxCov = Math.max(2, Math.min(8, Math.floor(item.playableTiles / 6)));
 		var cov = Math.min(maxCov, Math.floor(progress * maxCov * 1.3));
 
 		/* maxStaging: 4 (1-150) → 3 (151-225) → 2 (226-300) */
 		var staging = n < 150 ? 4 : (n < 225 ? 3 : 2);
 
-		/* quads: solo livelli ≥ 200, layout ≥ 60 tile, alternati */
+		/* quads: only levels ≥ 200, layouts ≥ 60 tiles, alternating */
 		var qt = item.playableTiles;
 		var quads = n >= 199 && qt >= 60 && (n % 2 === 0);
 
@@ -444,7 +443,7 @@ function buildProgression(count) {
 	return out;
 }
 
-/* Genera la progressione completa una sola volta (lazy). */
+/* Generate the full progression once (lazy). */
 var PROGRESSION = null;
 function ensureProgression() {
 	if (!PROGRESSION) PROGRESSION = buildProgression(300);
@@ -502,10 +501,10 @@ function generateLevel(levelIndex) {
 	}
 
 	var symbols = SYMBOL_SETS[level.symSet] || SYMBOL_SETS['default'];
-	/* v0.6.0: i set tematici contengono simboli DUPLICATI (es. "gold"
-	   ha 🦁 due volte). In quad mode servono pochi simboli (max ~32),
-	   quindi un duplicato produrrebbe 4+4=8 copie dello stesso simbolo
-	   invece di 4. Dedup: usiamo solo i simboli unici del set. */
+	/* v0.6.0: themed sets contain DUPLICATED symbols (e.g. "gold"
+	   has 🦁 twice). In quad mode only a few symbols are needed (max
+	   ~32), so a duplicate would produce 4+4=8 copies of the same
+	   symbol instead of 4. Dedup: use only the unique set symbols. */
 	var uniqueSymbols = [];
 	var seenSym = {};
 	for (var u = 0; u < symbols.length; u++) {
@@ -552,11 +551,11 @@ function generateLevel(levelIndex) {
 			});
 		}
 
-		/* v0.9.3 playability guard: dopo il covered, deve esistere ALMENO
-		   una coppia di tile libere (isFree, non coperta) — altrimenti
-		   lo shuffle viene RIGIRATO. Senza questo check, covered casuale
-		   può coprire tutte le potenziali coppie e il livello parte
-		   bloccato (come capitava sul livello 175). */
+		/* v0.9.3 playability guard: after covered, there must be AT LEAST
+		   one pair of free tiles (isFree, not covered) — otherwise the
+		   shuffle is RE-ROLLED. Without this check, random covered can
+		   hide every potential pair and the level starts blocked (as
+		   happened on level 175). */
 		function hasFreePair() {
 			var freeSym = {};
 			for (var p = 0; p < tiles.length; p++) {
@@ -618,11 +617,11 @@ function applyFaceDown(tiles, numPairs) {
 	}
 }
 
-/* BLACKOUT (v0.9): oscura TUTTE le tile del piano base (z=0).
-   Ogni tile oscurata è inerte finché non diventa LIBERA (isFree):
-   l'auto-reveal in ui.js la rivela appena non ha più tile sopra e
-   almeno un lato aperto. COESISTE con covered (memory random):
-   una tile z=0 può essere sia obscured che faceDown. */
+/* BLACKOUT (v0.9): obscures ALL base-plane tiles (z=0).
+   Each obscured tile stays inert until it becomes FREE (isFree):
+   the auto-reveal in ui.js reveals it as soon as it has no tiles
+   above and at least one open side. COEXISTS with covered (random
+   memory): a z=0 tile can be both obscured and faceDown. */
 function applyBlackout(tiles) {
 	for (var i = 0; i < tiles.length; i++) {
 		if (tiles[i].z === 0) tiles[i].obscured = true;

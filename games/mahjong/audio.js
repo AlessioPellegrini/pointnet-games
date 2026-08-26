@@ -83,8 +83,8 @@ function pauseMusic() {
 
 function toggleMusic() {
 	if (!audioState.player) initAudio();
-	/* Toggle tra "muto" e "con audio": mai riavviare la traccia,
-	   solo volume 0 / volume precedentemente scelto. */
+	/* Toggle between "muted" and "with audio": never restart the track,
+	   just volume 0 / the previously chosen volume. */
 	audioState.muted = !audioState.muted;
 	if (audioState.playing) {
 		audioState.player.volume = audioState.muted ? 0 : audioState.volume;

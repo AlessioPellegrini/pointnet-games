@@ -150,8 +150,8 @@
 	   resize is handled by refitUntilStable() inside startGame(), so a
 	   single rAF is enough — double rAF only delayed the board. */
 	function startAfterSplash() {
-		/* Avvia la colonna sonora: qui c'è una user gesture reale
-		   (click su PLAY / "GIOCA" del plugin) → autoplay policy ok. */
+		/* Start the background music: here we have a real user gesture
+		   (PLAY / plugin "GIOCA" click) so the autoplay policy is ok. */
 		if (typeof playMusic === 'function') playMusic();
 		requestAnimationFrame(startGame);
 	}

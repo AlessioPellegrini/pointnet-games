@@ -135,8 +135,8 @@
 		}
 
 		/* Game over: 4 tiles in the box without any match.
-		   Il livello NON cambia (startGame rigioca lo stesso) →
-		   il bottone deve dirlo: "Riprova". */
+		   The level does NOT change (startGame replays the same) →
+		   the button must say: "Retry". */
 		if (!matched && app.staging.length >= MAX_STAGING) {
 			stopTimer();
 			modalTitle.textContent = '💀 Staging Full!';
@@ -159,8 +159,8 @@
 	function handleTileClick(tile) {
 		if (app.autoMatching) return;
 		if (tile.removed || tile.staging) return;
-		/* v0.9 blackout: le tile oscurate sono INERTI — si rivelano da
-		   sole appena libere (auto-reveal in ui.js), non con un click. */
+		/* v0.9 blackout: obscured tiles are INERT — they reveal on their
+		   own once free (auto-reveal in ui.js), not on click. */
 		if (tile.obscured) return;
 		if (!isFree(app.board, tile)) {
 			app.peeking = null;
@@ -386,7 +386,7 @@
 			updateStates();
 			return;
 		}
-		/* v0.9 blackout: le tile oscurate non si possono trascinare. */
+		/* v0.9 blackout: obscured tiles cannot be dragged. */
 		if (hit.tile.obscured) return;
 		if (!isFree(app.board, hit.tile)) return;
 
@@ -451,9 +451,9 @@
 		startGame();
 	});
 
-	/* v0.9.4 — Action drawer: apri/chiudi il pannello ⚙️, chiudi su tap
-	   fuori. Gli ID interni sono invariati, i listener dei bottoni
-	   restano quelli sopra. */
+	/* v0.9.4 — Action drawer: open/close the ⚙️ panel, close on tap
+	   outside. Inner IDs are unchanged, the button listeners above
+	   stay valid. */
 	var actionPanel = document.getElementById('action-panel');
 	var actionsBtn = document.getElementById('btn-actions');
 	if (actionsBtn && actionPanel) {

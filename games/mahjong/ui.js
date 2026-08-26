@@ -84,10 +84,10 @@
 	}
 
 	function updateStates() {
-		/* AUTO-REVEAL (v0.9 blackout): una tile oscurata diventa GIOCABILE
-		   da sola appena è LIBERA (niente sopra e almeno un lato aperto).
-		   Viene eseguito PRIMA di marcare le classi, così il flip non
-		   appare mai a metà. */
+		/* AUTO-REVEAL (v0.9 blackout): an obscured tile becomes PLAYABLE
+		   on its own as soon as it is FREE (nothing above and at least
+		   one open side). Runs BEFORE marking classes, so the flip
+		   never appears halfway. */
 		for (var r = 0; r < app.tiles.length; r++) {
 			var tr = app.tiles[r];
 			if (tr.obscured && !tr.removed && !tr.staging && isFree(app.board, tr)) {

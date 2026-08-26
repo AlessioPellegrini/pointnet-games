@@ -28,8 +28,8 @@ html, body {
 	gap: 8px;
 }
 
-/* v0.9.4: header rimosso (titolo già nella splash) per massimizzare lo
-   spazio verticale del board su mobile. */
+/* v0.9.4: header removed (title already in the splash) to maximize the
+   board's vertical space on mobile. */
 
 .status-bar {
 	display: flex;
@@ -242,10 +242,10 @@ html, body {
 .tile.face-down.blocked:hover .tile-overlay { opacity: 0; }
 .tile.face-down.blocked:hover { opacity: 1; }
 
-/* v0.9 BLACKOUT — piano base oscurato. Più scuro del memory face-down
-   (quasi nero): si auto-rivela da solo quando la tile diventa LIBERA
-   (auto-reveal in ui.js). Non è cliccabile (input.js) e non mostra
-   hover. Nasconde sia il simbolo emoji che l'SVG classico. */
+/* v0.9 BLACKOUT — obscured base plane. Darker than the memory face-down
+   (almost black): it auto-reveals when the tile becomes FREE
+   (auto-reveal in ui.js). Not clickable (input.js) and no hover.
+   Hides both the emoji symbol and the classic SVG. */
 .tile.obscured {
 	background: linear-gradient(135deg, #0a0f1c 0%, #05080f 100%);
 	color: #94a3b8;
@@ -372,9 +372,9 @@ html, body {
 	background: rgba(30, 41, 59, 0.55);
 }
 
-/* v0.9.4 — ACTION DRAWER: le azioni secondarie vivono in un pannello
-   apribile con ⚙️ (fixed bottom, slide-up), così il board ha tutto lo
-   spazio verticale. Display none di default; .open lo mostra. */
+/* v0.9.4 — ACTION DRAWER: secondary actions live in an openable
+   panel (fixed bottom, slide-up) so the board keeps all the
+   vertical space. Display none by default; .open shows it. */
 .action-panel {
 	display: none;
 	position: fixed;
@@ -399,7 +399,7 @@ html, body {
 	to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* Pulsante ⚙️ fisso accanto a btn-music. Riusa lo stile music-btn. */
+/* ⚙️ button fixed next to btn-music. Reuses the music-btn style. */
 .actions-btn {
 	top: 16px;
 	right: 16px;

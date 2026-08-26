@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.9.4** — 38 layout figure (nuovo `temple_steps` a **stacking classico a offset multi-livello**: FULL → HALF → FULL → HALF) con **300 livelli progressivi a difficoltà automatica** e tile-count monotono (mai un calo > 8 tra livelli adiacenti), **BLACKOUT (101–299, alternati, metà con HALF)**: il piano base (z=0) parte tutto oscurato e le tile si **auto-rivelano** appena diventano libere, in **coesistenza** con la meccanica memory (`covered`). Combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 124 tile (finale boss). Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 0.9.5** — 38 layout figure (nuovo `temple_steps` a **stacking classico a offset multi-livello**: FULL → HALF → FULL → HALF) con **300 livelli progressivi a difficoltà automatica** e tile-count monotono (mai un calo > 8 tra livelli adiacenti), **BLACKOUT (101–299, alternati, metà con HALF)**: il piano base (z=0) parte tutto oscurato e le tile si **auto-rivelano** appena diventano libere, in **coesistenza** con la meccanica memory (`covered`). Combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 124 tile (finale boss). Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
 
 ## 🔖 Version bump checklist
 
@@ -182,7 +182,13 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.9.4 — UI mobile compatta + action drawer (current)
+### v0.9.5 — Precompute solvability + staging ridotto + commenti in inglese (current)
+- **Precompute solvability (Piano A)**: `tools/build-solvable.js` precomputa i 300 livelli offline → nessun DFS a runtime → caricamento istantaneo (prima 3-6s sui livelli densi).
+- **Metriche difficoltà** salvate per livello (sepoltura %, tile libere, branch morti, maxZ).
+- **Staging ridotto**: maxStaging 4→3→2 → **3→2→1**.
+- **Commenti tradotti in inglese** in tutti i file del gioco.
+
+### v0.9.4 — UI mobile compatta + action drawer
 - **Header rimosso** (titolo già nella splash): più spazio verticale al board.
 - **Action drawer**: Hint/Undo/Shuffle/New/Level spostati in un pannello apribile con ⚙️ (fixed bottom, slide-up) — il board occupa tutto lo spazio che prima era dell'action bar.
 - **Staging box più leggibile**: slot ingranditi (44×52 desktop, 38×46 mobile) e `min-height` ridotto.

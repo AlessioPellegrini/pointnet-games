@@ -16,20 +16,20 @@ function buildBoard(tiles) {
 		t.key = makeKey(t.z, t.x, t.y);
 		board.set(t.key, t);
 	}
-	/* v0.9.2 — GEOGRAFIA VISIVA della scala a offset, calcolata
-	   ricorsivamente (per z crescente):
-	     - onHalf:     FULL senza supporto dritto sotto, su 4 HALF
-	     - rowOff:     offset in RIGHE del centro della tile rispetto
-	                   al suo y nominale (0.5 per HALF, 1.0 per FULL
-	                   su 4 HALF; le FULL dritte EREDITANO il rowOff
-	                   del supporto così l'apice resta sopra di esso)
-	     - stackDepth: piani dritti consecutivi sopra l'ultimo
-	                   supporto non-dritto (effetto 3D di profondità)
-	   layoutPos() usa questi valori per centrare OGNI tile sul proprio
-	   incrocio. Senza l'ereditarietà, l'apice z3 di temple_steps/large
-	   riceveva l'offset 3D puro (z*Z_OFFSET_Y → in alto) mentre il suo
-	   supporto stava sulla scala (più in basso) → la FULL sotto
-	   sembrava libera ma era bloccata (es. livello 210). */
+	/* v0.9.2 — VISUAL GEOMETRY of the offset staircase, computed
+	   recursively (per increasing z):
+	     - onHalf:     FULL with no straight support below, on 4 HALF
+	     - rowOff:     ROW offset of the tile center relative to its
+	                   nominal y (0.5 for HALF, 1.0 for FULL on 4 HALF;
+	                   straight FULL tiles INHERIT the rowOff of their
+	                   support so the apex stays above it)
+	     - stackDepth: consecutive straight planes above the last
+	                   non-straight support (3D depth effect)
+	   layoutPos() uses these to center EVERY tile on its own crossing.
+	   Without the inheritance, the z3 apex of temple_steps/large got the
+	   pure 3D offset (z*Z_OFFSET_Y → up) while its support sat on the
+	   staircase (further down) → the FULL below looked free but was
+	   blocked (e.g. level 210). */
 	var order = tiles.slice().sort(function (a, b) { return a.z - b.z; });
 	for (var k = 0; k < order.length; k++) {
 		var u = order[k];
@@ -49,7 +49,7 @@ function buildBoard(tiles) {
 		var onHalfs = a && b && c && d && a.isHalf && b.isHalf && c.isHalf && d.isHalf;
 		if (direct) {
 			u.onHalf = false;
-			u.rowOff = direct.rowOff || 0; /* resta sulla riga del supporto */
+			u.rowOff = direct.rowOff || 0; /* stays on the support row */
 			u.stackDepth = (direct.stackDepth || 0) + 1;
 		} else if (onHalfs) {
 			u.onHalf = true;
@@ -272,7 +272,7 @@ var TOP_PAD_EXTRA = 2;          // extra top clearance — LOWER = board sits hi
 function computeMetrics(tiles) {
 	var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, maxZ = 0;
 	var hasHalf = false;
-	var maxRowOff = 0; /* max offset in righe della scala a offset */
+	var maxRowOff = 0; /* max row offset of the offset staircase */
 	tiles.forEach(function (t) {
 		if (t.x < minX) minX = t.x;
 		if (t.x > maxX) maxX = t.x;
@@ -298,16 +298,16 @@ function layoutPos(t, m) {
 	var topPad = topPadOf(m);
 	var rowOff = t.rowOff || 0;
 	var stack = t.stackDepth || 0;
-	/* HALF e FULL-on-HALF seguono la SCALA A OFFSET: il centro è
-	   spostato in basso di rowOff righe rispetto al loro y nominale
-	   (z1 HALF → ½, z2 FULL su HALF → 1, …), shiftX = 0 perché
-	   l'incrocio è già centrato sulla colonna. Le FULL DITTE invece
-	   ereditano il rowOff del supporto (così una FULL sopra una
-	   scala resta sopra di essa) e aggiungono stack piani di effetto
-	   3D (stackDepth × Z_OFFSET) — v0.9.2. Prima l'apice z3 di
-	   temple_steps/large riceveva l'offset 3D puro (z*Z_OFFSET_Y →
-	   in alto) mentre il suo supporto era in basso sulla scala: la
-	   FULL sotto sembrava libera ma era bloccata (livello 210). */
+	/* HALF and FULL-on-HALF follow the OFFSET STAIRCASE: the center is
+	   moved down by rowOff rows relative to their nominal y
+	   (z1 HALF → ½, z2 FULL on HALF → 1, …), shiftX = 0 because the
+	   crossing is already centered on the column. Straight FULL tiles
+	   instead INHERIT the rowOff of their support (so a FULL above a
+	   staircase stays above it) and add stack planes of 3D effect
+	   (stackDepth × Z_OFFSET) — v0.9.2. Previously the z3 apex of
+	   temple_steps/large got the pure 3D offset (z*Z_OFFSET_Y → up)
+	   while its support sat down on the staircase: the FULL below
+	   looked free but was blocked (level 210). */
 	if (t.isHalf || t.onHalf) {
 		return {
 			x: PAD + (t.x - m.minX) * STEP_X,
@@ -326,9 +326,9 @@ function layoutPos(t, m) {
 function boardSize(m) {
 	var topPad = topPadOf(m);
 	/* Half tiles render DOWN (centered on their 2x2 support crossing),
-	   so the last row needs extra room below. v0.9.2: pad basato sul
-	   rowOff massimo della scala a offset (½ riga per HALF, 1 riga
-	   per FULL-su-HALF). */
+	   so the last row needs extra room below. v0.9.2: pad based on
+	   the max rowOff of the offset staircase (½ row per HALF, 1 row
+	   per FULL-on-HALF). */
 	var halfBottomPad = Math.round((m.maxRowOff || 0) * STEP_Y);
 	return {
 		/* The right shift of upper planes (maxZ * Z_OFFSET_X) is included
