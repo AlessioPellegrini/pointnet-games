@@ -183,8 +183,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 ## Changelog
 
 ### v0.9.5 — Precompute solvability + staging ridotto + commenti in inglese (current)
-- **Precompute solvability (Piano A)**: `tools/build-solvable.js` precomputa i 300 livelli offline → nessun DFS a runtime → caricamento istantaneo (prima 3-6s sui livelli densi).
-- **Metriche difficoltà** salvate per livello (sepoltura %, tile libere, branch morti, maxZ).
+- **Precompute solvability (Piano A)**: `tools/build-solvable.js` genera offline `solvable-levels.js` → nessun DFS a runtime → livelli generati in ~25ms (prima 3-6s sui densi).
+- **Metriche difficoltà** salvate per livello (sepoltura %, tile libere, maxZ).
 - **Staging ridotto**: maxStaging 4→3→2 → **3→2→1**.
 - **Commenti tradotti in inglese** in tutti i file del gioco.
 

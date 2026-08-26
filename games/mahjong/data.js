@@ -420,8 +420,9 @@ function buildProgression(count) {
 		var maxCov = Math.max(2, Math.min(8, Math.floor(item.playableTiles / 6)));
 		var cov = Math.min(maxCov, Math.floor(progress * maxCov * 1.3));
 
-		/* maxStaging: 4 (1-150) → 3 (151-225) → 2 (226-300) */
-		var staging = n < 150 ? 4 : (n < 225 ? 3 : 2);
+		/* maxStaging: 3 (1-150) → 2 (151-225) → 1 (226-300) — v0.9.5
+		   ridotto per più strategia (prima 4→3→2). */
+		var staging = n < 150 ? 3 : (n < 225 ? 2 : 1);
 
 		/* quads: only levels ≥ 200, layouts ≥ 60 tiles, alternating */
 		var qt = item.playableTiles;
@@ -521,7 +522,18 @@ function generateLevel(levelIndex) {
 	var lastBest = null;
 	var symbolsNeeded = Math.ceil(layout.length / copiesPerSymbol);
 
-	for (var attempt = 0; attempt < 80; attempt++) {
+	/* v0.9.5 — PRE-COMPUTED SOLVABILITY (Piano A): tools/build-solvable.js
+	   ha già trovato l'attempt (seed) vincente per ogni livello, offline.
+	   Usiamo direttamente quel seed → nessun solveBoard a runtime.
+	   Fallback: se il file non è caricato (sviluppo), comportamento
+	   originale con DFS + retry. */
+	var pre = (typeof SOLVABLE_LEVELS !== 'undefined' && SOLVABLE_LEVELS[levelIndex])
+		? SOLVABLE_LEVELS[levelIndex] : null;
+
+	var attemptMax = pre ? (pre.attempt + 1) : 80;
+	var attemptStart = pre ? pre.attempt : 0;
+
+	for (var attempt = attemptStart; attempt < attemptMax; attempt++) {
 		var rng = createRng(42 + attempt * 7 + levelIndex);
 		var deck = [];
 		for (var i = 0; i < symbolsNeeded; i++) {
@@ -569,7 +581,9 @@ function generateLevel(levelIndex) {
 		}
 
 		var board = buildBoard(tiles);
-		var solvable = solveBoard(board);
+		/* v0.9.5: con il precompute saltiamo il DFS — l'attempt è già
+		   verificato offline da build-solvable.js. */
+		var solvable = pre ? true : solveBoard(board);
 		/* Heuristic fallback: if the DFS timed out (or is just too
 		   strict for dense boards), accept when there are at least
 		   4 free tiles — the staging box unlocks the rest. */

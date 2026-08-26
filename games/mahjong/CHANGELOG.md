@@ -23,6 +23,9 @@ node games/mahjong/tests/test-free.js
 
 # Rendering FULL-su-HALF: onHalf, centratura sull'incrocio, apice dritto
 node games/mahjong/tests/test-temple-steps.js
+
+# Precompute solvability: 300 livelli, generazione veloce (<250ms), giocabile
+node games/mahjong/tests/test-solvable.js
 ```
 
 Gli script caricano `layouts.js` + `data.js` + `engine.js` in Node `vm` e chiamano
@@ -33,10 +36,12 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 ## Changelog
 
 ### v0.9.5 — Precompute solvability + staging ridotto + commenti in inglese (HEAD)
-- **Precompute solvability (Piano A)**: `tools/build-solvable.js` genera i 300 livelli offline e salva `solvable-levels.json` (seed vincente + metriche difficoltà). `generateLevel` legge dal JSON: **nessun DFS a runtime** → i livelli si caricano in millisecondi anche su mobile (prima 3-6s sui livelli densi).
-- **Metriche difficoltà**: nel JSON per ogni livello: sepoltura %, tile libere all'avvio, branch morti (deadlock potential), maxZ.
-- **Staging ridotto**: `maxStaging` 4→3→2 diventa **3→2→1** (più strategia classica).
+- **Precompute solvability (Piano A)**: nuovo `tools/build-solvable.js` genera offline `solvable-levels.js` con, per ogni livello, l'attempt (seed) vincente + metriche (maxZ, tile libere all'avvio, sepoltura %, layout/variant). `generateLevel` legge dal precompute e **non chiama più `solveBoard` a runtime** → i livelli si generano in **~25ms** (prima 3-6s sui densi, decine di secondi su mobile). Il seed è deterministico, quindi il risultato è identico per tutti.
+- **Metriche difficoltà**: salvate per livello (sepoltura %, tile libere all'avvio, maxZ) — base oggettiva per tarare la difficoltà futura.
+- **Staging ridotto**: `maxStaging` 4→3→2 diventa **3→2→1** (più strategia classica, meno parcheggio).
 - **Commenti tradotti in inglese** in tutti i file del gioco (coerenza col resto del progetto).
+- Nuovo test `tests/test-solvable.js`: copertura 300 livelli, generazione <250ms (nessun DFS runtime), giocabilità campioni.
+- Bump **0.9.5** su `manifest.json`/`index.html`/`README.md`/`CHANGELOG.md` + tag `mahjong-v0.9.5` e plugin `v0.1.9`.
 
 ### v0.9.4 — UI mobile compatta + action drawer
 - **Header rimosso** (titolo già nella splash): più spazio verticale al board.

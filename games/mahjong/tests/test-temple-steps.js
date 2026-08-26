@@ -28,6 +28,7 @@ const ctx = { console, process };
 vm.createContext(ctx);
 const load = [
   fs.readFileSync(path.join(dir, 'layouts.js'), 'utf8'),
+  fs.readFileSync(path.join(dir, 'solvable-levels.js'), 'utf8'),
   fs.readFileSync(path.join(dir, 'data.js'), 'utf8'),
   fs.readFileSync(path.join(dir, 'engine.js'), 'utf8')
 ].join('\n') + '\n' + [
