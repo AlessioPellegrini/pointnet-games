@@ -13,11 +13,11 @@ Arcade game platform for WordPress with scores, leaderboards and a standardized 
 
 == Description ==
 
-**PointNet Games** turns your WordPress site into an arcade game platform. Games run in HTML5, Canvas or iframe, and every score is saved to the leaderboard — for registered users (using their unique WordPress username) or anonymous players (with a quick nickname, no registration required).
+**PointNet Games** turns your WordPress site into an arcade game platform. Games run in HTML5, Canvas or iframe, and scores are saved to the leaderboard for registered users (using their unique WordPress username). Anonymous players can play freely in casual mode, while registered users can save records and compete in global rankings.
 
 = Key Features =
 
-* ✅ **Score system** — scores for registered and anonymous players with nicknames
+* ✅ **Score system** — highscores and progression saved for registered users
 * ✅ **Leaderboards** — per-game and global rankings
 * ✅ **REST API** — standardized endpoints for third-party developers
 * ✅ **JavaScript API** — `pointnetGamesAPI` bridge to integrate games easily
@@ -25,10 +25,10 @@ Arcade game platform for WordPress with scores, leaderboards and a standardized 
 * ✅ **Auto-registration** — games in the `games/` folder are registered automatically
 * ✅ **Anti-cheat** — nonces, rate limiting, optional validation, IP hashing
 * ✅ **Security** — output escaping, input sanitization, capability checks, prepared SQL statements
-* ✅ **Bundled game** — Minesweeper Arcade with 15 progressive levels
+* ✅ **Bundled games** — Minesweeper Arcade (15 levels) & Mahjong Arcade (330 levels, 144 tiles, Jukebox player)
 * ✅ **Splash screen** — intro screen with a PLAY button
 * ✅ **Immersive fullscreen CSS** — the game expands to fullscreen when pressing PLAY
-* ✅ **Mobile touch support** — tap to reveal, long-press to flag with vibration
+* ✅ **Mobile touch support** — optimized responsive gameplay
 
 = Security =
 
@@ -46,7 +46,7 @@ PointNet Games follows official WordPress security recommendations:
 = Included Games =
 
 * **Minesweeper Arcade** — progressive levels: clear the field and advance to the next level. One mistake and you restart from Level 1. Mobile friendly.
-* **Mahjong Arcade** — tile-matching with a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards via DFS solver. In development (v0.8.0).
+* **Mahjong Arcade** — tile-matching with 330 progressive levels, dual Arcade & Classic Challenge modes, 144-tile deck with wildcards, and standalone Jukebox Zen music player.
 
 == Installation ==
 
@@ -78,9 +78,9 @@ Copy the game folder (with `manifest.json` and `index.html`) into `wp-content/pl
 
 Create a WordPress page and insert the `[pointnet_games_list]` shortcode to show the grid, or `[pointnet_game slug="minesweeper-arcade"]` to embed a single game.
 
-= Can anonymous users submit scores? =
+= Do players need an account to save scores? =
 
-Yes, by default. You can disable it from **PointNet Games → Settings**.
+Yes. Anyone can play in guest/casual mode, but players must be registered and logged in to record their scores and climb the global leaderboards.
 
 = How are scores protected from cheating? =
 
@@ -101,6 +101,12 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.2.5 =
+* Enforce registered and logged-in users only for leaderboard highscores and progress persistence
+* Updated WordPress minimum requirements: Requires at least 7.0, Tested up to 7.1, Requires PHP 8.0+
+* Mahjong Arcade updated to v1.2.5: dual Arcade & Classic modes, 330 progressive levels, 144-tile deck with Flower/Season wildcards, PointNetMusicPlayer standalone Jukebox, Web Audio organic Zen SFX
+* PointNetMusicPlayer reusable standalone audio component for background music and playlists
 
 = 0.1.9 =
 * Mahjong Arcade updated to v0.9.5 - precomputed solvability (no runtime DFS), reduced staging box (3->2->1) for more strategy, compact mobile UI (action drawer, bigger staging slots)

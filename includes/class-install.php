@@ -72,12 +72,8 @@ class PointNet_Games_Install {
 	 */
 	public static function seed_default_settings() {
 		$defaults = array(
-			'allow_anonymous'      => 1,
-			'rate_limit'           => 5,
-			'require_validation'   => 0,
-			'nickname_min_length'  => 3,
-			'nickname_max_length'  => 20,
-			'profanity_filter'     => 1,
+			'rate_limit'         => 5,
+			'require_validation' => 0,
 		);
 
 		if ( false === get_option( 'pointnet_games_settings' ) ) {

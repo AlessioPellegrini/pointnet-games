@@ -31,26 +31,16 @@ class PointNet_Games_Leaderboard {
 
 		$table = pointnet_games_scores_table();
 
-		$user_id      = absint( $user_id );
-		$game_id      = absint( $game_id );
-		$score        = max( 0, absint( $score ) );
-		$nickname     = self::sanitize_nickname( $nickname );
-		$settings     = get_option( 'pointnet_games_settings', array() );
-		$allow_anon   = (int) $settings['allow_anonymous'] ?? 1;
+		$user_id = absint( $user_id );
+		$game_id = absint( $game_id );
+		$score   = max( 0, absint( $score ) );
 
-		// Anonymous users not allowed, or no nickname for anonymous.
+		// Only registered users are allowed to save scores to the leaderboard.
 		if ( ! $user_id ) {
-			if ( ! $allow_anon ) {
-				return false;
-			}
-			if ( empty( $nickname ) ) {
-				$nickname = __( 'Anonymous', 'pointnet-games' );
-			}
-		} else {
-			// Registered users: nickname is resolved dynamically at display time
-			// using the unique user_login — no need to store it.
-			$nickname = '';
+			return false;
 		}
+
+		$nickname = '';
 
 		// Game must exist and be published.
 		$game = get_post( $game_id );
@@ -58,11 +48,12 @@ class PointNet_Games_Leaderboard {
 			return false;
 		}
 
+		$settings           = get_option( 'pointnet_games_settings', array() );
 		$require_validation = (int) $settings['require_validation'] ?? 0;
 
 		$data = array(
 			'game_id'     => $game_id,
-			'user_id'     => $user_id ? $user_id : null,
+			'user_id'     => $user_id,
 			'nickname'    => $nickname,
 			'score'       => $score,
 			'score_meta'  => wp_json_encode( $meta ),
@@ -104,7 +95,7 @@ class PointNet_Games_Leaderboard {
 		// Difficulty filter value (empty string = filter disabled).
 		$difficulty = ! empty( $filters['difficulty'] ) ? sanitize_text_field( $filters['difficulty'] ) : '';
 
-		// Only the best score per player (registered user_id or anonymous ip_hash).
+		// Only the best score per registered user.
 		// Optional filters use the ( %d = 0 OR ... ) / ( %s = '' OR ... ) pattern:
 		// passing 0/'' disables the condition while keeping every placeholder
 		// statically inside the SQL string passed to $wpdb->prepare().
@@ -116,8 +107,9 @@ class PointNet_Games_Leaderboard {
 				     AND s1.score < s2.score
 				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
 				     AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')) = %s )
-				     AND COALESCE(CONCAT('u', s1.user_id), CONCAT('ip_', s1.ip_hash)) = COALESCE(CONCAT('u', s2.user_id), CONCAT('ip_', s2.ip_hash))
+				     AND s1.user_id = s2.user_id
 				 WHERE s1.game_id = %d
+				   AND s1.user_id > 0
 				   AND s2.id IS NULL
 				   AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')) = %s )
 				 ORDER BY s1.score DESC, s1.played_at ASC
@@ -169,9 +161,7 @@ class PointNet_Games_Leaderboard {
 		$settings           = get_option( 'pointnet_games_settings', array() );
 		$require_validation = (int) $settings['require_validation'] ?? 0;
 
-		// Only the best score per player across all games.
-		// The ( %d = 0 OR ... ) pattern keeps the validation filter optional
-		// with static placeholders and no dynamic SQL construction.
+		// Only the best score per registered user across all games.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT s1.id, s1.game_id, s1.user_id, s1.nickname, s1.score, s1.score_meta, s1.played_at,
@@ -179,9 +169,10 @@ class PointNet_Games_Leaderboard {
 				 FROM %i s1
 				 LEFT JOIN %i s2 ON s1.score < s2.score
 				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
-				     AND COALESCE(CONCAT('u', s1.user_id), CONCAT('ip_', s1.ip_hash)) = COALESCE(CONCAT('u', s2.user_id), CONCAT('ip_', s2.ip_hash))
+				     AND s1.user_id = s2.user_id
 				 LEFT JOIN %i p ON p.ID = s1.game_id
-				 WHERE s2.id IS NULL
+				 WHERE s1.user_id > 0
+				   AND s2.id IS NULL
 				 ORDER BY s1.score DESC, s1.played_at ASC
 				 LIMIT %d",
 				$table,
@@ -208,44 +199,35 @@ class PointNet_Games_Leaderboard {
 	/**
 	 * Get a player's best position for a given game.
 	 *
-	 * @param int $game_id Game post ID.
-	 * @param int $user_id WP user ID.
-	 * @param string $nickname Anonymous nickname.
+	 * @param int    $game_id  Game post ID.
+	 * @param int    $user_id  WP user ID.
+	 * @param string $nickname Optional nickname (unused, kept for compatibility).
 	 *
 	 * @return int|null Position (1-based) or null if no score.
 	 */
 	public static function get_player_position( $game_id, $user_id = 0, $nickname = '' ) {
 		global $wpdb;
 
-		$table  = pointnet_games_scores_table();
+		$table   = pointnet_games_scores_table();
 		$game_id = absint( $game_id );
+		$user_id = absint( $user_id );
+
+		if ( ! $user_id ) {
+			return null;
+		}
 
 		$settings           = get_option( 'pointnet_games_settings', array() );
 		$require_validation = (int) $settings['require_validation'] ?? 0;
 
-		// The ( %d = 0 OR validated = 1 ) pattern keeps the validation filter
-		// optional with static placeholders — no dynamic SQL fragments.
-		if ( $user_id ) {
-			$best_score = $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT MAX(score) FROM %i WHERE ( %d = 0 OR validated = 1 ) AND user_id = %d AND game_id = %d',
-					$table,
-					$require_validation,
-					$user_id,
-					$game_id
-				)
-			);
-		} else {
-			$best_score = $wpdb->get_var(
-				$wpdb->prepare(
-					'SELECT MAX(score) FROM %i WHERE ( %d = 0 OR validated = 1 ) AND nickname = %s AND game_id = %d',
-					$table,
-					$require_validation,
-					$nickname,
-					$game_id
-				)
-			);
-		}
+		$best_score = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT MAX(score) FROM %i WHERE ( %d = 0 OR validated = 1 ) AND user_id = %d AND game_id = %d',
+				$table,
+				$require_validation,
+				$user_id,
+				$game_id
+			)
+		);
 
 		if ( null === $best_score ) {
 			return null;
@@ -253,7 +235,7 @@ class PointNet_Games_Leaderboard {
 
 		$position = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) + 1 FROM %i WHERE ( %d = 0 OR validated = 1 ) AND game_id = %d AND score > %d',
+				'SELECT COUNT(*) + 1 FROM %i WHERE ( %d = 0 OR validated = 1 ) AND user_id > 0 AND game_id = %d AND score > %d',
 				$table,
 				$require_validation,
 				$game_id,

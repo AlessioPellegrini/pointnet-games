@@ -193,14 +193,17 @@ class PointNet_Games_API {
 			);
 		}
 
-		$nickname = isset( $params['nickname'] ) ? sanitize_text_field( $params['nickname'] ) : '';
-		$meta     = isset( $params['meta'] ) && is_array( $params['meta'] ) ? $params['meta'] : array();
-
-		$user_id = 0;
-		if ( is_user_logged_in() ) {
-			$user_id  = get_current_user_id();
-			$nickname = pointnet_games_current_nickname();
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error(
+				'pointnet_games_login_required',
+				__( 'You must be logged in to save your score to the leaderboard.', 'pointnet-games' ),
+				array( 'status' => 401 )
+			);
 		}
+
+		$user_id  = get_current_user_id();
+		$nickname = pointnet_games_current_nickname();
+		$meta     = isset( $params['meta'] ) && is_array( $params['meta'] ) ? $params['meta'] : array();
 
 		// Sanitize meta recursively.
 		$meta = $this->sanitize_meta( $meta );

@@ -79,30 +79,25 @@ if (typeof window.pointnetGamesAPI !== 'undefined') {
 #### `getNickname()` → string
 Restituisce il nickname dell'utente:
 - **Utente registrato**: username WordPress (`user_login`) — univoco garantito
-- **Anonimo**: stringa vuota (in classifica appare "Anonimo")
+- **Ospite non loggato**: stringa vuota (può giocare in modalità casual)
 
 ```javascript
 var nickname = pointnetGamesAPI.getNickname();
 ```
 
-#### `setNickname(nickname)`
-Salva il nickname per utenti anonimi (ignorato per utenti registrati).
-
-```javascript
-pointnetGamesAPI.setNickname('PlayerOne');
-```
-
 #### `isUserLoggedIn()` → boolean
-`true` se l'utente è loggato con un account WordPress.
+`true` se l'utente è loggato con un account WordPress. Chi desidera comparire in classifica deve effettuare il login.
 
 ```javascript
 if (pointnetGamesAPI.isUserLoggedIn()) {
-    // Personalizza l'esperienza per utenti registrati
+    // Utente registrato: i record vengono salvati nella classifica globale
+} else {
+    // Ospite: invita l'utente a registrarsi per salvare il punteggio
 }
 ```
 
 #### `submitScore(score, meta, callback)` → Promise
-Invia il punteggio alla classifica.
+Invia il punteggio alla classifica (riservato agli utenti registrati e loggati). Se l'utente non è autenticato, il metodo restituisce un oggetto `{ success: false, error: 'login_required' }`.
 
 ```javascript
 pointnetGamesAPI.submitScore(
@@ -481,8 +476,8 @@ function endGame() {
 ### Il gioco può usare framework (React, Phaser, ecc.)?
 Sì, ma il output deve essere un singolo `index.html` statico che funziona senza build server.
 
-### Come gestisco il nickname anonimo?
-Usa `pointnetGamesAPI.getNickname()` per leggere e `pointnetGamesAPI.setNickname()` per salvare quando l'utente lo inserisce. Il plugin lo persiste in localStorage.
+### Gli utenti non registrati possono salvare i punteggi?
+No: chiunque può giocare liberamente in modalità casual o allenamento, ma per salvare i record, visualizzare la propria posizione e scalare la classifica globale è richiesta la registrazione o il login tramite account WordPress.
 
 ### Come funziona l'anti-cheat?
 Il plugin usa:
@@ -498,6 +493,7 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
+- **v1.2.5** — Rimozione supporto punteggi anonimi: registrazione e login obbligatori per inviare punteggi e competere nelle classifiche. Aggiornati requisiti minimi a WordPress 7.0+ e PHP 8.0+.
 - **v0.2.1** — Aggiunta sezione 6.2 sul modulo universale `PointNetMusicPlayer` (`assets/js/pointnet-music-player.js`) con seek bar, durate playlist, card volume e fallback automatico 404
 - **v0.1.4** — Sezione 5 "Buone Pratiche" ampliata: badge versione nella splash, raccomandazioni testate per rendering nitido nell'iframe (evitare `zoom` CSS, `transform-origin: top left`, transform 2D per-tile, rasterizzazione in due fasi, re-fit finché stabile, niente board all'init)
 - **v0.1.3** — Sezione 6.1 "Disinstallazione di un Gioco" (dalla dashboard PointNet Games, con opzione di eliminare i punteggi del singolo gioco)

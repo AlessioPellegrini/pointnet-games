@@ -212,8 +212,13 @@ class PointNet_Games_Admin {
 								echo $game ? esc_html( $game->post_title ) : esc_html__( 'N/A', 'pointnet-games' );
 								?>
 							</td>
-							<td><?php echo esc_html( $score->nickname ); ?></td>
-							<td><?php echo $score->user_id ? esc_html__( 'Registered', 'pointnet-games' ) : esc_html__( 'Anonymous', 'pointnet-games' ); ?></td>
+							<td>
+								<?php
+								$user = $score->user_id ? get_userdata( $score->user_id ) : null;
+								echo $user ? esc_html( $user->user_login ) : esc_html( $score->nickname ?: '—' );
+								?>
+							</td>
+							<td><?php echo $score->user_id ? esc_html__( 'Registered', 'pointnet-games' ) : esc_html__( 'Guest', 'pointnet-games' ); ?></td>
 							<td><?php echo esc_html( number_format_i18n( $score->score ) ); ?></td>
 							<td><?php echo esc_html( $score->played_at ); ?></td>
 							<td><?php echo $score->validated ? esc_html__( 'Yes', 'pointnet-games' ) : esc_html__( 'No', 'pointnet-games' ); ?></td>
@@ -250,21 +255,10 @@ class PointNet_Games_Admin {
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row">
-							<label for="pointnet_games_allow_anonymous"><?php esc_html_e( 'Allow anonymous scores', 'pointnet-games' ); ?></label>
-						</th>
-						<td>
-							<label>
-								<input type="checkbox" name="pointnet_games_settings[allow_anonymous]" id="pointnet_games_allow_anonymous" value="1" <?php checked( (int) $settings['allow_anonymous'] ?? 1, 1 ); ?>>
-								<?php esc_html_e( 'Unregistered users can submit scores with a nickname.', 'pointnet-games' ); ?>
-							</label>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
 							<label for="pointnet_games_rate_limit"><?php esc_html_e( 'Rate limit per minute', 'pointnet-games' ); ?></label>
 						</th>
 						<td>
-							<input type="number" name="pointnet_games_settings[rate_limit]" id="pointnet_games_rate_limit" value="<?php echo esc_attr( (int) $settings['rate_limit'] ?? 5 ); ?>" min="1" max="60">
+							<input type="number" name="pointnet_games_settings[rate_limit]" id="pointnet_games_rate_limit" value="<?php echo esc_attr( (int) ( $settings['rate_limit'] ?? 5 ) ); ?>" min="1" max="60">
 							<p class="description"><?php esc_html_e( 'Maximum number of score submissions allowed per player per minute.', 'pointnet-games' ); ?></p>
 						</td>
 					</tr>
@@ -274,25 +268,9 @@ class PointNet_Games_Admin {
 						</th>
 						<td>
 							<label>
-								<input type="checkbox" name="pointnet_games_settings[require_validation]" id="pointnet_games_require_validation" value="1" <?php checked( (int) $settings['require_validation'] ?? 0, 1 ); ?>>
+								<input type="checkbox" name="pointnet_games_settings[require_validation]" id="pointnet_games_require_validation" value="1" <?php checked( (int) ( $settings['require_validation'] ?? 0 ), 1 ); ?>>
 								<?php esc_html_e( 'Scores appear in the leaderboard only after admin approval.', 'pointnet-games' ); ?>
 							</label>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="pointnet_games_nickname_min"><?php esc_html_e( 'Minimum nickname length', 'pointnet-games' ); ?></label>
-						</th>
-						<td>
-							<input type="number" name="pointnet_games_settings[nickname_min_length]" id="pointnet_games_nickname_min" value="<?php echo esc_attr( (int) $settings['nickname_min_length'] ?? 3 ); ?>" min="1" max="20">
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="pointnet_games_nickname_max"><?php esc_html_e( 'Maximum nickname length', 'pointnet-games' ); ?></label>
-						</th>
-						<td>
-							<input type="number" name="pointnet_games_settings[nickname_max_length]" id="pointnet_games_nickname_max" value="<?php echo esc_attr( (int) $settings['nickname_max_length'] ?? 20 ); ?>" min="1" max="50">
 						</td>
 					</tr>
 				</table>
@@ -311,20 +289,14 @@ class PointNet_Games_Admin {
 	 */
 	public function sanitize_settings( $input ) {
 		$defaults = array(
-			'allow_anonymous'     => 1,
 			'rate_limit'          => 5,
 			'require_validation'  => 0,
-			'nickname_min_length' => 3,
-			'nickname_max_length' => 20,
 		);
 
 		$clean = wp_parse_args( $input, $defaults );
 
-		$clean['allow_anonymous']     = isset( $input['allow_anonymous'] ) ? 1 : 0;
 		$clean['require_validation']  = isset( $input['require_validation'] ) ? 1 : 0;
 		$clean['rate_limit']          = (int) $input['rate_limit'];
-		$clean['nickname_min_length'] = max( 1, min( 20, (int) $input['nickname_min_length'] ) );
-		$clean['nickname_max_length'] = max( 1, min( 50, (int) $input['nickname_max_length'] ) );
 
 		return $clean;
 	}

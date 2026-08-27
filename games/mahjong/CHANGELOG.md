@@ -35,7 +35,8 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v1.2.5 — Ripristino CSS Splash Button & Autonomia Stili (HEAD)
+### v1.2.5 — Ripristino CSS Splash Button & Registrazione Obbligatoria (HEAD)
+- **Classifica Esclusiva Utenti Registrati**: solo gli utenti autenticati possono inviare record e scalare la classifica; per gli ospiti è visibile un invito a registrarsi/accedere nel modal di vittoria.
 - **Fix Splash Play Button**: corretta la chiusura della regola CSS `.splash-version` nel blocco `<style>` di `index.html` e reso lo stile del pulsante `🎮 PLAY` completamente autonomo e visibile.
 
 ### v1.2.4 — Ergonomia Player Audio & Card Volume Dedicata

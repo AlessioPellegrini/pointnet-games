@@ -705,8 +705,23 @@ html, body {
 	gap: 12px;
 	align-items: center;
 }
-.modal h2 { font-size: 1.6rem; }
 .modal p { color: #94a3b8; font-weight: 600; }
+
+.modal-login-hint {
+	font-size: 0.85rem;
+	color: #fbbf24 !important;
+	background: rgba(251, 191, 36, 0.12);
+	border: 1px solid rgba(251, 191, 36, 0.35);
+	padding: 8px 16px;
+	border-radius: 8px;
+	margin-top: 4px;
+	line-height: 1.4;
+}
+.modal-login-hint a {
+	color: #38bdf8;
+	font-weight: 700;
+	text-decoration: underline;
+}
 
 /* STAR RATING (v0.7.0) — modal stars row */
 #modal-stars { font-size: 2.2rem; letter-spacing: 6px; margin: 6px 0; }

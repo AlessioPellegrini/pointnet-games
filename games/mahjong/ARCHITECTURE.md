@@ -255,13 +255,13 @@ Multiplied by a level factor growing with `levelIndex`.
 State saved:
 { levelIndex, highScore, lastScore, seed, history, elapsed }
 
-Anonymous users  → localStorage key: `wp_mahjong_arcade_save`
-Logged-in users  → save/load via pointnetGamesAPI (submitted with score)
+Guest / Local  → localStorage key: `wp_mahjong_arcade_level`, `wp_mahjong_arcade_scores`
+Registered WP  → save/load via pointnetGamesAPI (server-side persistence + leaderboard)
 ```
 
 On load:
-- Anonymous: resume from localStorage
-- Logged-in: resume from plugin user meta (`_pointnet_games_mahjong_level`)
+- Guest users: resume from localStorage with prompt to log in for leaderboard
+- Logged-in users: resume from plugin user meta (`_pointnet_games_progress`) and submit cumulative records to the leaderboard
 
 ## RNG (Seeded)
 

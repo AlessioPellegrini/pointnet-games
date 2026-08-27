@@ -48,6 +48,13 @@
 		modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score +
 			'   ·   Best: ' + (bestStars[levelNum] || 0) + '⭐' +
 			'   ·   Next: Level ' + Math.min(levelNum + 1, 330);
+		var modalLoginHint = document.getElementById('modal-login-hint');
+		if (modalLoginHint) {
+			var isLoggedIn = (typeof window.pointnetGamesAPI !== 'undefined' && typeof window.pointnetGamesAPI.isUserLoggedIn === 'function')
+				? window.pointnetGamesAPI.isUserLoggedIn()
+				: !!(window.__wpGamesState && window.__wpGamesState.loggedIn);
+			modalLoginHint.style.display = isLoggedIn ? 'none' : 'block';
+		}
 		overlayEl.classList.add('show');
 	}
 

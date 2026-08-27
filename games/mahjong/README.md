@@ -117,10 +117,10 @@ Nota: il plugin fa già il cache-bust di `index.html` con il timestamp dei file 
 - [x] Splash + level bar UI (same style as minesweeper-arcade)
 - [x] **No pan/zoom**: board resizes to fit the viewport ✅
 
-### Phase 4 — Registered User Persistence ✅
-- [x] Save progress via `submitScore()` for leaderboard
+### Phase 4 — Registered User Persistence & Leaderboard ✅
+- [x] Save progress via `submitScore()` for global leaderboard (registered and logged-in users only)
 - [x] Logged-in users resume from their saved level (`wp_user_meta` `_pointnet_games_progress`)
-- [x] Anonymous users always start from Level 1 (pure arcade, localStorage)
+- [x] Guest users play in casual mode via localStorage with prompt to register/login for global rankings
 
 ### Phase 5 — Arcade & Classic Modes Integration ✅
 - [x] **Fase 1 — Fix Staging Arcade**: `maxStaging` fisso a 4 slot per tutta la modalità Arcade.

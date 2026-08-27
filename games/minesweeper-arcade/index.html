@@ -1229,6 +1229,8 @@
 					result.then(function (response) {
 						if (response && response.position) {
 							modalPosition.textContent = '🏅 Position ' + response.position + ' on the leaderboard!';
+						} else if (response && response.error === 'login_required') {
+							modalPosition.innerHTML = '🔒 <a href="/wp-login.php" target="_top" style="color:#38bdf8;text-decoration:underline;">Accedi o registrati</a> per salvare il record in classifica!';
 						}
 					}).catch(function () {});
 				}

@@ -50,29 +50,21 @@
 	 */
 	var api = {
 		/**
-		 * Get the current user's nickname.
+		 * Get the current user's nickname (registered username).
 		 *
 		 * @return {string}
 		 */
 		getNickname: function () {
-			if (config.is_logged_in) {
-				return config.nickname;
-			}
-
-			var saved = localStorage.getItem(NICKNAME_KEY);
-			return saved || '';
+			return config.is_logged_in ? config.nickname : '';
 		},
 
 		/**
-		 * Save the nickname for an anonymous user.
+		 * Save nickname (deprecated, registered usernames are managed by WP).
 		 *
 		 * @param {string} nickname Nickname to store.
 		 */
 		setNickname: function (nickname) {
-			nickname = String(nickname || '').trim().slice(0, 20);
-			if (nickname) {
-				localStorage.setItem(NICKNAME_KEY, nickname);
-			}
+			// No-op: nicknames are tied to WordPress user accounts.
 		},
 
 		/**
@@ -118,7 +110,7 @@
 		},
 
 		/**
-		 * Submit a score to the leaderboard.
+		 * Submit a score to the leaderboard (registered users only).
 		 *
 		 * @param {number}   score    Score value.
 		 * @param {object}   meta     Optional meta { level, time, difficulty, ... }.
@@ -130,15 +122,22 @@
 			score = parseInt(score, 10) || 0;
 			meta = meta || {};
 
+			if (!config.is_logged_in) {
+				var errRes = {
+					success: false,
+					error: 'login_required',
+					message: 'Registrazione o login necessari per salvare il record in classifica.'
+				};
+				if (typeof callback === 'function') {
+					callback(errRes);
+				}
+				return Promise.resolve(errRes);
+			}
+
 			var payload = {
 				score: score,
 				meta: meta
 			};
-
-			// Anonymous user: include nickname.
-			if (!config.is_logged_in) {
-				payload.nickname = this.getNickname();
-			}
 
 			var currentGameId = this._currentGameId;
 
