@@ -1,10 +1,10 @@
-=== PointNet Games ===
+=== PointNet Games ===
 Contributors: pointnet
 Tags: games, arcade, leaderboard, highscore, puzzle
-Requires at least: 6.2
-Tested up to: 7.0
+Requires at least: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.1.9
+Stable tag: 1.2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
