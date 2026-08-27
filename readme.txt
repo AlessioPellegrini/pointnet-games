@@ -1,12 +1,13 @@
 === PointNet Games ===
 Contributors: pointnet
+Donate link: https://www.pointnet.it/
 Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
 Stable tag: 1.2.5
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Arcade game platform for WordPress with scores, leaderboards and a standardized API for game developers.
 
