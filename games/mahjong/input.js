@@ -83,6 +83,15 @@
 				var gained = 100 * app.combo;
 				app.score += gained;
 				scoreEl.textContent = app.score;
+
+				if (typeof playSfx === 'function') {
+					if (app.combo >= 2) playSfx('combo', app.combo);
+					else playSfx('match');
+				}
+				if (typeof spawnMatchParticles === 'function') {
+					spawnMatchParticles(prev, tile);
+				}
+
 				/* HISTORY (v0.7.0): record the match with its score so
 				   undo can refund it, and discard the previous 'move'
 				   entry of the first tile (it was consumed by the match). */
@@ -139,9 +148,19 @@
 		   the button must say: "Retry". */
 		if (!matched && app.staging.length >= MAX_STAGING) {
 			stopTimer();
+			if (typeof playSfx === 'function') playSfx('gameover');
 			modalTitle.textContent = '💀 Staging Full!';
-			modalStats.textContent = '4 tiles, no match — try again!';
+			modalStats.textContent = (app.shufflesLeft > 0)
+				? 'Staging pieno! Usa uno Shuffle 🔀 per liberare o riprova.'
+				: '4 tiles nello staging, nessun match — riprova!';
 			if (btnPlayAgain) btnPlayAgain.textContent = '🔄 Riprova';
+			var btnModalShuffle = document.getElementById('btn-modal-shuffle');
+			if (app.shufflesLeft > 0 && btnModalShuffle) {
+				btnModalShuffle.textContent = '🔀 Usa Shuffle (x' + app.shufflesLeft + ') e Continua';
+				btnModalShuffle.style.display = 'inline-block';
+			} else if (btnModalShuffle) {
+				btnModalShuffle.style.display = 'none';
+			}
 			overlayEl.classList.add('show');
 			return;
 		}
@@ -149,12 +168,75 @@
 		if (pairsLeft() === 0) levelComplete();
 	}
 
+	function handleDirectMatch(tileA, tileB) {
+		app.selectedTile = null;
+		tileA.removed = true;
+		tileB.removed = true;
+
+		var now = Date.now();
+		if (app.combo > 0 && now - app.lastMatchTime <= 3000) {
+			app.combo = Math.min(5, app.combo + 1);
+		} else {
+			app.combo = 1;
+		}
+		app.lastMatchTime = now;
+		var gained = Math.round(100 * app.combo * (app.multiplier || 1.5));
+		app.score += gained;
+		scoreEl.textContent = app.score;
+
+		if (typeof playSfx === 'function') {
+			if (app.combo >= 2) playSfx('combo', app.combo);
+			else playSfx('match');
+		}
+		if (typeof spawnMatchParticles === 'function') {
+			spawnMatchParticles(tileA, tileB);
+		}
+
+		app.history.push({ type: 'direct_match', a: tileA, b: tileB, gained: gained });
+		if (comboEl) {
+			if (app.combo >= 2) {
+				comboEl.textContent = '🔥 x' + app.combo;
+				comboEl.classList.add('show');
+			} else {
+				comboEl.classList.remove('show');
+			}
+		}
+
+		pairsLeftEl.textContent = pairsLeft();
+		updateStates();
+
+		if (pairsLeft() === 0) {
+			levelComplete();
+			return;
+		}
+
+		/* Deadlock check: in classic mode, if there are no more possible moves -> Game Over */
+		if (!hasAnyValidMove(app.board, 'classic')) {
+			stopTimer();
+			if (typeof playSfx === 'function') playSfx('deadlock');
+			modalTitle.textContent = '🛑 Nessuna Mossa!';
+			modalStats.textContent = (app.shufflesLeft > 0)
+				? 'Il tabellone è bloccato. Usa uno Shuffle 🔀 o riprova!'
+				: 'Nessuna coppia disponibile — Gioco Terminato!';
+			if (btnPlayAgain) btnPlayAgain.textContent = '🔄 Riprova';
+			var btnModalShuffle = document.getElementById('btn-modal-shuffle');
+			if (app.shufflesLeft > 0 && btnModalShuffle) {
+				btnModalShuffle.textContent = '🔀 Usa Shuffle (x' + app.shufflesLeft + ') e Continua';
+				btnModalShuffle.style.display = 'inline-block';
+			} else if (btnModalShuffle) {
+				btnModalShuffle.style.display = 'none';
+			}
+			overlayEl.classList.add('show');
+		}
+	}
+
 	/* ============================================================
 	   CLICK / TAP LOGIC
-	   face-down: 1st click reveals, 2nd click sends to staging.
-	   face-up: 1st click sends to staging.
-	   If a revealed tile matches one already in staging →
-	   auto-match without an extra click.
+	   Classic mode: 1st click selects, 2nd click on matching tile removes.
+	   Arcade mode:
+	     face-down: 1st click reveals, 2nd click sends to staging.
+	     face-up: 1st click sends to staging.
+	     If a revealed tile matches one already in staging → auto-match.
 	   ============================================================ */
 	function handleTileClick(tile) {
 		if (app.autoMatching) return;
@@ -163,12 +245,43 @@
 		   own once free (auto-reveal in ui.js), not on click. */
 		if (tile.obscured) return;
 		if (!isFree(app.board, tile)) {
+			if (app.mode === 'classic' && app.selectedTile === tile) {
+				app.selectedTile = null;
+			}
 			app.peeking = null;
 			updateStates();
 			return;
 		}
+		if (typeof playSfx === 'function') playSfx('click');
 		if (!app.timerStarted) startTimer();
 
+		/* ============================================================
+		   CLASSIC MODE: Direct matching on the board (2 clicks)
+		   ============================================================ */
+		if (app.mode === 'classic') {
+			if (!app.selectedTile) {
+				app.selectedTile = tile;
+				updateStates();
+				return;
+			}
+			if (app.selectedTile === tile) {
+				app.selectedTile = null;
+				updateStates();
+				return;
+			}
+			if (canMatch(app.selectedTile, tile, 'classic')) {
+				handleDirectMatch(app.selectedTile, tile);
+				return;
+			}
+			/* Different tile, cannot match: switch selection */
+			app.selectedTile = tile;
+			updateStates();
+			return;
+		}
+
+		/* ============================================================
+		   ARCADE MODE: Staging box, memory tiles, auto-match
+		   ============================================================ */
 		/* Case 1: covered tile → reveal (cover previous peeked) */
 		if (tile.faceDown) {
 			/* If the previously revealed tile matches this one →
@@ -249,13 +362,28 @@
 	/* ============================================================
 	   UNDO (v0.7.0: using undo costs the 3★ rating)
 	   History entries:
-	     { type: 'match', prev, tile, gained }  — a matched pair removed
+	     { type: 'direct_match', a, b, gained } — classic direct match
+	     { type: 'match', prev, tile, gained }  — staging matched pair removed
 	     { type: 'move',  tile }                — a single tile sent to staging
 	   ============================================================ */
 	function undo() {
 		if (app.history.length === 0) return;
 		app.undoUsed++;
 		var entry = app.history.pop();
+
+		if (entry.type === 'direct_match') {
+			entry.a.removed = false;
+			entry.b.removed = false;
+			app.score = Math.max(0, app.score - (entry.gained || 0));
+			scoreEl.textContent = app.score;
+			app.combo = 0;
+			app.lastMatchTime = 0;
+			if (comboEl) comboEl.classList.remove('show');
+			app.selectedTile = null;
+			updateStates();
+			pairsLeftEl.textContent = pairsLeft();
+			return;
+		}
 
 		if (entry.type === 'match') {
 			entry.prev.removed = false;
@@ -296,23 +424,21 @@
 	function hint() {
 		var free = [];
 		app.board.forEach(function (t) {
-			if (!t.removed && !t.staging && isFree(app.board, t)) free.push(t);
+			if (!t.removed && !t.staging && !t.obscured && isFree(app.board, t)) free.push(t);
 		});
-		var bySymbol = {};
-		free.forEach(function (t) {
-			(bySymbol[t.symbol] = bySymbol[t.symbol] || []).push(t);
-		});
-		for (var sym in bySymbol) {
-			if (bySymbol[sym].length >= 2) {
-				bySymbol[sym][0].hinted = true;
-				bySymbol[sym][1].hinted = true;
-				updateStates();
-				setTimeout(function () {
-					bySymbol[sym][0].hinted = false;
-					bySymbol[sym][1].hinted = false;
+		for (var i = 0; i < free.length; i++) {
+			for (var j = i + 1; j < free.length; j++) {
+				if (canMatch(free[i], free[j], app.mode)) {
+					free[i].hinted = true;
+					free[j].hinted = true;
 					updateStates();
-				}, 2000);
-				return;
+					setTimeout(function () {
+						free[i].hinted = false;
+						free[j].hinted = false;
+						updateStates();
+					}, 2000);
+					return;
+				}
 			}
 		}
 	}
@@ -334,15 +460,25 @@
 		});
 		if (remaining.length < 4) return;
 
-		var syms = remaining.map(function (t) { return t.symbol; });
+		var syms = remaining.map(function (t) {
+			return {
+				symbol: t.symbol,
+				svg: t.svg,
+				wildcardGroup: t.wildcardGroup || null
+			};
+		});
 		var rng = createRng(Math.floor(Math.random() * 1e9));
 		shuffle(syms, rng);
 
 		remaining.forEach(function (t) {
-			t.symbol = syms[t.memoShuffleIdx];
+			var s = syms[t.memoShuffleIdx];
+			t.symbol = s.symbol;
+			t.svg = s.svg;
+			t.wildcardGroup = s.wildcardGroup;
 			t.faceDown = false;
 		});
 		app.peeking = null;
+		app.selectedTile = null;
 		app.combo = 0;
 		app.lastMatchTime = 0;
 		if (comboEl) comboEl.classList.remove('show');
@@ -350,7 +486,12 @@
 		app.shufflesLeft--;
 		if (shuffleCountEl) shuffleCountEl.textContent = 'x' + app.shufflesLeft;
 		if (shuffleBtn && app.shufflesLeft <= 0) shuffleBtn.disabled = true;
+		if (typeof playSfx === 'function') playSfx('shuffle');
 		updateStates();
+		if (overlayEl.classList.contains('show') && modalTitle.textContent.indexOf('Nessuna Mossa') !== -1) {
+			overlayEl.classList.remove('show');
+			startTimer();
+		}
 	}
 
 	/* ============================================================
@@ -442,11 +583,29 @@
 	document.getElementById('btn-new').addEventListener('click', startGame);
 	document.getElementById('btn-play-again').addEventListener('click', startGame);
 
+	var btnModalShuffle = document.getElementById('btn-modal-shuffle');
+	if (btnModalShuffle) {
+		btnModalShuffle.addEventListener('click', function () {
+			if (app.shufflesLeft <= 0) return;
+			if (app.staging.length > 0) {
+				app.staging.forEach(function (t) {
+					t.staging = false;
+					t.faceDown = false;
+				});
+				app.staging = [];
+				renderStaging();
+			}
+			overlayEl.classList.remove('show');
+			shuffleBoard();
+			startTimer();
+		});
+	}
+
 	/* Level selector: jump to any level */
 	document.getElementById('btn-level-go').addEventListener('click', function () {
 		var n = parseInt(document.getElementById('level-input').value, 10);
 		if (isNaN(n) || n < 1) n = 1;
-		app.levelIndex = Math.min(n - 1, 299);
+		app.levelIndex = Math.min(n - 1, 329);
 		saveGame();
 		startGame();
 	});

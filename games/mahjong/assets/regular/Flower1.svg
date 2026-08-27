@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
+  <!-- Top Left Number Badge -->
+  <g transform="translate(22, 22)">
+    <rect x="0" y="0" width="38" height="48" rx="6" fill="#b93c3c"  />
+    <text x="19" y="34" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle">1</text>
+  </g>
+  <!-- Top Right Romanized Tag -->
+  <text x="274" y="54" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="bold" font-size="20" fill="#b93c3c" text-anchor="end" letter-spacing="1">PLUM</text>
+  
+  <!-- Artwork -->
+  <g transform="translate(150, 160)">
+    
+    <!-- Plum Blossom Branch & Flowers -->
+    <path d="M-70,30 Q-25,5 0,-15 T70,-45" fill="none" stroke="#5d4037" stroke-width="7" stroke-linecap="round"/>
+    <path d="M-20,10 Q-38,-20 -50,-35" fill="none" stroke="#5d4037" stroke-width="5" stroke-linecap="round"/>
+    <path d="M20,-20 Q40,-5 58,12" fill="none" stroke="#5d4037" stroke-width="4" stroke-linecap="round"/>
+    <g transform="translate(0, -15)">
+      <circle cx="0" cy="-22" r="18" fill="#d32f2f"/>
+      <circle cx="21" cy="-7" r="18" fill="#d32f2f"/>
+      <circle cx="13" cy="18" r="18" fill="#d32f2f"/>
+      <circle cx="-13" cy="18" r="18" fill="#d32f2f"/>
+      <circle cx="-21" cy="-7" r="18" fill="#d32f2f"/>
+      <circle cx="0" cy="0" r="12" fill="#ffcdd2"/>
+      <circle cx="0" cy="0" r="6" fill="#fbc02d"/>
+    </g>
+    <g transform="translate(-50, -35)"><circle cx="-4" cy="-6" r="10" fill="#d32f2f"/><circle cx="6" cy="-4" r="10" fill="#d32f2f"/><circle cx="0" cy="5" r="10" fill="#d32f2f"/><circle cx="0" cy="0" r="3" fill="#fbc02d"/></g>
+    <g transform="translate(58, 12)"><circle cx="-4" cy="-4" r="9" fill="#d32f2f"/><circle cx="5" cy="-4" r="9" fill="#d32f2f"/><circle cx="0" cy="5" r="9" fill="#d32f2f"/><circle cx="0" cy="0" r="3" fill="#fbc02d"/></g>
+  </g>
+
+  <!-- Traditional Hanzi Character -->
+  <text x="150" y="350" font-family="'Noto Serif SC', 'SimSun', 'Songti SC', 'STKaiti', 'KaiTi', 'Microsoft YaHei', serif" font-weight="900" font-size="128" fill="#b93c3c" text-anchor="middle">梅</text>
+</svg>

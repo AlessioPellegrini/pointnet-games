@@ -56,6 +56,9 @@
 		button.type = 'button';
 		button.title = 'Schermo intero';
 		button.innerHTML = '⛶';
+		button.style.setProperty('top', '56px', 'important');
+		button.style.setProperty('right', '16px', 'important');
+		button.style.setProperty('bottom', 'auto', 'important');
 
 		button.addEventListener('click', function () {
 			if (element.classList.contains('pointnet-games-fullscreen-active')) {

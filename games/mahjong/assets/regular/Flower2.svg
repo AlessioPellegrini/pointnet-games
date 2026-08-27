@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
+  <!-- Top Left Number Badge -->
+  <g transform="translate(22, 22)">
+    <rect x="0" y="0" width="38" height="48" rx="6" fill="#b93c3c"  />
+    <text x="19" y="34" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle">2</text>
+  </g>
+  <!-- Top Right Romanized Tag -->
+  <text x="274" y="54" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="bold" font-size="20" fill="#b93c3c" text-anchor="end" letter-spacing="1">ORCHID</text>
+  
+  <!-- Artwork -->
+  <g transform="translate(150, 160)">
+    
+    <!-- Orchid Blossom & Graceful Leaves -->
+    <path d="M-60,45 C-40,-10 -10,-40 20,-55" fill="none" stroke="#2e7d32" stroke-width="6" stroke-linecap="round"/>
+    <path d="M-35,45 C-15,10 15,-20 65,-30" fill="none" stroke="#2e7d32" stroke-width="5" stroke-linecap="round"/>
+    <g transform="translate(10, -25)">
+      <!-- Orchid Petals -->
+      <path d="M0,0 C-25,-35 -5,-65 0,-60 C5,-65 25,-35 0,0" fill="#d32f2f"/>
+      <path d="M0,0 C-45,-15 -60,10 -50,15 C-40,20 -15,5 0,0" fill="#d32f2f"/>
+      <path d="M0,0 C45,-15 60,10 50,15 C40,20 15,5 0,0" fill="#d32f2f"/>
+      <!-- Lip / Center -->
+      <path d="M-12,5 C-18,25 0,35 12,25 C18,15 5,5 0,5" fill="#fbc02d"/>
+      <circle cx="0" cy="15" r="4" fill="#d84315"/>
+    </g>
+  </g>
+
+  <!-- Traditional Hanzi Character -->
+  <text x="150" y="350" font-family="'Noto Serif SC', 'SimSun', 'Songti SC', 'STKaiti', 'KaiTi', 'Microsoft YaHei', serif" font-weight="900" font-size="128" fill="#b93c3c" text-anchor="middle">蘭</text>
+</svg>

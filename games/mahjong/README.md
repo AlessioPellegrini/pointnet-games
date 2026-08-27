@@ -2,15 +2,15 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 0.9.5** — 38 layout figure (nuovo `temple_steps` a **stacking classico a offset multi-livello**: FULL → HALF → FULL → HALF) con **300 livelli progressivi a difficoltà automatica** e tile-count monotono (mai un calo > 8 tra livelli adiacenti), **BLACKOUT (101–299, alternati, metà con HALF)**: il piano base (z=0) parte tutto oscurato e le tile si **auto-rivelano** appena diventano libere, in **coesistenza** con la meccanica memory (`covered`). Combo chain, shuffle power-up, valutazione a stelle, **punteggio cumulativo per livello**, **deck classico 4 copie per simbolo** e fino a 124 tile (finale boss). Original implementation written from scratch in vanilla JS, inspired by the algorithms of [ffalt/mah](https://github.com/ffalt/mah) (MIT). The arcade engine, UI, progression, memory/staging mechanics, half-cover tiles and scoring are entirely PointNet's own work (GPL-2.0+).
+> **Version: 1.2.5** — **Arcade & Classic Modes**: 39 layout figure (compreso il layout speciale `classic_144` a 5 strati) con **330 livelli progressivi** e **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) con **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, visualizzazione della durata dei brani nella playlist, controlli di navigazione (`⏮️ ⏯️ ⏭️ 🔀`), selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni, rilevamento deadlock e moltiplicatore **$\times 1.5$** integrato nel punteggio cumulato. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊), particelle visive e recupero tramite **Shuffle** nel modal di Game Over.
 
 ## 🔖 Version bump checklist
 
 Quando cambi la versione del gioco, aggiorna **tutti** questi punti:
 
 1. `manifest.json` → campo `"version"`
-2. `index.html` → **9 occorrenze**: `style.css?v=…` (1 `<link>`), badge splash `<sup class="splash-version">v…</sup>`, e i 7 `<script>` `layouts.js?v=…`, `data.js?v=…`, `engine.js?v=…`, `app.js?v=…`, `ui.js?v=…`, `input.js?v=…`, `progress.js?v=…`
-3. `README.md` → riga `> **Version: …**` + nuova voce in fondo al changelog
+2. `index.html` → **10 occorrenze**: `style.css?v=…` (1 `<link>`), badge splash `<sup class="splash-version">v…</sup>`, e gli 8 `<script>` `layouts.js?v=…`, `data.js?v=…`, `engine.js?v=…`, `app.js?v=…`, `ui.js?v=…`, `input.js?v=…`, `progress.js?v=…`, `player.js?v=…`
+3. `README.md` → riga `> **Version: …**` + nuova voce in cima al changelog
 
 Nota: il plugin fa già il cache-bust di `index.html` con il timestamp dei file (`get_game_dir_mtime`), quindi l'iframe si aggiorna da solo; i `?v=…` manuali servono solo per i sub-asset (CSS/JS) dentro l'HTML.
 
@@ -31,6 +31,13 @@ Nota: il plugin fa già il cache-bust di `index.html` con il timestamp dei file 
 - Two tiles with the **same symbol** in the box → **auto-match**: both disappear, +100 points
 - **4 tiles in the box without a match** → **game over** (retry from the current level)
 - Tiles in the staging box are removed from the board and **unblock** the tiles underneath
+
+### Classic Mode Challenges (v1.0.0)
+- Occur **every 10 levels** (10, 20, 30... up to 330)
+- Traditional direct match: tap a free tile to select, tap a matching free tile to remove directly (no staging box)
+- 144 tiles with **Flower and Season wildcards**: any flower matches any flower, any season matches any season
+- Deadlock detection: automatic game over if no moves remain (shuffle power-up can be used to unlock)
+- **1.5x score bonus** added to the cumulative leaderboard total
 
 ### Half-Cover Tiles
 - An upper-layer tile sits exactly on the **crossing of 4 base tiles** below (x±1, y±1)
@@ -105,7 +112,7 @@ Nota: il plugin fa già il cache-bust di `index.html` con il timestamp dei file 
 - [x] 300 levels with automatic difficulty curve (`buildProgression`)
 - [x] Progressive parameters: covered pairs (0→8), deck classico 4 copie per simbolo (2 coppie), staging per-livello
 - [x] Undo/hint limits: hint attivo, undo limitato, 3★ richiede zero undo
-- [x] Staging box: massimo 4 slot, ridotti a 3 e 2 nei livelli alti (4→3→2)
+- [x] Staging box: 4 slot fissi in Arcade
 - [x] Score system: combo chain (×1..×5) + star rating (par time, no undo)
 - [x] Splash + level bar UI (same style as minesweeper-arcade)
 - [x] **No pan/zoom**: board resizes to fit the viewport ✅
@@ -115,12 +122,23 @@ Nota: il plugin fa già il cache-bust di `index.html` con il timestamp dei file 
 - [x] Logged-in users resume from their saved level (`wp_user_meta` `_pointnet_games_progress`)
 - [x] Anonymous users always start from Level 1 (pure arcade, localStorage)
 
-### Phase 5 — Polish & Extra Mechanics
-- [ ] Pyramid/brick-wall layouts with full staggered upper layers
-- [ ] 3 lives / game over flow
-- [ ] Confetti + tile remove animations
-- [ ] Sound effects (match, flip, game over)
-- [ ] Dark theme consistent with the plugin
+### Phase 5 — Arcade & Classic Modes Integration ✅
+- [x] **Fase 1 — Fix Staging Arcade**: `maxStaging` fisso a 4 slot per tutta la modalità Arcade.
+- [x] **Fase 2 — Regole Modalità Classic**: match diretto tra 2 tessere libere senza staging box, `covered=0`, `blackout=false`, gestione deadlock / game over quando non ci sono mosse valide, shuffle opzionale.
+- [x] **Fase 3 — Stile & Musica Classic**: tema CSS dedicato per i livelli Classic, badge/indicatore di sfida, supporto switch audio (`setMusicMode('classic')`).
+- [x] **Fase 4 — Set Classic 144 Tile (Jolly)**: set tradizionale da 144 tessere con famiglie Fiori e Stagioni, estensione di `canMatch` per permettere l'abbinamento incrociato tra qualsiasi Fiore e qualsiasi Stagione.
+- [x] **Fase 5 — Progressione & Mode Flag**: inserimento automatico delle sfide Classic ogni 10 livelli (10, 20, 30...) con incremento del totale livelli a 330; esposizione di `mode: 'classic' | 'arcade'` in `getLevelDef()`.
+- [x] **Fase 6 — Punteggio Cumulato con Moltiplicatore**: unificazione dello score arcade per i livelli Classic con applicazione del moltiplicatore bonus **×1.5**.
+- [x] **Fase 7 — Taratura Difficoltà & Metriche**: bilanciamento fine dei livelli avanzati con le metriche di sepoltura e tile libere all'avvio.
+- [x] **Fase 8 — Precompute & Test Suite**: rigenerazione offline di `solvable-levels.js` compatibile con i jolly e le sfide Classic; aggiornamento ed estensione dei test automatizzati in `tests/`.
+
+### Phase 6 — Polish & Extra Mechanics 🚀
+- [x] **Effetti sonori dedicati (SFX sintetizzati via Web Audio)**: click morbido in bambù naturale (Shishi-odoshi), match a goccia d'acqua Zen (Suikinkutsu), cascata di gocce per le combo, fruscio di foglie/tessere e campane a vento (Fūrin) per la vittoria.
+- [x] **Modulo PointNetMusicPlayer Standalone & Riutilizzabile**: componente autonomo per la gestione musicale in tutti i giochi con seek bar di avanzamento interattiva, timer $m:ss$ in tempo reale, durate calcolate dei brani nella playlist e persistenza volume.
+- [x] **Supporto Playlist Modalità Classic**: gestione cartella `assets/music/classic/` per le tracce tradizionali durante le sfide Classic.
+- [x] **Animazioni di feedback & particelle**: esplosioni di scintille stellari al match, scia combo e cascata di coriandoli/stelle su vittoria.
+- [x] **Recupero Game Over tramite Shuffle**: opzione nel modal di usare una carica di Shuffle 🔀 per continuare la partita senza azzerare il livello.
+- [ ] Dark theme opzionale coordinato con il plugin WordPress
 
 ## Level Design
 
@@ -174,7 +192,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Technical Notes
 
-- **Engine**: vanilla JavaScript, 9 static files (index.html + style.css + **layouts.js** + data.js + engine.js + **app.js + ui.js + input.js + progress.js**), no build step, no modules/IIFE — shared global scope loaded as sequential `<script>` tags
+- **Engine**: vanilla JavaScript, 10 static files (index.html + style.css + **layouts.js** + data.js + engine.js + **app.js + ui.js + input.js + progress.js + player.js**), no build step, no modules/IIFE — shared global scope loaded as sequential `<script>` tags
 - **No runtime dependencies**: static HTML + JS + CSS served via iframe
 - **No pan/zoom**: the board always fits the viewport, tiles scale responsively
 - **API integration**: `window.pointnetGamesAPI.submitScore()` for leaderboard (Phase 4)
@@ -182,7 +200,69 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v0.9.5 — Precompute solvability + staging ridotto + commenti in inglese (current)
+### v1.2.5 — Ripristino CSS Splash Button & Autonomia Stili (current)
+- **Fix Splash Play Button**: corretta la chiusura della regola CSS `.splash-version` nel blocco `<style>` di `index.html` e reso lo stile del pulsante `🎮 PLAY` completamente autonomo e visibile.
+
+### v1.2.4 — Ergonomia Player Audio & Card Volume Dedicata
+- **Distinzione Visiva Timeline & Volume**:
+  - **Timeline Brano**: formattata come nei lettori moderni (Spotify/YouTube) con i timer laterali `0:00` (tempo trascorso a sinistra) e `3:48` (durata totale a destra) che incorniciano la barra scrubber cyan.
+  - **Volume Card Dedicata**: inserita in un card/pill box dedicato con etichetta `VOLUME MUSICA`, pulsante rapido muto/audio `🔊` dinamico (`🔇`/`🔉`/`🔊`), slider a tonalità ambra e percentuale in tempo reale `35%`. Zero ambiguità visiva.
+
+### v1.2.3 — Automatic Fallback Playlist & 404 Recovery
+- **Supporto `fallbackPlaylist` in `PointNetMusicPlayer`**: se i file di una playlist danno 404, il player passa istantaneamente alla playlist di riserva.
+
+### v1.2.2 — Cache-Bust & Anti-Recursion Reentrancy Fix
+- **Anti-Recursion Reentrancy Guard**: aggiunto `isUpdatingUI` in `PointNetMusicPlayer` e disaccoppiato `updateSfxButtons()` da `onStateChange()` per azzerare qualsiasi loop di aggiornamento.
+- **Aggiornamento Cache Assets**: bump a `v1.2.2` su tutti gli script e link per forzare il refresh immediato nei browser.
+
+### v1.2.1 — PointNetMusicPlayer Modulare & Seek Bar
+- **Modulo Standalone `PointNetMusicPlayer` (`assets/js/pointnet-music-player.js` e `games/mahjong/player.js`)**: componente riutilizzabile in tutti i giochi per la gestione audio.
+
+### v1.1.2 — Nuova Traccia Zen Remix Main Arcade Melody
+- **Integrazione nuova traccia Arcade**: rinominata e normalizzata in formato web-safe `zen-remix-main-arcade-melody.mp3` e posizionata come brano di apertura nella playlist Arcade.
+- **Integrazione nuova traccia Arcade**: rinominata e normalizzata in formato web-safe `zen-remix-main-arcade-melody.mp3` e posizionata come brano di apertura nella playlist Arcade.
+
+### v1.1.1 — Playlist Dedicata Modalità Classic (assets/music/classic/)
+- **Switch Automatico Tracce Classic**: quando si gioca una sfida Classic (livelli 10, 20, 30...) il player musicale carica ed esegue automaticamente la playlist dedicata in `assets/music/classic/`.
+- **Fallback Automatico Robusto**: se i brani in `classic/` non sono presenti o in attesa di upload, il player ritorna in modo trasparente alla musica Arcade standard.
+
+### v1.1.0 — Audio SFX Naturali Zen (Bambù & Gocce d'Acqua)
+- **Suono Click Naturale in Bambù**: sintesi di tocco secco e cavo in bambù (*Shishi-odoshi*), morbido e piacevole.
+- **Suono Match Goccia d'Acqua**: sintesi acustica di una goccia d'acqua (*Suikinkutsu*) che cade in una ciotola di ceramica con leggera risonanza armoniosa.
+- **Combo & Vittoria Zen**: gocce d'acqua a cascata su scala pentatonica e campane a vento giapponesi (*Fūrin*) in sottofondo alla vittoria.
+
+### v1.0.9 — Controlli Separati Musica 🎵 & Effetti 🔊
+- **Doppio controllo audio separato**: aggiunti pulsanti indipendenti per la **Musica di sottofondo (🎵)** e per gli **Effetti Sonori (🔊)** sia nella barra superiore (`.status-controls`) che nell'Action Drawer (`☰`).
+- **Persistenza preferenze**: salvati separatamente `musicMuted` e `sfxMuted` in `localStorage`.
+
+### v1.0.8 — Procedural Web Audio SFX, Visual Particles & Modal Shuffle Recovery
+- **Motore SFX sintetizzato (Web Audio API)**: integrati effetti sonori procedurali a latenza zero per click tessere ("clack" realistico avorio/pietra), match armonico orientale, combo con pitch crescente (×2..×5), shuffle rustle, stallo/deadlock e fanfara di vittoria arpeggiata.
+- **Effetti Particellari & Celebrazioni**: animazioni particellari composite GPU (`particleBurst` e `spawnVictoryConfetti`) con scintille dorate e coriandoli al match e al completamento del livello.
+- **Recupero Game Over con Shuffle**: se si incorre in uno stallo (deadlock o staging pieno), il modal visualizza il pulsante `🔀 Usa Shuffle (xN) e Continua`, che sblocca il tabellone e permette di continuare la run senza perdere i punti.
+
+### v1.0.5 — Fix Sovrapposizione Fullscreen Plugin & Toggle Audio Singolo
+- **Eliminato doppio listener toggle audio**: rimosso il listener duplicato in `app.js` che causava la doppia esecuzione immediata di `toggleMusic()` (attivava e disattivava istantaneamente nello stesso click).
+- **Spostato pulsante fullscreen del plugin WordPress**: il bottone di overlay `.pointnet-games-fullscreen-btn` è stato spostato in basso a destra (`bottom: 12px; right: 12px`), liberando completamente l'angolo superiore destro da qualsiasi sovrapposizione e lasciando liberi i clic sul menu `☰` e sull'audio `🔊`.
+
+### v1.0.4 — Hamburger Menu ☰, Fix Fullscreen Close & Audio Unmute Logic
+- **Menu Hamburger (☰)**: sostituito l'ingranaggio `⚙️` con l'icona menu standard a 3 linee `☰`.
+- **Risolta sovrapposizione Fullscreen**: il tasto `✕` (`#fs-close`) è inserito ordinatamente in `.status-controls`.
+- **Fix logica unmute**: sblocco immediato a `🔊` al toggle senza più loop forzato su disattivato.
+
+### v1.0.3 — UI Header Integrata & Dual Audio Control
+- **Icona audio sempre visibile**: controlli spostati dentro la barra di stato (`.status-bar` → `.status-controls`), senza più sovrapposizioni su mobile/iframe.
+- **Doppio controllo audio**: toggle musica presente sia nell'header che dentro l'Action Drawer (⚙️).
+- **Tracce normalizzate**: percorsi web-safe e ripresa playback istantanea.
+
+### v1.0.2 — Tessere SVG Tradizionali per Fiori e Stagioni
+- **Nuove 16 tessere SVG vettoriali** per i Fiori (梅, 蘭, 菊, 竹) e le Stagioni (春, 夏, 秋, 冬) in `assets/regular/` e `assets/black/`: rimpiazzano le vecchie emoji con grafica tradizionale autentica, badge numerici (1..4) e caratteri calligrafici in perfetta armonia con le altre 136 tessere Riichi.
+
+### v1.0.1 — Fix robustezza Audio Player & Autoplay Policy
+- Listener prima interazione per autoplay unlock, toggle migliorato e avvio sincrono preferenze.
+
+### v1.0.0 — Modalità Classic + Staging Fisso Arcade + 330 Livelli
+
+### v0.9.5 — Precompute solvability + staging ridotto + commenti in inglese
 - **Precompute solvability (Piano A)**: `tools/build-solvable.js` genera offline `solvable-levels.js` → nessun DFS a runtime → livelli generati in ~25ms (prima 3-6s sui densi).
 - **Metriche difficoltà** salvate per livello (sepoltura %, tile libere, maxZ).
 - **Staging ridotto**: maxStaging 4→3→2 → **3→2→1**.

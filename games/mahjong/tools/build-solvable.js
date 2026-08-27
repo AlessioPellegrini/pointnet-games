@@ -1,15 +1,7 @@
-#!/usr/bin/env node
 /* ============================================================
-   MAHJONG ARCADE — tools/build-solvable.js (Piano A, v0.9.5)
-   Precomputes solvability for all 300 levels OFFLINE and writes
+   MAHJONG ARCADE — tools/build-solvable.js (v1.0.0 Arcade & Classic)
+   Precomputes solvability for all 330 levels OFFLINE and writes
    solvable-levels.js (a globals JS loaded BEFORE data.js).
-
-   WHY: generateLevel used to call solveBoard() (a DFS) at runtime
-   in the browser — 3-6s on dense levels, worse on mobile. The seed
-   is deterministic (createRng(42 + attempt*7 + levelIndex)), so the
-   winning shuffle is the same for everyone. We run the solver once
-   here, store the winning attempt + difficulty metrics, and the
-   game reads them directly (no runtime DFS).
 
    USO:
      node games/mahjong/tools/build-solvable.js
@@ -25,8 +17,8 @@ vm.createContext(ctx);
 
 const load = [
   fs.readFileSync(path.join(dir, 'layouts.js'), 'utf8'),
-  fs.readFileSync(path.join(dir, 'data.js'), 'utf8'),
-  fs.readFileSync(path.join(dir, 'engine.js'), 'utf8')
+  fs.readFileSync(path.join(dir, 'engine.js'), 'utf8'),
+  fs.readFileSync(path.join(dir, 'data.js'), 'utf8')
 ].join('\n');
 
 /* Eseguiamo il precompute DENTRO il contesto vm: replica esattamente
@@ -36,17 +28,20 @@ const load = [
 const snippet = `
 (function () {
   const out = {};
-  for (let levelIndex = 0; levelIndex < 300; levelIndex++) {
+  for (let levelIndex = 0; levelIndex < 330; levelIndex++) {
     process.stdout.write('L' + (levelIndex + 1) + '... ');
     const t0 = Date.now();
     const def = getLevelDef(levelIndex);
     const chosen = LAYOUT_BUILDERS[def.layout][def.variant]();
     const layout = chosen.filter(p => p.y >= 0);
+    const isClassic = (def.mode === 'classic');
     const copiesPerSymbol = 4;
     let tileCount = layout.length;
-    if (tileCount % copiesPerSymbol !== 0) tileCount -= (tileCount % copiesPerSymbol);
-    if (layout.length > tileCount) layout.length = tileCount;
-    else if (layout.length % copiesPerSymbol !== 0) layout.length -= layout.length % copiesPerSymbol;
+    if (!isClassic) {
+      if (tileCount % copiesPerSymbol !== 0) tileCount -= (tileCount % copiesPerSymbol);
+      if (layout.length > tileCount) layout.length = tileCount;
+      else if (layout.length % copiesPerSymbol !== 0) layout.length -= layout.length % copiesPerSymbol;
+    }
 
     const symbols = SYMBOL_SETS[def.symSet] || SYMBOL_SETS['default'];
     const unique = [];
@@ -54,26 +49,41 @@ const snippet = `
     for (let u = 0; u < symbols.length; u++) {
       if (!seen[symbols[u]]) { seen[symbols[u]] = 1; unique.push(symbols[u]); }
     }
-    const symbolsNeeded = Math.ceil(layout.length / copiesPerSymbol);
 
     let winner = null;
     for (let attempt = 0; attempt < 80; attempt++) {
       const rng = createRng(42 + attempt * 7 + levelIndex);
       const deck = [];
-      for (let i = 0; i < symbolsNeeded; i++) {
-        const sym = unique[i % unique.length];
-        for (let copy = 0; copy < copiesPerSymbol; copy++) {
-          if (deck.length < layout.length) deck.push(sym);
+      if (isClassic && layout.length === 144) {
+        for (let si = 0; si < 34; si++) {
+          const csym = unique[si % unique.length];
+          for (let ccopy = 0; ccopy < 4; ccopy++) {
+            deck.push({ symbol: csym, wildcardGroup: null });
+          }
+        }
+        const flowers = ['Flower1', 'Flower2', 'Flower3', 'Flower4'];
+        const seasons = ['Season1', 'Season2', 'Season3', 'Season4'];
+        for (let f = 0; f < 4; f++) deck.push({ symbol: flowers[f], wildcardGroup: 'flower' });
+        for (let s = 0; s < 4; s++) deck.push({ symbol: seasons[s], wildcardGroup: 'season' });
+      } else {
+        const symbolsNeeded = Math.ceil(layout.length / copiesPerSymbol);
+        for (let i = 0; i < symbolsNeeded; i++) {
+          const sym = unique[i % unique.length];
+          for (let copy = 0; copy < copiesPerSymbol; copy++) {
+            if (deck.length < layout.length) deck.push({ symbol: sym, wildcardGroup: null });
+          }
         }
       }
       shuffle(deck, rng);
       const tiles = layout.map((co, c) => ({
-        z: co.z, x: co.x, y: co.y, isHalf: !!co.isHalf, symbol: deck[c],
+        z: co.z, x: co.x, y: co.y, isHalf: !!co.isHalf,
+        symbol: deck[c].symbol,
+        wildcardGroup: deck[c].wildcardGroup || null,
         key: co.z + ',' + co.x + ',' + co.y,
         removed: false, staging: false, faceDown: false, obscured: false
       }));
       const board = buildBoard(tiles);
-      const solvable = solveBoard(board);
+      const solvable = solveBoard(board, def.mode);
       if (solvable) { winner = { attempt, tiles, board }; break; }
       const freeCount = tiles.filter(t => !t.removed && !t.staging && isFree(board, t)).length;
       if (freeCount >= 4) { winner = { attempt, tiles, board }; break; }
@@ -91,6 +101,7 @@ const snippet = `
       attempt: winner.attempt,
       layout: def.layout,
       variant: def.variant,
+      mode: def.mode,
       maxZ,
       freeStart: freeAtStart,
       buried,
@@ -108,7 +119,7 @@ const result = vm.runInContext(load + '\n' + snippet, ctx);
 const body = Object.keys(result).map(k => {
   const r = result[k];
   return '"' + k + '":{"attempt":' + r.attempt + ',"layout":"' + r.layout +
-    '","variant":"' + r.variant + '","maxZ":' + r.maxZ +
+    '","variant":"' + r.variant + '","mode":"' + r.mode + '","maxZ":' + r.maxZ +
     ',"freeStart":' + r.freeStart + ',"buried":' + r.buried +
     ',"buriedPct":' + r.buriedPct + '}';
 }).join(',\n');
@@ -116,7 +127,7 @@ const body = Object.keys(result).map(k => {
 const out = [
   '/* ============================================================',
   '   AUTO-GENERATED by tools/build-solvable.js — DO NOT edit.',
-  '   Precomputed solvability for all 300 levels (v0.9.5 Piano A).',
+  '   Precomputed solvability for all 330 levels (v1.0.0 Arcade & Classic).',
   '   Regenerate with: node tools/build-solvable.js',
   '   ============================================================ */',
   '',
@@ -127,4 +138,5 @@ const out = [
 fs.writeFileSync(path.join(dir, 'solvable-levels.js'), out);
 console.log('[build-solvable] scritto solvable-levels.js con ' + Object.keys(result).length + ' livelli');
 console.log('[build-solvable] esempio L1:', JSON.stringify(result[0]));
-console.log('[build-solvable] esempio L300:', JSON.stringify(result[299]));
+console.log('[build-solvable] esempio L10 (Classic):', JSON.stringify(result[9]));
+console.log('[build-solvable] esempio L330:', JSON.stringify(result[329]));

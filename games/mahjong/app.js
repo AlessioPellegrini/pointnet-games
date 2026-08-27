@@ -44,6 +44,9 @@
 		board: null,
 		staging: [],          // tiles in the staging box (max 4)
 		peeking: null,        // face-down tile currently revealed
+		selectedTile: null,   // first tile clicked in classic mode
+		mode: 'arcade',       // 'arcade' | 'classic'
+		multiplier: 1.0,      // scoring multiplier (1.5x for classic)
 		tileEls: [],
 		score: 0,
 		elapsed: 0,
@@ -86,8 +89,13 @@
 		stopTimer();
 		app.tiles = generateLevel(app.levelIndex);
 		app.board = buildBoard(app.tiles);
+		var def = (typeof LAST_LEVEL_DEF !== 'undefined' && LAST_LEVEL_DEF) ? LAST_LEVEL_DEF : getLevelDef(app.levelIndex);
+		app.mode = def.mode || 'arcade';
+		app.multiplier = def.multiplier || 1.0;
+		app.selectedTile = null;
+
 		/* Per-level staging capacity comes from the generated level. */
-		MAX_STAGING = (typeof LAST_LEVEL_DEF !== 'undefined' && LAST_LEVEL_DEF && LAST_LEVEL_DEF.maxStaging) || 4;
+		MAX_STAGING = (def && def.maxStaging) || 4;
 		app.staging = [];
 		app.peeking = null;
 		app.tileEls = [];
@@ -105,7 +113,15 @@
 		app._metrics = computeMetrics(app.tiles);
 		app._boardSize = boardSize(app._metrics);
 
-		levelLabelEl.textContent = app.levelIndex + 1;
+		if (app.mode === 'classic') {
+			document.body.classList.add('mode-classic');
+			levelLabelEl.innerHTML = (app.levelIndex + 1) + ' <span class="badge-classic">CLASSIC</span>';
+		} else {
+			document.body.classList.remove('mode-classic');
+			levelLabelEl.textContent = app.levelIndex + 1;
+		}
+		if (typeof setMusicMode === 'function') setMusicMode(app.mode);
+
 		timerEl.textContent = '0';
 		scoreEl.textContent = '0';
 		pairsLeftEl.textContent = pairsLeft();
@@ -131,7 +147,7 @@
 			window.parent.postMessage({ type: 'pointnet-games:fullscreen-request' }, '*');
 		} else {
 			document.body.classList.add('pointnet-games-fs');
-			fsCloseBtn.style.display = 'flex';
+			if (fsCloseBtn) fsCloseBtn.style.display = 'inline-flex';
 		}
 	}
 
@@ -141,7 +157,7 @@
 			window.parent.postMessage({ type: 'pointnet-games:fullscreen-exit' }, '*');
 		} else {
 			document.body.classList.remove('pointnet-games-fs');
-			fsCloseBtn.style.display = 'none';
+			if (fsCloseBtn) fsCloseBtn.style.display = 'none';
 		}
 	}
 
@@ -173,13 +189,8 @@
 		startAfterSplash();
 	});
 
-	fsCloseBtn.addEventListener('click', function () {
-		exitGameFullscreen();
-	});
-
-	var musicBtn = document.getElementById('btn-music');
-	if (musicBtn) {
-		musicBtn.addEventListener('click', function () {
-			if (typeof toggleMusic === 'function') toggleMusic();
+	if (fsCloseBtn) {
+		fsCloseBtn.addEventListener('click', function () {
+			exitGameFullscreen();
 		});
 	}

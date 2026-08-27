@@ -26,7 +26,7 @@ const load = [
   fs.readFileSync(path.join(dir, 'engine.js'), 'utf8')
 ].join('\n') + '\n' + [
   '(function () {',
-  '  const progression = buildProgression(300);',
+  '  const progression = buildProgression(330);',
   '  const blackIdx = [];',
   '  progression.forEach((p, i) => { if (p.blackout) blackIdx.push(i); });',
   '  /* v0.9.3: il blackout parte da livello ~101 (indice 100) ed è alternato */',

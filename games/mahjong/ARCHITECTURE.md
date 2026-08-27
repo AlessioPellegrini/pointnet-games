@@ -15,28 +15,35 @@ Design document for the vanilla JavaScript engine. Written from scratch, inspire
 ```
 games/mahjong/
 ├── index.html          ← shell HTML (markup + script/css loads)
-├── style.css           ← all CSS (tiles, 3D, responsive, staging)
-├── layouts.js          ← layout builders (extracted from data.js)
-├── data.js             ← symbols, level progression, generator
-├── engine.js           ← board model, solver, geometry math
-├── app.js              ← constants, DOM refs, shared state, game flow (startGame), fullscreen/splash
-├── ui.js               ← tile DOM creation, board rebuild, fitting
-├── input.js            ← staging box, click/tap, undo/hint, shuffle, drag events
+├── style.css           ← all CSS (tiles, 3D, responsive, staging, jukebox)
+├── layouts.js          ← 39 layout figure builders (including classic_144)
+├── solvable-levels.js  ← precomputed deterministic solvable seeds & layouts
+├── data.js             ← symbols (144 tiles + wildcards), progression (330 levels)
+├── engine.js           ← board model, solver, geometry math, wildcard matching
+├── app.js              ← constants, DOM refs, shared state, flow (startGame, splash)
+├── ui.js               ← tile DOM creation, board rebuild, fitting, particle bursts
+├── input.js            ← staging box / direct classic match, undo/hint, shuffle, drag
 ├── progress.js         ← star rating, persistence, cumulative scores, WP bridge, boot
+├── player.js           ← PointNetMusicPlayer (modular jukebox, seek bar, time, volume)
+├── audio.js            ← Web Audio synthesized SFX (bamboo, water drop) + playlist bridge
 ├── manifest.json       ← plugin registration
 ├── ARCHITECTURE.md     ← this document
-└── README.md           ← roadmap + changelog
+├── README.md           ← roadmap + changelog
+└── tests/              ← automated permanent test suite (6 test runners)
 ```
 
-Since v0.4.0 the code is split into 5 files (was a single self-contained `index.html`); since **v0.8.0** the former `game.js` monolith is split into 4 focused modules running in shared global scope, and **`data.js`** has been slimmed by extracting its layout builders into **`layouts.js`** (no IIFE, no build step — they behave exactly like sequential `<script>` tags):
-- **layouts.js** — all layout builders plus `evenTrim()`/`dedupePts()` helpers (loaded first)
-- **data.js** — symbols, `SYMBOL_SETS`, progression (ORDERED_STEPS/`computeDifficulty`/`buildProgression`/`generateLevel`)
-- **engine.js** — DOM-free logic: board, solver, pixel geometry
+Since v1.0.0+ the engine supports dual **Arcade & Classic Modes**:
+- **layouts.js** — 39 layout builders plus `evenTrim()`/`dedupePts()` helpers (loaded first)
+- **solvable-levels.js** — precomputed seed database for instant (<25ms) loading of guaranteed solvable boards
+- **data.js** — symbols, `SYMBOL_SETS`, traditional 144-tile set (Flowers & Seasons wildcards), progression (330 progressive levels)
+- **engine.js** — DOM-free logic: board, solver, wildcard matching, pixel geometry
 - **app.js** — constants, DOM refs, `app` state, `startGame`, fullscreen/splash
-- **ui.js** — `createTileEl`, `rebuildBoard`, `updateStates`, `fitBoard`/`refitUntilStable`
-- **input.js** — staging box + click logic, undo/hint, shuffle, drag-to-peek, button/pointer listeners
-- **progress.js** — star rating, arcade/WP persistence, cumulative scores, WP bridge, boot sequence (loaded last)
-- Load order: `layouts.js` → `data.js` → `engine.js` → `app.js` → `ui.js` → `input.js` → `progress.js` (dependencies flow downward)
+- **ui.js** — `createTileEl`, `rebuildBoard`, `updateStates`, `fitBoard`/`refitUntilStable`, particle celebration
+- **input.js** — staging box (Arcade) / direct matching (Classic), deadlock detection, undo/hint, shuffle, drag-to-peek
+- **progress.js** — star rating, arcade/WP persistence, cumulative scores with $\times 1.5$ classic multiplier, boot sequence
+- **player.js** — `PointNetMusicPlayer`: modular media player with interactive seek scrubbing, real-time $m:ss$ time display, playlist duration calculation, and volume control card
+- **audio.js** — procedural Web Audio synthesized Zen sound effects (Shishi-odoshi bamboo, Suikinkutsu water drops, combo streams, wind chimes) and playlist bridge
+- Load order: `layouts.js` → `solvable-levels.js` → `data.js` → `engine.js` → `app.js` → `ui.js` → `input.js` → `progress.js` → `player.js` → `audio.js` (dependencies flow downward)
 
 ## Core Data Model
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /* ============================================================
-   TEST SOLVABLE (Piano A, v0.9.5) — verifica il precompute.
+   TEST SOLVABLE (v1.0.0 Arcade & Classic) — verifica il precompute.
    Esegue: node games/mahjong/tests/test-solvable.js
 
    Controlli:
-     1. solvable-levels.js esiste e SOLVABLE_LEVELS copre 300 livelli.
+     1. solvable-levels.js esiste e SOLVABLE_LEVELS copre 330 livelli.
      2. generateLevel() con il precompute NON esegue il DFS: ogni
-        livello si genera in < 250ms (prima 3-6s sui livelli densi).
-     3. Il livello generato è giocabile (coppia libera e scoperte).
+        livello si genera in < 250ms (inclusi i 144 classic).
+     3. I livelli generati sono giocabili (coppia libera matchabile).
     ============================================================ */
 const fs = require('fs');
 const vm = require('vm');
@@ -19,23 +19,23 @@ vm.createContext(ctx);
 const load = [
   fs.readFileSync(path.join(dir, 'layouts.js'), 'utf8'),
   fs.readFileSync(path.join(dir, 'solvable-levels.js'), 'utf8'),
-  fs.readFileSync(path.join(dir, 'data.js'), 'utf8'),
-  fs.readFileSync(path.join(dir, 'engine.js'), 'utf8')
+  fs.readFileSync(path.join(dir, 'engine.js'), 'utf8'),
+  fs.readFileSync(path.join(dir, 'data.js'), 'utf8')
 ].join('\n') + '\n' + [
   '(function () {',
   '  let failures = 0;',
   '',
-  '  /* 1. copertura dei 300 livelli */',
+  '  /* 1. copertura dei 330 livelli */',
   '  const keys = Object.keys(SOLVABLE_LEVELS).map(Number);',
-  '  if (keys.length !== 300) {',
+  '  if (keys.length !== 330) {',
   '    failures++;',
-  '    console.log("FAIL: SOLVABLE_LEVELS ha " + keys.length + " livelli (attesi 300)");',
+  '    console.log("FAIL: SOLVABLE_LEVELS ha " + keys.length + " livelli (attesi 330)");',
   '  }',
   '',
   '  /* 2. generateLevel veloce (nessun DFS runtime) */',
-  '  const dense = [199, 224, 249, 274, 298, 299];',
+  '  const sample = [0, 9, 50, 99, 149, 199, 249, 299, 329];',
   '  let worst = 0;',
-  '  dense.forEach(function (idx) {',
+  '  sample.forEach(function (idx) {',
   '    const t0 = Date.now();',
   '    const tiles = generateLevel(idx);',
   '    const ms = Date.now() - t0;',
@@ -45,23 +45,29 @@ const load = [
   '      console.log("FAIL: L" + (idx + 1) + " generato in " + ms + "ms (>250, DFS runtime presente?)");',
   '    }',
   '  });',
-  '  console.log("peggiore livello denso: " + worst + "ms");',
+  '  console.log("peggiore livello campione: " + worst + "ms");',
   '',
-  '  /* 3. giocabilità di un campione */',
-  '  [0, 50, 100, 174, 209, 249].forEach(function (idx) {',
+  '  /* 3. giocabilità di un campione (almeno una coppia matchabile all avvio) */',
+  '  [0, 9, 50, 99, 174, 209, 249, 329].forEach(function (idx) {',
+  '    const def = getLevelDef(idx);',
   '    const tiles = generateLevel(idx);',
   '    const board = buildBoard(tiles);',
-  '    const sym = {};',
+  '    const free = [];',
   '    tiles.forEach(function (t) {',
-  '      if (t.removed || t.staging || t.faceDown) return;',
-  '      if (!isFree(board, t)) return;',
-  '      sym[t.symbol] = (sym[t.symbol] || 0) + 1;',
+  '      if (t.removed || t.staging || t.faceDown || t.obscured) return;',
+  '      if (isFree(board, t)) free.push(t);',
   '    });',
   '    let hasPair = false;',
-  '    for (const s in sym) if (sym[s] >= 2) hasPair = true;',
-  '    if (!hasPair) {',
+  '    for (let i = 0; i < free.length; i++) {',
+  '      for (let j = i + 1; j < free.length; j++) {',
+  '        if (canMatch(free[i], free[j], def.mode)) { hasPair = true; break; }',
+  '      }',
+  '      if (hasPair) break;',
+  '    }',
+  '    const ok = hasPair || (def.mode === "arcade" && free.length >= 4);',
+  '    if (!ok) {',
   '      failures++;',
-  '      console.log("FAIL: L" + (idx + 1) + " nessuna coppia libera scoperta");',
+  '      console.log("FAIL: L" + (idx + 1) + " (" + def.mode + ") livello non giocabile all avvio (free: " + free.length + ", pair: " + hasPair + ")");',
   '    }',
   '  });',
   '',

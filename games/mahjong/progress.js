@@ -20,10 +20,12 @@
 
 	function levelComplete() {
 		stopTimer();
+		if (typeof playSfx === 'function') playSfx('victory');
+		if (typeof spawnVictoryConfetti === 'function') spawnVictoryConfetti();
 		app.stars = computeStars();
 		var levelNum = app.levelIndex + 1;
 		saveStars(levelNum, app.stars);
-		app.levelIndex = Math.min(levelNum, 299);
+		app.levelIndex = Math.min(levelNum, 329);
 		saveGame();
 		/* PHASE 4: persist progress + submit the score to the leaderboard. */
 		if (!bestScores[levelNum] || app.score > bestScores[levelNum]) {
@@ -36,6 +38,8 @@
 		/* Restore the "Next level" label (a previous loss had changed
 		   it to "Retry"). */
 		if (btnPlayAgain) btnPlayAgain.textContent = '▶ Next level';
+		var btnModalShuffle = document.getElementById('btn-modal-shuffle');
+		if (btnModalShuffle) btnModalShuffle.style.display = 'none';
 		if (modalStars) {
 			var starStr = '';
 			for (var si = 0; si < 3; si++) starStr += (si < app.stars) ? '⭐' : '☆';
@@ -43,7 +47,7 @@
 		}
 		modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score +
 			'   ·   Best: ' + (bestStars[levelNum] || 0) + '⭐' +
-			'   ·   Next: Level ' + Math.min(levelNum + 1, 300);
+			'   ·   Next: Level ' + Math.min(levelNum + 1, 330);
 		overlayEl.classList.add('show');
 	}
 
@@ -54,7 +58,7 @@
 		try {
 			var qs = new URLSearchParams(window.location.search);
 			var lvl = parseInt(qs.get('level'), 10);
-			if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 299);
+			if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 329);
 		} catch (e) {}
 	}
 
@@ -69,7 +73,7 @@
 			var raw = localStorage.getItem('wp_mahjong_arcade_level');
 			if (raw !== null) {
 				var n = parseInt(raw, 10);
-				if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 299);
+				if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 329);
 			}
 		} catch (e) {}
 	}
@@ -155,7 +159,7 @@ var bestScores = {};
 				if (app.tiles.length === 0 &&
 				    !new URLSearchParams(window.location.search).get('level') &&
 				    savedLevel > 0) {
-					app.levelIndex = Math.min(savedLevel - 1, 299);
+					app.levelIndex = Math.min(savedLevel - 1, 329);
 					window.__wpLoadedLevel = savedLevel;
 				}
 			}
@@ -172,7 +176,7 @@ var bestScores = {};
 				if (app.tiles.length === 0 &&
 				    !new URLSearchParams(window.location.search).get('level') &&
 				    savedLevel > 0) {
-					app.levelIndex = Math.min(savedLevel - 1, 299);
+					app.levelIndex = Math.min(savedLevel - 1, 329);
 					window.__wpLoadedLevel = savedLevel;
 				}
 				/* Merge server-side best scores so the cumulative total

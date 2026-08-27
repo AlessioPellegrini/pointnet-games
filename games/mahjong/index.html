@@ -4,47 +4,58 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>Mahjong Arcade</title>
-	<link rel="stylesheet" href="style.css?v=0.9.5">
+	<link rel="stylesheet" href="style.css?v=1.2.5">
 	<style>
 		/* ============================================================
 		   SPLASH SCREEN + FULLSCREEN — game styles live in style.css
 		   ============================================================ */
+		html, body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			background: #020617;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+			user-select: none;
+			-webkit-user-select: none;
+			touch-action: manipulation;
+		}
+
 		#splash {
 			position: fixed;
-			top: 0; left: 0; right: 0; bottom: 0;
-			z-index: 900;
-			background:
-				radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.15) 0%, transparent 60%),
-				radial-gradient(circle at 50% 90%, rgba(244, 114, 182, 0.10) 0%, transparent 60%),
-				var(--bg);
+			inset: 0;
+			z-index: 9999;
+			background: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%, #020617 100%);
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			transition: opacity 0.35s ease;
-			overflow: hidden;
+			color: #f8fafc;
+			transition: opacity 0.35s ease, visibility 0.35s ease;
 		}
-
-		#splash.hidden { opacity: 0; pointer-events: none; }
-
+		#splash.hidden {
+			opacity: 0;
+			visibility: hidden;
+			pointer-events: none;
+		}
 		.splash-inner {
 			text-align: center;
-			padding: 32px;
-			max-width: 380px;
-			width: 90%;
-			max-height: 100vh;
-			box-sizing: border-box;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
+			padding: 24px;
+			max-width: 420px;
 		}
-
-		.splash-emoji { font-size: 4.5rem; margin-bottom: 12px; animation: splash-bounce 1.2s ease infinite; line-height: 1; }
-
+		.splash-emoji {
+			font-size: 3.5rem;
+			margin-bottom: 8px;
+			animation: float 2.5s ease-in-out infinite;
+		}
+		@keyframes float {
+			0%, 100% { transform: translateY(0); }
+			50% { transform: translateY(-8px); }
+		}
 		.splash-title {
 			font-size: 2.2rem;
-			font-weight: 800;
-			background: linear-gradient(135deg, var(--accent), #f472b6);
+			font-weight: 900;
+			background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 			background-clip: text;
@@ -53,37 +64,50 @@
 		}
 
 		.splash-version {
-			font-size: 0.45em;
-			font-weight: 700;
+			font-size: 0.75rem;
+			font-weight: 600;
+			color: #38bdf8;
+			margin-left: 6px;
 			vertical-align: super;
-			margin-left: 4px;
-			opacity: 0.7;
-			background: linear-gradient(135deg, var(--accent), #f472b6);
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			background-clip: text;
-			letter-spacing: 0.3px;
 		}
 
-		.splash-subtitle { color: #94a3b8; font-size: 1rem; margin-bottom: 20px; line-height: 1.4; }
+		.splash-subtitle {
+			color: #94a3b8;
+			font-size: 1rem;
+			margin-bottom: 20px;
+			line-height: 1.4;
+		}
 
 		.splash-play {
-			background: var(--accent);
-			color: #0f172a;
+			display: inline-block;
+			background: #38bdf8;
+			background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+			color: #ffffff;
 			border: none;
 			border-radius: 999px;
 			font-family: inherit;
 			font-size: 1.3rem;
-			font-weight: 700;
+			font-weight: 800;
 			cursor: pointer;
 			transition: all 0.2s ease;
-			padding: 14px 40px;
-			box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4);
+			padding: 14px 44px;
+			box-shadow: 0 8px 24px rgba(14, 165, 233, 0.45);
 			animation: splash-pulse 2s ease-in-out infinite;
+			letter-spacing: 0.5px;
 			flex-shrink: 0;
+			text-align: center;
+			user-select: none;
+			-webkit-user-select: none;
 		}
 
-		.splash-play:hover { transform: translateY(-2px); }
+		.splash-play:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 12px 30px rgba(14, 165, 233, 0.6);
+		}
+		.splash-play:active {
+			transform: translateY(1px);
+			box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4);
+		}
 
 		.splash-hint { margin-top: 10px; color: #94a3b8; font-size: 0.8rem; }
 		.splash-author { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(148, 163, 184, 0.2); color: #94a3b8; font-size: 0.8rem; letter-spacing: 0.3px; width: 100%; }
@@ -96,27 +120,13 @@
 		@keyframes splash-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
 		.fs-close {
-			position: fixed;
-			top: 16px;
-			right: 16px;
-			z-index: 1000;
-			width: 40px;
-			height: 40px;
-			border: none;
-			border-radius: 10px;
-			background: rgba(15, 23, 42, 0.7);
-			color: #fff;
-			font-size: 1.2rem;
-			cursor: pointer;
 			display: none;
-			align-items: center;
-			justify-content: center;
-			transition: background 0.2s ease;
-			backdrop-filter: blur(4px);
+			background: rgba(239, 68, 68, 0.35);
+			color: #fca5a5;
 		}
 
-		.fs-close:hover { background: rgba(239, 68, 68, 0.85); }
-		body.pointnet-games-fs .fs-close { display: flex; }
+		.fs-close:hover { background: rgba(239, 68, 68, 0.85); color: #fff; }
+		body.pointnet-games-fs .fs-close { display: inline-flex; }
 
 		@media (max-width: 600px) {
 			.splash-inner { padding: 16px; }
@@ -144,16 +154,13 @@
 	<div id="splash">
 		<div class="splash-inner">
 			<div class="splash-emoji">🀄</div>
-			<h1 class="splash-title">Mahjong Arcade<sup class="splash-version">v0.9.5</sup></h1>
+			<h1 class="splash-title">Mahjong Arcade<sup class="splash-version">v1.2.5</sup></h1>
 			<p class="splash-subtitle">Match identical tiles to clear the board. Free tiles go to the tray — two of the same symbol auto-match!</p>
 			<button id="splash-play" class="splash-play">🎮 PLAY</button>
 			<p class="splash-hint">Tap a free tile to lift it · tap again to send it to the tray</p>
 			<p class="splash-author">by Alessio Pellegrini · PointNet</p>
 		</div>
 	</div>
-
-	<button id="fs-close" class="fs-close" title="Exit fullscreen">✕</button>
-	<button id="btn-music" class="music-btn" title="Toggle music">🔇</button>
 
 	<div class="game-container" id="game" data-game-id="" data-game-slug="mahjong-arcade">
 		<div class="status-bar">
@@ -162,6 +169,12 @@
 			<div class="status-item">🀄 <span class="status-value pairs" id="pairs-left">0</span></div>
 			<div class="status-item">🏆 <span class="status-value" id="score">0</span></div>
 			<div class="status-item" id="combo">🔥 <span class="status-value">x0</span></div>
+			<div class="status-controls">
+				<button id="btn-music" class="icon-btn" title="Toggle musica" aria-label="Toggle musica">🎵</button>
+				<button id="btn-sfx" class="icon-btn" title="Toggle effetti" aria-label="Toggle effetti">🔊</button>
+				<button id="btn-actions" class="icon-btn" title="Menu" aria-label="Menu">☰</button>
+				<button id="fs-close" class="icon-btn fs-close" title="Exit fullscreen" aria-label="Exit fullscreen">✕</button>
+			</div>
 		</div>
 
 		<div class="staging-box" id="staging-box"></div>
@@ -171,18 +184,51 @@
 		</div>
 	</div>
 
-	<button id="btn-actions" class="music-btn actions-btn" title="Actions">⚙️</button>
-
 	<!-- Action drawer (v0.9.5): le azioni secondarie sono in un pannello
-	     apribile con ⚙️ per non rubare spazio verticale al board su mobile.
-	     Gli ID dei bottoni sono invariati → i listener in input.js restano
-	     validi. -->
+	     apribile con ☰ per non rubare spazio verticale al board su mobile. -->
 	<div class="action-panel" id="action-panel">
+		<div class="jukebox-panel" id="jukebox-panel">
+			<div class="jukebox-header">
+				<span class="jukebox-badge">🎵 JUKEBOX ZEN</span>
+				<span class="jukebox-track-tag" id="jukebox-track-tag">1/4</span>
+			</div>
+			
+			<div class="jukebox-title" id="jukebox-title" title="Traccia in riproduzione">Zen Remix Main Arcade Melody</div>
+			
+			<div class="jukebox-timeline">
+				<span class="jukebox-time-num" id="jukebox-time-cur">0:00</span>
+				<div class="jukebox-progress-wrap">
+					<input type="range" id="jukebox-progress" class="jukebox-progress-slider" min="0" max="1000" value="0" step="1" aria-label="Avanzamento brano">
+				</div>
+				<span class="jukebox-time-num" id="jukebox-time-dur">0:00</span>
+			</div>
+
+			<div class="jukebox-controls">
+				<button class="jukebox-btn" id="btn-prev-track" title="Traccia precedente" aria-label="Traccia precedente">⏮️</button>
+				<button class="jukebox-btn jukebox-play" id="btn-play-track" title="Play/Pausa" aria-label="Play/Pausa">⏸️</button>
+				<button class="jukebox-btn" id="btn-next-track" title="Traccia successiva" aria-label="Traccia successiva">⏭️</button>
+				<button class="jukebox-btn" id="btn-random-track" title="Traccia casuale" aria-label="Traccia casuale">🔀</button>
+			</div>
+			<select class="jukebox-select" id="jukebox-playlist-select" aria-label="Seleziona traccia"></select>
+			
+			<div class="jukebox-volume-card">
+				<button class="jukebox-vol-btn" id="jukebox-vol-btn" title="Muto / Attiva" aria-label="Muto / Attiva">🔊</button>
+				<div class="jukebox-vol-slider-wrap">
+					<div class="jukebox-vol-head">
+						<span class="jukebox-vol-caption">Volume Musica</span>
+						<span class="jukebox-vol-pct" id="jukebox-volume-val">35%</span>
+					</div>
+					<input type="range" id="jukebox-volume" class="jukebox-volume-slider" min="0" max="100" value="35" aria-label="Volume musica">
+				</div>
+			</div>
+		</div>
+
+		<button class="btn" id="btn-sfx-drawer">🔊 Effetti: ON</button>
 		<button class="btn" id="btn-hint">💡 Hint</button>
 		<button class="btn" id="btn-undo">↩️ Undo</button>
 		<button class="btn" id="btn-shuffle">🔀 Shuffle <span id="shuffle-count">x3</span></button>
 		<button class="btn" id="btn-new">🔄 New</button>
-		<input type="number" id="level-input" class="btn-level-input" min="1" max="300" value="1" aria-label="Level number">
+		<input type="number" id="level-input" class="btn-level-input" min="1" max="330" value="1" aria-label="Level number">
 		<button class="btn" id="btn-level-go">Level</button>
 	</div>
 
@@ -191,18 +237,20 @@
 			<h2 id="modal-title">🏆 Cleared!</h2>
 			<p id="modal-stars"></p>
 			<p id="modal-stats"></p>
+			<button class="btn btn-modal-shuffle" id="btn-modal-shuffle" style="display: none;">🔀 Usa Shuffle e Continua</button>
 			<button class="btn" id="btn-play-again">▶ Next level</button>
 		</div>
 	</div>
 
-	<script src="layouts.js?v=0.9.5"></script>
-	<script src="solvable-levels.js?v=0.9.5"></script>
-	<script src="data.js?v=0.9.5"></script>
-	<script src="engine.js?v=0.9.5"></script>
-	<script src="app.js?v=0.9.5"></script>
-	<script src="ui.js?v=0.9.5"></script>
-	<script src="input.js?v=0.9.5"></script>
-	<script src="progress.js?v=0.9.5"></script>
-	<script src="audio.js?v=0.9.5"></script>
+	<script src="layouts.js?v=1.2.5"></script>
+	<script src="solvable-levels.js?v=1.2.5"></script>
+	<script src="data.js?v=1.2.5"></script>
+	<script src="engine.js?v=1.2.5"></script>
+	<script src="app.js?v=1.2.5"></script>
+	<script src="ui.js?v=1.2.5"></script>
+	<script src="input.js?v=1.2.5"></script>
+	<script src="progress.js?v=1.2.5"></script>
+	<script src="player.js?v=1.2.5"></script>
+	<script src="audio.js?v=1.2.5"></script>
 </body>
 </html>

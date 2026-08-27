@@ -1779,5 +1779,58 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 3, x: 4, y: 1 });
 			return pts; // 36 + 15 + 4 + 1 = 56
 		}
+	},
+
+	'classic_144': {
+		'large': function () {
+			/* TRADITIONAL CLASSIC 144: multi-tiered 5-layer layout (144 tiles).
+			   Layer 0: 48 tiles (6×8 base)
+			   Layer 1: 40 tiles
+			   Layer 2: 32 tiles
+			   Layer 3: 16 tiles
+			   Layer 4: 8 tiles
+			   Total: 48 + 40 + 32 + 16 + 8 = 144 tiles.
+			   Bounds: 6 columns (x 0..10) × 8 rows (y 0..7), 0 floating tiles. */
+			var pts = [];
+			/* Layer 0: 48 tiles */
+			for (var y0 = 0; y0 < 8; y0++) {
+				for (var x0 = 0; x0 <= 10; x0 += 2) {
+					pts.push({ z: 0, x: x0, y: y0 });
+				}
+			}
+			/* Layer 1: 40 tiles */
+			for (var y1 = 1; y1 < 7; y1++) {
+				for (var x1 = 0; x1 <= 10; x1 += 2) {
+					pts.push({ z: 1, x: x1, y: y1 });
+				}
+			}
+			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 6, y: 0 });
+			pts.push({ z: 1, x: 4, y: 7 }, { z: 1, x: 6, y: 7 });
+
+			/* Layer 2: 32 tiles */
+			for (var y2 = 1; y2 < 7; y2++) {
+				for (var x2 = 2; x2 <= 8; x2 += 2) {
+					pts.push({ z: 2, x: x2, y: y2 });
+				}
+			}
+			for (var y2e = 2; y2e < 6; y2e++) {
+				pts.push({ z: 2, x: 0, y: y2e }, { z: 2, x: 10, y: y2e });
+			}
+
+			/* Layer 3: 16 tiles */
+			for (var y3 = 2; y3 < 6; y3++) {
+				for (var x3 = 2; x3 <= 8; x3 += 2) {
+					pts.push({ z: 3, x: x3, y: y3 });
+				}
+			}
+
+			/* Layer 4: 8 tiles */
+			for (var y4 = 3; y4 < 5; y4++) {
+				for (var x4 = 2; x4 <= 8; x4 += 2) {
+					pts.push({ z: 4, x: x4, y: y4 });
+				}
+			}
+			return pts; // 144 tiles
+		}
 	}
 };

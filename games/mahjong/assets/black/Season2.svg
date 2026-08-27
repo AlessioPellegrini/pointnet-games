@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
+  <!-- Top Left Number Badge -->
+  <g transform="translate(22, 22)">
+    <rect x="0" y="0" width="38" height="48" rx="6" fill="#2a2a2a" stroke="#66bb6a" stroke-width="2" />
+    <text x="19" y="34" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="28" fill="#66bb6a" text-anchor="middle">2</text>
+  </g>
+  <!-- Top Right Romanized Tag -->
+  <text x="274" y="54" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="bold" font-size="20" fill="#66bb6a" text-anchor="end" letter-spacing="1">SUMMER</text>
+  
+  <!-- Artwork -->
+  <g transform="translate(150, 160)">
+    
+    <!-- Summer Radiant Lotus & Warm Sun -->
+    <circle cx="0" cy="-28" r="18" fill="#ffd54f"/>
+    <path d="M-50,30 Q0,-5 50,30 Q0,45 -50,30" fill="#1565c0" opacity="0.3"/>
+    <!-- Lotus Petals -->
+    <path d="M0,15 C-25,-15 -10,-45 0,-40 C10,-45 25,-15 0,15" fill="#e91e63"/>
+    <path d="M0,15 C-45,0 -50,20 -35,25 C-25,25 -10,18 0,15" fill="#f06292"/>
+    <path d="M0,15 C45,0 50,20 35,25 C25,25 10,18 0,15" fill="#f06292"/>
+    <circle cx="0" cy="10" r="5" fill="#ffd54f"/>
+  </g>
+
+  <!-- Traditional Hanzi Character -->
+  <text x="150" y="350" font-family="'Noto Serif SC', 'SimSun', 'Songti SC', 'STKaiti', 'KaiTi', 'Microsoft YaHei', serif" font-weight="900" font-size="128" fill="#ffffff" text-anchor="middle">夏</text>
+</svg>

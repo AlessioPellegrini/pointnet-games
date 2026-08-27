@@ -397,6 +397,45 @@ Durante la disinstallazione il plugin:
 
 ---
 
+## 6.2 Modulo Audio Standalone: PointNetMusicPlayer
+
+A partire dalla versione **0.2.1**, il plugin include un modulo audio universale per la musica di sottofondo e i controlli jukebox in qualsiasi gioco: [`assets/js/pointnet-music-player.js`](file:///home/alessio/dev/03%20-%20WP%20extensions/pointnet-games/assets/js/pointnet-music-player.js).
+
+### Caratteristiche principali:
+- **Zero dipendenze**: vanilla JavaScript UMD pronto all'uso con supporto per browser moderni e mobile.
+- **Seek Bar / Scrubbing Interattivo**: barra di avanzamento del brano in tempo reale con seeking fluido.
+- **Display Temporale a 3 Colonne**: indicatore del tempo trascorso (`0:00`) e durata totale (`3:45`) ai lati della barra.
+- **Calcolo Automatico Durate Playlist**: pre-calcola e mostra la durata esatta di ciascun brano nel menu a tendina (`1. Traccia (3:45)`).
+- **Card Volume Dedicata**: controllo del volume con etichetta esplicita, icona muto/audio interattiva e percentuale numerica (`35%`).
+- **Resilienza 404 & Fallback Playlist**: se un brano o una playlist non è disponibile, effettua automaticamente il fallback a una playlist di riserva senza bloccare il gameplay.
+- **Persistenza `localStorage`**: salva e ripristina automaticamente le preferenze di volume e muto.
+
+### Utilizzo Rapido:
+
+```html
+<!-- Nel tuo index.html -->
+<script src="../../assets/js/pointnet-music-player.js"></script>
+```
+
+```javascript
+var player = new PointNetMusicPlayer({
+    storageKey: 'wp_mio_gioco_audio',
+    playlist: [
+        { src: 'assets/music/traccia-1.mp3', title: 'Brano Principale' },
+        { src: 'assets/music/traccia-2.mp3', title: 'Brano Secondario' }
+    ],
+    fallbackPlaylist: [
+        { src: 'assets/music/traccia-1.mp3', title: 'Brano Principale' }
+    ],
+    volume: 0.35,
+    onStateChange: function (state) {
+        // state = { playing, muted, track, index }
+    }
+});
+```
+
+---
+
 ## 7. Esempio Completo
 
 Ecco il flusso tipico di un gioco compatibile:
@@ -459,6 +498,7 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
+- **v0.2.1** — Aggiunta sezione 6.2 sul modulo universale `PointNetMusicPlayer` (`assets/js/pointnet-music-player.js`) con seek bar, durate playlist, card volume e fallback automatico 404
 - **v0.1.4** — Sezione 5 "Buone Pratiche" ampliata: badge versione nella splash, raccomandazioni testate per rendering nitido nell'iframe (evitare `zoom` CSS, `transform-origin: top left`, transform 2D per-tile, rasterizzazione in due fasi, re-fit finché stabile, niente board all'init)
 - **v0.1.3** — Sezione 6.1 "Disinstallazione di un Gioco" (dalla dashboard PointNet Games, con opzione di eliminare i punteggi del singolo gioco)
 - **v0.1.2** — Aggiornato esempio `endGame()` (mostra il punteggio subito, posizione in background); nota su shim postMessage automatico con Promise garantite; avviso "mostra punteggio subito" nella sezione `submitScore`; classifica con solo miglior punteggio per giocatore; utenti registrati mostrano `user_login` univoco (anonimi = "Anonimo"); nuovo attributo `difficulty` per shortcode `[pointnet_game_leaderboard]` e `getLeaderboard()`

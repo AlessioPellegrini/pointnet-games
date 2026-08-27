@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /* ============================================================
-   TEST PROGRESSION — verifica la progressione 300 livelli.
+   TEST PROGRESSION — verifica la progressione 330 livelli (Arcade + Classic).
    Esegue: node games/mahjong/tests/test-progression.js
    Controlli:
-     1. Nessun drop > 8 tra due livelli consecutivi.
-     2. Tutte le figure del pool vengono usate (nessuna esclusa a caso).
-     3. Il min/max tile-count è sanO (16..124).
-     4. Il finale è il boss da 124 (spiral/medium) se presente.
+     1. Totale 330 livelli.
+     2. Livelli Classic ogni 10 (10, 20, 30...) con mode='classic' e 144 tile.
+     3. Nessun drop > 8 tra due livelli ARCADE consecutivi.
+     4. Tutte le figure del pool arcade vengono usate.
+     5. Finale arcade boss da 124 (spiral/medium).
    ============================================================ */
 const fs = require('fs');
 const vm = require('vm');
@@ -21,30 +22,37 @@ const load = [
   fs.readFileSync(path.join(dir, 'engine.js'), 'utf8')
 ].join('\n') + '\n' + [
   '(function () {',
-  '  const progression = buildProgression(300);',
+  '  const progression = buildProgression(330);',
   '  function finalTileCount(p) {',
   '    const layout = LAYOUT_BUILDERS[p.layout][p.variant]().filter(t => t.y >= 0);',
   '    let n = layout.length;',
-  '    n -= n % 4;',
+  '    if (p.mode !== "classic") n -= n % 4;',
   '    return n;',
   '  }',
-  '  let worst = 0, drops = 0;',
-  '  for (let i = 1; i < progression.length; i++) {',
-  '    const a = finalTileCount(progression[i-1]);',
-  '    const b = finalTileCount(progression[i]);',
-  '    if (b < a) { drops++; if (a - b > worst) worst = a - b; }',
+  '  let worst = 0, drops = 0, classicCount = 0;',
+  '  let lastArcadeTiles = 0;',
+  '  for (let i = 0; i < progression.length; i++) {',
+  '    const p = progression[i];',
+  '    const tc = finalTileCount(p);',
+  '    if ((i + 1) % 10 === 0) {',
+  '      if (p.mode === "classic" && tc === 144) classicCount++;',
+  '    } else {',
+  '      if (lastArcadeTiles > 0 && tc < lastArcadeTiles) {',
+  '        drops++;',
+  '        if (lastArcadeTiles - tc > worst) worst = lastArcadeTiles - tc;',
+  '      }',
+  '      lastArcadeTiles = tc;',
+  '    }',
   '  }',
-  '  console.log("levels:", progression.length);',
-  '  console.log("drops:", drops, "worst:", worst);',
-  '  const used = new Set(progression.map(p => p.layout));',
-  '  const all = Object.keys(LAYOUT_BUILDERS);',
+  '  console.log("levels total:", progression.length);',
+  '  console.log("classic challenges (attese 33):", classicCount);',
+  '  console.log("arcade drops:", drops, "worst arcade drop:", worst);',
+  '  const arcadePool = progression.filter(p => p.mode === "arcade");',
+  '  const used = new Set(arcadePool.map(p => p.layout));',
+  '  const all = Object.keys(LAYOUT_BUILDERS).filter(k => k !== "classic_144");',
   '  const unused = all.filter(n => !used.has(n));',
-  '  console.log("layouts total:", all.length, "used:", used.size, "unused:", unused.length ? unused.join(",") : "none");',
-  '  const counts = progression.map(p => finalTileCount(p));',
-  '  console.log("min tiles:", Math.min.apply(null, counts), "max tiles:", Math.max.apply(null, counts));',
-  '  const last = progression[progression.length-1];',
-  '  console.log("final level:", last.layout + "/" + last.variant, "tiles:", finalTileCount(last));',
-  '  const ok = worst <= 8 && unused.length === 0;',
+  '  console.log("arcade layouts total:", all.length, "used:", used.size, "unused:", unused.length ? unused.join(",") : "none");',
+  '  const ok = (progression.length === 330) && (classicCount === 33) && (worst <= 8) && (unused.length === 0);',
   '  console.log(ok ? "PASS" : "FAIL");',
   '  process.exit(ok ? 0 : 1);',
   '})();'

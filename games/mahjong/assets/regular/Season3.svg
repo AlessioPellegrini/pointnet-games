@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
+  <!-- Top Left Number Badge -->
+  <g transform="translate(22, 22)">
+    <rect x="0" y="0" width="38" height="48" rx="6" fill="#1b7340"  />
+    <text x="19" y="34" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle">3</text>
+  </g>
+  <!-- Top Right Romanized Tag -->
+  <text x="274" y="54" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="bold" font-size="20" fill="#1b7340" text-anchor="end" letter-spacing="1">AUTUMN</text>
+  
+  <!-- Artwork -->
+  <g transform="translate(150, 160)">
+    
+    <!-- Autumn Golden & Red Maple Leaf -->
+    <path d="M0,45 Q-5,25 0,10" stroke="#5d4037" stroke-width="5" stroke-linecap="round"/>
+    <g transform="translate(0, -10)">
+      <path d="M0,20 L-10,-5 L-45,0 L-25,-25 L-55,-40 L-25,-45 L0,-65 L25,-45 L55,-40 L25,-25 L45,0 L10,-5 Z" fill="#e65100"/>
+      <path d="M0,15 L-8,-5 L-35,0 L-20,-20 L-42,-32 L-20,-36 L0,-52 L20,-36 L42,-32 L20,-20 L35,0 L8,-5 Z" fill="#fbc02d"/>
+    </g>
+  </g>
+
+  <!-- Traditional Hanzi Character -->
+  <text x="150" y="350" font-family="'Noto Serif SC', 'SimSun', 'Songti SC', 'STKaiti', 'KaiTi', 'Microsoft YaHei', serif" font-weight="900" font-size="128" fill="#1b7340" text-anchor="middle">秋</text>
+</svg>

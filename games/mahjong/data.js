@@ -282,8 +282,30 @@ function buildProgression(count) {
 	var usedLayouts = {};
 	var blackCount = 0; /* blackout counter for the HALF/freeBase alternation */
 
+	var arcadeTotal = count - Math.floor(count / 10);
+	var arcadeIndex = 0;
+
 	for (var n = 0; n < count; n++) {
-		var progress = n / count;
+		/* CLASSIC CHALLENGE: every 10 levels (10, 20, 30, ...) */
+		if ((n + 1) % 10 === 0) {
+			var isDarkClassic = ((n + 1) % 20 === 0);
+			out.push({
+				layout: 'classic_144',
+				variant: 'large',
+				symSet: isDarkClassic ? 'classic-dark' : 'classic',
+				covered: 0,
+				maxStaging: 4,
+				quads: false,
+				blackout: false,
+				mode: 'classic',
+				multiplier: 1.5,
+				index: n + 1
+			});
+			continue;
+		}
+
+		var progress = arcadeIndex / arcadeTotal;
+		arcadeIndex++;
 		/* Zone only for symSet selection (never back). */
 		var zoneIdx = Math.min(3, Math.floor(progress * 4));
 
@@ -420,9 +442,8 @@ function buildProgression(count) {
 		var maxCov = Math.max(2, Math.min(8, Math.floor(item.playableTiles / 6)));
 		var cov = Math.min(maxCov, Math.floor(progress * maxCov * 1.3));
 
-		/* maxStaging: 3 (1-150) → 2 (151-225) → 1 (226-300) — v0.9.5
-		   ridotto per più strategia (prima 4→3→2). */
-		var staging = n < 150 ? 3 : (n < 225 ? 2 : 1);
+		/* maxStaging: 4 fisso per tutti i livelli Arcade (v1.0.0 Arcade fix) */
+		var staging = 4;
 
 		/* quads: only levels ≥ 200, layouts ≥ 60 tiles, alternating */
 		var qt = item.playableTiles;
@@ -438,6 +459,8 @@ function buildProgression(count) {
 			maxStaging: staging,
 			quads: quads,
 			blackout: blackout,
+			mode: 'arcade',
+			multiplier: 1.0,
 			index: n + 1
 		});
 	}
@@ -447,12 +470,12 @@ function buildProgression(count) {
 /* Generate the full progression once (lazy). */
 var PROGRESSION = null;
 function ensureProgression() {
-	if (!PROGRESSION) PROGRESSION = buildProgression(300);
+	if (!PROGRESSION) PROGRESSION = buildProgression(330);
 	return PROGRESSION;
 }
 
 function getLevelDef(index) {
-	index = Math.max(0, Math.min(index, 299));
+	index = Math.max(0, Math.min(index, 329));
 	var p = ensureProgression()[index];
 	return {
 		layout: p.layout,
@@ -462,6 +485,8 @@ function getLevelDef(index) {
 		maxStaging: p.maxStaging || 4,
 		quads: !!p.quads,
 		blackout: !!p.blackout,
+		mode: p.mode || 'arcade',
+		multiplier: p.multiplier || 1.0,
 		min: p.index,
 		max: p.index
 	};
@@ -483,29 +508,20 @@ function generateLevel(levelIndex) {
 		}
 	}
 	var fullSize = layout.length;
-
-	/* IMPORTANT (v0.4.0 rebalance): use the FULL layout every time.
-	   Trimming tiles with slice(0, N) destroyed the shapes — it cut
-	   off upper layers and half-cover tiles, leaving only the dense
-	   rectangular base. Difficulty comes from the shape/variant, not
-	   from removing tiles. */
-	/* CLASSIC MAHJONG (v0.7.1): every symbol always has FOUR copies
-	   (2 matchable pairs), like the traditional solitaire deck.
-	   Requires layout length divisible by 4 — handled below. */
+	var isClassic = (level.mode === 'classic');
 	var copiesPerSymbol = 4;
 	var tileCount = fullSize;
-	if (tileCount % copiesPerSymbol !== 0) tileCount -= (tileCount % copiesPerSymbol);
-	if (layout.length > tileCount) {
-		layout = layout.slice(0, tileCount);
-	} else if ((layout.length % copiesPerSymbol) !== 0) {
-		layout = layout.slice(0, layout.length - (layout.length % copiesPerSymbol));
+
+	if (!isClassic) {
+		if (tileCount % copiesPerSymbol !== 0) tileCount -= (tileCount % copiesPerSymbol);
+		if (layout.length > tileCount) {
+			layout = layout.slice(0, tileCount);
+		} else if ((layout.length % copiesPerSymbol) !== 0) {
+			layout = layout.slice(0, layout.length - (layout.length % copiesPerSymbol));
+		}
 	}
 
 	var symbols = SYMBOL_SETS[level.symSet] || SYMBOL_SETS['default'];
-	/* v0.6.0: themed sets contain DUPLICATED symbols (e.g. "gold"
-	   has 🦁 twice). In quad mode only a few symbols are needed (max
-	   ~32), so a duplicate would produce 4+4=8 copies of the same
-	   symbol instead of 4. Dedup: use only the unique set symbols. */
 	var uniqueSymbols = [];
 	var seenSym = {};
 	for (var u = 0; u < symbols.length; u++) {
@@ -514,19 +530,11 @@ function generateLevel(levelIndex) {
 			uniqueSymbols.push(symbols[u]);
 		}
 	}
-	/* SVG tile sets: map the symbol to the bundled SVG file under
-	   assets/regular (white tiles) or assets/black (dark tiles). */
 	var svgDir = null;
 	if (level.symSet === 'classic') svgDir = 'regular';
 	else if (level.symSet === 'classic-dark') svgDir = 'black';
 	var lastBest = null;
-	var symbolsNeeded = Math.ceil(layout.length / copiesPerSymbol);
 
-	/* v0.9.5 — PRE-COMPUTED SOLVABILITY (Piano A): tools/build-solvable.js
-	   ha già trovato l'attempt (seed) vincente per ogni livello, offline.
-	   Usiamo direttamente quel seed → nessun solveBoard a runtime.
-	   Fallback: se il file non è caricato (sviluppo), comportamento
-	   originale con DFS + retry. */
 	var pre = (typeof SOLVABLE_LEVELS !== 'undefined' && SOLVABLE_LEVELS[levelIndex])
 		? SOLVABLE_LEVELS[levelIndex] : null;
 
@@ -536,24 +544,65 @@ function generateLevel(levelIndex) {
 	for (var attempt = attemptStart; attempt < attemptMax; attempt++) {
 		var rng = createRng(42 + attempt * 7 + levelIndex);
 		var deck = [];
-		for (var i = 0; i < symbolsNeeded; i++) {
-			var sym = uniqueSymbols[i % uniqueSymbols.length];
-			for (var copy = 0; copy < copiesPerSymbol; copy++) {
-				if (deck.length < layout.length) deck.push(sym);
+
+		if (isClassic && layout.length === 144) {
+			/* Full traditional 144 deck: 34 standard symbols × 4 + 4 flowers + 4 seasons */
+			for (var si = 0; si < 34; si++) {
+				var csym = uniqueSymbols[si % uniqueSymbols.length];
+				for (var ccopy = 0; ccopy < 4; ccopy++) {
+					deck.push({
+						symbol: csym,
+						svg: svgDir ? 'assets/' + svgDir + '/' + csym + '.svg' : null,
+						wildcardGroup: null
+					});
+				}
+			}
+			var flowers = ['Flower1', 'Flower2', 'Flower3', 'Flower4'];
+			var seasons = ['Season1', 'Season2', 'Season3', 'Season4'];
+			for (var f = 0; f < 4; f++) {
+				deck.push({
+					symbol: flowers[f],
+					svg: svgDir ? 'assets/' + svgDir + '/' + flowers[f] + '.svg' : null,
+					wildcardGroup: 'flower'
+				});
+			}
+			for (var s = 0; s < 4; s++) {
+				deck.push({
+					symbol: seasons[s],
+					svg: svgDir ? 'assets/' + svgDir + '/' + seasons[s] + '.svg' : null,
+					wildcardGroup: 'season'
+				});
+			}
+		} else {
+			var symbolsNeeded = Math.ceil(layout.length / copiesPerSymbol);
+			for (var i = 0; i < symbolsNeeded; i++) {
+				var sym = uniqueSymbols[i % uniqueSymbols.length];
+				for (var copy = 0; copy < copiesPerSymbol; copy++) {
+					if (deck.length < layout.length) {
+						deck.push({
+							symbol: sym,
+							svg: svgDir ? 'assets/' + svgDir + '/' + sym + '.svg' : null,
+							wildcardGroup: null
+						});
+					}
+				}
 			}
 		}
+
 		shuffle(deck, rng);
 
 		var tiles = [];
 		for (var c = 0; c < layout.length; c++) {
 			var co = layout[c];
+			var dItem = deck[c];
 			tiles.push({
 				z: co.z,
 				x: co.x,
 				y: co.y,
 				isHalf: !!co.isHalf,
-				symbol: deck[c],
-				svg: svgDir ? 'assets/' + svgDir + '/' + deck[c] + '.svg' : null,
+				symbol: dItem.symbol,
+				svg: dItem.svg,
+				wildcardGroup: dItem.wildcardGroup || null,
 				label: c + 1,
 				removed: false,
 				staging: false,
@@ -563,71 +612,80 @@ function generateLevel(levelIndex) {
 			});
 		}
 
-		/* v0.9.3 playability guard: after covered, there must be AT LEAST
-		   one pair of free tiles (isFree, not covered) — otherwise the
-		   shuffle is RE-ROLLED. Without this check, random covered can
-		   hide every potential pair and the level starts blocked (as
-		   happened on level 175). */
+		var board = buildBoard(tiles);
+
 		function hasFreePair() {
-			var freeSym = {};
+			var freeList = [];
 			for (var p = 0; p < tiles.length; p++) {
 				var tp = tiles[p];
-				if (tp.removed || tp.staging || tp.faceDown) continue;
+				if (tp.removed || tp.staging || tp.faceDown || tp.obscured) continue;
 				if (!isFree(board, tp)) continue;
-				freeSym[tp.symbol] = (freeSym[tp.symbol] || 0) + 1;
+				freeList.push(tp);
 			}
-			for (var s in freeSym) { if (freeSym[s] >= 2) return true; }
+			for (var f1 = 0; f1 < freeList.length; f1++) {
+				for (var f2 = f1 + 1; f2 < freeList.length; f2++) {
+					if (canMatch(freeList[f1], freeList[f2], level.mode)) return true;
+				}
+			}
 			return false;
 		}
 
-		var board = buildBoard(tiles);
-		/* v0.9.5: con il precompute saltiamo il DFS — l'attempt è già
-		   verificato offline da build-solvable.js. */
-		var solvable = pre ? true : solveBoard(board);
-		/* Heuristic fallback: if the DFS timed out (or is just too
-		   strict for dense boards), accept when there are at least
-		   4 free tiles — the staging box unlocks the rest. */
+		var solvable = pre ? true : solveBoard(board, level.mode);
 		if (solvable) {
-			applyFaceDown(tiles, level.covered);
 			if (level.blackout) applyBlackout(tiles);
-			if (hasFreePair()) return tiles;
-			else lastBest = tiles;
-			continue;
+			if (level.covered > 0) applyFaceDown(tiles, level.covered, board, level.mode);
+			return tiles;
 		}
 		if (!solvable) {
 			var freeCount = 0;
-			for (var f = 0; f < tiles.length; f++) {
-				if (!tiles[f].removed && !tiles[f].staging && isFree(board, tiles[f])) freeCount++;
+			for (var fc = 0; fc < tiles.length; fc++) {
+				if (!tiles[fc].removed && !tiles[fc].staging && isFree(board, tiles[fc])) freeCount++;
 			}
 			if (freeCount >= 4) {
-				applyFaceDown(tiles, level.covered);
 				if (level.blackout) applyBlackout(tiles);
-				if (hasFreePair()) return tiles;
-				else lastBest = tiles;
-				continue;
+				if (level.covered > 0) applyFaceDown(tiles, level.covered, board, level.mode);
+				return tiles;
 			}
 		}
 		lastBest = tiles;
 	}
-	applyFaceDown(lastBest, level.covered);
+	var fallbackBoard = buildBoard(lastBest);
 	if (level.blackout) applyBlackout(lastBest);
+	if (level.covered > 0) applyFaceDown(lastBest, level.covered, fallbackBoard, level.mode);
 	return lastBest;
 }
 
 /* Cover numPairs SINGLE tiles (memory mechanic).
-   The tiles are chosen at RANDOM (uniform over the board) — it is
-   absolutely possible that BOTH copies of a symbol get covered, or
-   that the covered tiles are unrelated symbols. The layout/blackout
-   mechanics do NOT influence this random selection. */
-function applyFaceDown(tiles, numPairs) {
-	var done = 0;
-	var guard = 0;
-	while (done < numPairs && guard < 100) {
-		guard++;
-		var idx = Math.floor(Math.random() * tiles.length);
-		if (tiles[idx].faceDown) continue;
-		tiles[idx].faceDown = true;
-		done++;
+   Ensures that at least one free matchable pair remains uncovered so the
+   level always starts playable. */
+function applyFaceDown(tiles, numPairs, board, mode) {
+	if (numPairs <= 0) return;
+	for (var attempt = 0; attempt < 30; attempt++) {
+		for (var t = 0; t < tiles.length; t++) tiles[t].faceDown = false;
+		var done = 0;
+		var guard = 0;
+		while (done < numPairs && guard < 100) {
+			guard++;
+			var idx = Math.floor(Math.random() * tiles.length);
+			if (tiles[idx].faceDown) continue;
+			tiles[idx].faceDown = true;
+			done++;
+		}
+		if (!board) return;
+		var freeList = [];
+		for (var p = 0; p < tiles.length; p++) {
+			var tp = tiles[p];
+			if (tp.removed || tp.staging || tp.faceDown || tp.obscured) continue;
+			if (isFree(board, tp)) freeList.push(tp);
+		}
+		var hasPair = false;
+		for (var f1 = 0; f1 < freeList.length; f1++) {
+			for (var f2 = f1 + 1; f2 < freeList.length; f2++) {
+				if (canMatch(freeList[f1], freeList[f2], mode)) { hasPair = true; break; }
+			}
+			if (hasPair) break;
+		}
+		if (hasPair || (mode === 'arcade' && freeList.length >= 4)) return;
 	}
 }
 

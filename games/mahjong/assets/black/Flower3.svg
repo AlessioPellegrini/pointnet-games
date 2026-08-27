@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
+  <!-- Top Left Number Badge -->
+  <g transform="translate(22, 22)">
+    <rect x="0" y="0" width="38" height="48" rx="6" fill="#2a2a2a" stroke="#ff5252" stroke-width="2" />
+    <text x="19" y="34" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="900" font-size="28" fill="#ff5252" text-anchor="middle">3</text>
+  </g>
+  <!-- Top Right Romanized Tag -->
+  <text x="274" y="54" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-weight="bold" font-size="20" fill="#ff5252" text-anchor="end" letter-spacing="1">CHRYS</text>
+  
+  <!-- Artwork -->
+  <g transform="translate(150, 160)">
+    
+    <!-- Chrysanthemum radiating blossom -->
+    <path d="M0,45 Q-10,10 0,-10" fill="none" stroke="#2e7d32" stroke-width="6" stroke-linecap="round"/>
+    <g transform="translate(0, -15)">
+      <ellipse cx="0" cy="-30" rx="6" ry="16" fill="#ff7043"/>
+      <ellipse cx="21" cy="-21" rx="6" ry="16" transform="rotate(45 21 -21)" fill="#ff7043"/>
+      <ellipse cx="30" cy="0" rx="6" ry="16" transform="rotate(90 30 0)" fill="#ff7043"/>
+      <ellipse cx="21" cy="21" rx="6" ry="16" transform="rotate(135 21 21)" fill="#ff7043"/>
+      <ellipse cx="0" cy="30" rx="6" ry="16" fill="#ff7043"/>
+      <ellipse cx="-21" cy="21" rx="6" ry="16" transform="rotate(225 -21 21)" fill="#ff7043"/>
+      <ellipse cx="-30" cy="0" rx="6" ry="16" transform="rotate(270 -30 0)" fill="#ff7043"/>
+      <ellipse cx="-21" cy="-21" rx="6" ry="16" transform="rotate(315 -21 -21)" fill="#ff7043"/>
+      <!-- Inner Layer -->
+      <circle cx="0" cy="0" r="16" fill="#ffd54f"/>
+      <circle cx="0" cy="0" r="8" fill="#e65100"/>
+    </g>
+  </g>
+
+  <!-- Traditional Hanzi Character -->
+  <text x="150" y="350" font-family="'Noto Serif SC', 'SimSun', 'Songti SC', 'STKaiti', 'KaiTi', 'Microsoft YaHei', serif" font-weight="900" font-size="128" fill="#ffffff" text-anchor="middle">菊</text>
+</svg>

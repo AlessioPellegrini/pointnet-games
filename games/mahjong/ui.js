@@ -104,6 +104,10 @@
 			el.classList.toggle('face-down', t.faceDown && !t.staging && !t.removed);
 			el.classList.toggle('obscured', !t.removed && !t.staging && !!t.obscured);
 			el.classList.toggle('hinted', !!t.hinted);
+			el.classList.toggle('selected', t === app.selectedTile);
+			if (t.wildcardGroup) {
+				el.classList.add('wildcard', 'wildcard-' + t.wildcardGroup);
+			}
 			if (el._symEl) {
 				el._symEl.textContent = t.obscured ? '🀄' : (t.faceDown ? '🀄' : t.symbol);
 			}
@@ -168,4 +172,86 @@
 			requestAnimationFrame(tick);
 		}
 		requestAnimationFrame(tick);
+	}
+
+	/* ============================================================
+	   PARTICLE EFFECTS & CELEBRATION (v1.0.8)
+	   ============================================================ */
+	function spawnBurstAt(x, y, count, colors) {
+		colors = colors || ['#38bdf8', '#f59e0b', '#fbbf24', '#a855f7', '#ffffff'];
+		count = count || 10;
+		for (var i = 0; i < count; i++) {
+			var p = document.createElement('div');
+			p.className = 'particle';
+			var size = 5 + Math.random() * 6;
+			p.style.width = size + 'px';
+			p.style.height = size + 'px';
+			p.style.background = colors[Math.floor(Math.random() * colors.length)];
+			p.style.left = x + 'px';
+			p.style.top = y + 'px';
+
+			var angle = Math.random() * Math.PI * 2;
+			var dist = 35 + Math.random() * 55;
+			p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+			p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+
+			document.body.appendChild(p);
+			setTimeout(function (el) {
+				if (el && el.parentNode) el.parentNode.removeChild(el);
+			}, 600, p);
+		}
+	}
+
+	function spawnMatchParticles(tileA, tileB) {
+		var idxA = app.tiles.indexOf(tileA);
+		var idxB = app.tiles.indexOf(tileB);
+		var elA = idxA >= 0 ? app.tileEls[idxA] : null;
+		var elB = idxB >= 0 ? app.tileEls[idxB] : null;
+
+		if (elA) {
+			var rectA = elA.getBoundingClientRect();
+			spawnBurstAt(rectA.left + rectA.width / 2, rectA.top + rectA.height / 2, 8);
+		}
+		if (elB) {
+			var rectB = elB.getBoundingClientRect();
+			spawnBurstAt(rectB.left + rectB.width / 2, rectB.top + rectB.height / 2, 8);
+		}
+	}
+
+	function spawnVictoryConfetti() {
+		var colors = ['#f59e0b', '#38bdf8', '#10b981', '#ec4899', '#8b5cf6', '#ef4444', '#fbbf24'];
+		var count = 50;
+		var vw = window.innerWidth;
+		var vh = window.innerHeight;
+
+		for (var i = 0; i < count; i++) {
+			var c = document.createElement('div');
+			c.className = 'confetti';
+			var w = 6 + Math.random() * 8;
+			var h = 8 + Math.random() * 12;
+			c.style.width = w + 'px';
+			c.style.height = h + 'px';
+			c.style.borderRadius = (Math.random() > 0.5 ? '2px' : '50%');
+			c.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+			var startX = Math.random() * vw;
+			var startY = Math.random() * (vh * 0.3);
+			c.style.left = startX + 'px';
+			c.style.top = startY + 'px';
+
+			var dx = (Math.random() - 0.5) * 180;
+			var dy = (vh * 0.6) + Math.random() * (vh * 0.4);
+			var rot = (Math.random() * 720 - 360) + 'deg';
+			var dur = (1.5 + Math.random() * 1.2) + 's';
+
+			c.style.setProperty('--dx', dx + 'px');
+			c.style.setProperty('--dy', dy + 'px');
+			c.style.setProperty('--rot', rot);
+			c.style.setProperty('--dur', dur);
+
+			document.body.appendChild(c);
+			setTimeout(function (el) {
+				if (el && el.parentNode) el.parentNode.removeChild(el);
+			}, 2800, c);
+		}
 	}

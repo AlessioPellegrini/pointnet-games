@@ -165,10 +165,50 @@ function validateSupport(layout) {
 	return bad;
 }
 
+/* ============================================================
+   MATCHING & SOLVER RULES (v1.0.0 Arcade & Classic)
+   ============================================================ */
+function getMatchGroup(tile, mode) {
+	if (!tile) return '';
+	if (mode === 'classic' || tile.wildcardGroup) {
+		if (tile.wildcardGroup) return '__wildcard_' + tile.wildcardGroup;
+	}
+	return tile.symbol;
+}
+
+function canMatch(tileA, tileB, mode) {
+	if (!tileA || !tileB) return false;
+	if (tileA.key === tileB.key) return false;
+	if (tileA.removed || tileB.removed || tileA.staging || tileB.staging) return false;
+	if (tileA.obscured || tileB.obscured) return false;
+	if (mode === 'classic' || tileA.wildcardGroup || tileB.wildcardGroup) {
+		if (tileA.wildcardGroup && tileB.wildcardGroup) {
+			return tileA.wildcardGroup === tileB.wildcardGroup;
+		}
+	}
+	return tileA.symbol === tileB.symbol;
+}
+
+/* Deadlock check: returns true if there is at least ONE playable match */
+function hasAnyValidMove(board, mode) {
+	var free = [];
+	board.forEach(function (tile) {
+		if (!tile.removed && !tile.staging && !tile.obscured && isFree(board, tile)) {
+			free.push(tile);
+		}
+	});
+	for (var i = 0; i < free.length; i++) {
+		for (var j = i + 1; j < free.length; j++) {
+			if (canMatch(free[i], free[j], mode)) return true;
+		}
+	}
+	return false;
+}
+
 var SOLVER_NODE_BUDGET = 120000;  // abort search after this many nodes
 /* Returns true (solvable), false (provably unsolvable) or
    null (node budget hit → unknown; caller may use a heuristic). */
-function solveBoard(board) {
+function solveBoard(board, mode) {
 	var tileList = Array.from(board.values()).filter(function (t) {
 		return !t.staging;
 	});
@@ -230,7 +270,7 @@ function solveBoard(board) {
 
 		var bySym = {};
 		for (var i = 0; i < free.length; i++) {
-			var s = free[i].symbol;
+			var s = getMatchGroup(free[i], mode);
 			(bySym[s] = bySym[s] || []).push(free[i]);
 		}
 		var syms = Object.keys(bySym).sort(function (a, b) {
