@@ -12,7 +12,7 @@
  * Domain Path:       /languages
  * Requires at least: 7.0
  * Tested up to:      7.1
- * Requires PHP:      7.4
+ * Requires PHP:      8.0
  */
 
 // Prevent direct access.
