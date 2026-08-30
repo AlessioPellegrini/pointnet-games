@@ -35,6 +35,7 @@
 
 	function triggerConveyorStep(steps) {
 		if (!app.conveyorTrack || !app.conveyorTrack.length) return;
+		steps = steps || 1;
 		var unlockedNow = isConveyorUnlocked(app.board, app.conveyorTrack, app.tiles);
 		if (!app.conveyorUnlocked && unlockedNow) {
 			app.conveyorUnlocked = true;
@@ -42,9 +43,19 @@
 		}
 		if (!app.conveyorUnlocked) return;
 
-		var shifted = stepConveyor(app.board, app.conveyorTrack, steps, app.tiles);
-		if (shifted && shifted.length && typeof updateConveyorTilePositions === 'function') {
-			updateConveyorTilePositions(shifted);
+		var shifted1 = stepConveyor(app.board, app.conveyorTrack, 1, app.tiles);
+		if (shifted1 && shifted1.length && typeof updateConveyorTilePositions === 'function') {
+			updateConveyorTilePositions(shifted1);
+		}
+
+		if (steps >= 2) {
+			setTimeout(function () {
+				if (!app.conveyorUnlocked) return;
+				var shifted2 = stepConveyor(app.board, app.conveyorTrack, 1, app.tiles);
+				if (shifted2 && shifted2.length && typeof updateConveyorTilePositions === 'function') {
+					updateConveyorTilePositions(shifted2);
+				}
+			}, 360);
 		}
 	}
 
