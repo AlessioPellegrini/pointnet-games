@@ -63,8 +63,66 @@
 		_boardSize: null,
 		_scale: 1,
 		_tilt: 8,
-		autoMatching: false
+		autoMatching: false,
+		devMode: false
 	};
+
+	/* ============================================================
+	   DEV MODE (v1.3.5)
+	   ============================================================ */
+	function checkDevMode() {
+		try {
+			var qs = new URLSearchParams(window.location.search);
+			var urlDev = qs.get('dev') === '1' || qs.get('debug') === '1';
+			var localDev = localStorage.getItem('wp_mahjong_dev_mode') === '1';
+			app.devMode = urlDev || localDev;
+			if (app.devMode) document.body.classList.add('dev-mode-active');
+			else document.body.classList.remove('dev-mode-active');
+		} catch (e) {}
+	}
+	checkDevMode();
+
+	function showToast(msg) {
+		var toast = document.getElementById('toast-notify');
+		if (!toast) return;
+		toast.textContent = msg;
+		toast.classList.add('show');
+		clearTimeout(toast._tid);
+		toast._tid = setTimeout(function () {
+			toast.classList.remove('show');
+		}, 2400);
+	}
+	window.showToast = showToast;
+
+	function toggleDevMode(forced) {
+		app.devMode = (typeof forced === 'boolean') ? forced : !app.devMode;
+		try {
+			localStorage.setItem('wp_mahjong_dev_mode', app.devMode ? '1' : '0');
+		} catch (e) {}
+		if (app.devMode) {
+			document.body.classList.add('dev-mode-active');
+			showToast('🛠️ Modalità Sviluppatore ATTIVATA');
+		} else {
+			document.body.classList.remove('dev-mode-active');
+			showToast('🔒 Modalità Sviluppatore DISATTIVATA');
+		}
+		updateDevLayoutInfo();
+	}
+	window.toggleDevMode = toggleDevMode;
+
+	function updateDevLayoutInfo() {
+		var devInfoEl = document.getElementById('dev-layout-info');
+		if (devInfoEl && typeof LAST_LEVEL_DEF !== 'undefined' && LAST_LEVEL_DEF) {
+			var maxZ = 0;
+			for (var z = 0; z < app.tiles.length; z++) {
+				if (app.tiles[z].z > maxZ) maxZ = app.tiles[z].z;
+			}
+			devInfoEl.textContent = 'Layout: ' + LAST_LEVEL_DEF.layout + '/' + LAST_LEVEL_DEF.variant +
+				' (' + app.tiles.length + ' tessere) · Strati: ' + (maxZ + 1) +
+				' · Blackout: ' + (LAST_LEVEL_DEF.blackout ? 'ON' : 'OFF');
+		}
+	}
+	window.updateDevLayoutInfo = updateDevLayoutInfo;
 
 	function pairsLeft() {
 		var count = 0;
@@ -87,31 +145,25 @@
 
 	function startGame() {
 		stopTimer();
-		app.tiles = generateLevel(app.levelIndex);
-		app.board = buildBoard(app.tiles);
-		var def = (typeof LAST_LEVEL_DEF !== 'undefined' && LAST_LEVEL_DEF) ? LAST_LEVEL_DEF : getLevelDef(app.levelIndex);
-		app.mode = def.mode || 'arcade';
-		app.multiplier = def.multiplier || 1.0;
-		app.selectedTile = null;
-
-		/* Per-level staging capacity comes from the generated level. */
-		MAX_STAGING = (def && def.maxStaging) || 4;
+		app.timerStarted = false;
+		app.elapsed = 0;
 		app.staging = [];
 		app.peeking = null;
-		app.tileEls = [];
+		app.selectedTile = null;
 		app.score = 0;
-		app.elapsed = 0;
-		app.history = [];
 		app.combo = 0;
 		app.lastMatchTime = 0;
 		app.shufflesLeft = 3;
-		app.stars = 0;
 		app.undoUsed = 0;
+		app.history = [];
+		app.tiles = generateLevel(app.levelIndex);
+		app.board = buildBoard(app.tiles);
 		pairsLeftAtStart = pairsLeft();
-		app.timerStarted = false;
+		app.mode = (LAST_LEVEL_DEF && LAST_LEVEL_DEF.mode) ? LAST_LEVEL_DEF.mode : 'arcade';
+		app.multiplier = (LAST_LEVEL_DEF && LAST_LEVEL_DEF.multiplier) ? LAST_LEVEL_DEF.multiplier : 1.0;
 
-		app._metrics = computeMetrics(app.tiles);
-		app._boardSize = boardSize(app._metrics);
+		/* Per-level staging capacity comes from the generated level. */
+		MAX_STAGING = (typeof LAST_LEVEL_DEF !== 'undefined' && LAST_LEVEL_DEF && LAST_LEVEL_DEF.maxStaging) || 4;
 
 		if (app.mode === 'classic') {
 			document.body.classList.add('mode-classic');
@@ -121,6 +173,10 @@
 			levelLabelEl.textContent = app.levelIndex + 1;
 		}
 		if (typeof setMusicMode === 'function') setMusicMode(app.mode);
+		var levelInputEl = document.getElementById('level-input');
+		if (levelInputEl) levelInputEl.value = app.levelIndex + 1;
+		if (typeof updateDrawerScoreComparison === 'function') updateDrawerScoreComparison();
+		updateDevLayoutInfo();
 
 		timerEl.textContent = '0';
 		scoreEl.textContent = '0';

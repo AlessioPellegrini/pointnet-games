@@ -301,58 +301,101 @@ var LAYOUT_BUILDERS = {
 
 	'turtle': {
 		'small': function () {
-			/* CLEAN TURTLE: shell = 5×5 ring (x0..8, y1..5),
-			   inner raised 2×2, head x10, tail, legs.
-			   No floating tiles, no duplicates, bounds ≤ 10×8. */
+			/* TURTLE SMALL (28 tiles, 2 layers):
+			   Vertical turtle silhouette for mobile:
+			   - Head (y=0: x=4,6)
+			   - Front flippers (y=1: x=0,10) + neck (x=4,6)
+			   - Armpit gap (y=2: x=0,10 empty)
+			   - Shell body (y=2..4: x=2..8) with raised center (z=1: y=2..3, x=4,6)
+			   - Rear flippers (y=5: x=0,10) + pelvis (x=4,6)
+			   - Tail (y=6: x=4,6)
+			   Total: 24 base + 4 raised = 28 tiles (multiple of 4). */
 			var pts = [];
-			/* ring: x every 2, y 1..5 */
-			for (var y = 1; y < 6; y++) {
-				for (var x = 0; x < 5; x++) {
-					if (y === 1 || y === 5 || x === 0 || x === 4) pts.push({ z: 0, x: x * 2, y: y });
-				}
-			}
-			/* inner 2×2 (x 4..6, y 2..3): base + ridge */
-			pts.push({ z: 0, x: 4, y: 2 }, { z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 2 }, { z: 0, x: 6, y: 3 });
-			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 2 }, { z: 1, x: 6, y: 3 });
-			/* head (x10, y2..4) */
-			pts.push({ z: 0, x: 10, y: 2 }, { z: 0, x: 10, y: 3 }, { z: 0, x: 10, y: 4 });
-			/* tail (top-left) */
-			pts.push({ z: 0, x: 2, y: 0 });
-			/* legs at the bottom */
-			pts.push({ z: 0, x: 2, y: 6 }, { z: 0, x: 8, y: 6 });
-			return pts; // 16 ring + 8 inner + 3 head + 1 tail + 2 legs = 30
+			/* Layer 0 (24 tiles) */
+			pts.push({ z: 0, x: 4, y: 0 }, { z: 0, x: 6, y: 0 }); // Head
+			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 4, y: 1 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 10, y: 1 }); // Front flippers & neck
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 0, x: x2, y: 2 }); // Upper shell
+			for (var x3 = 2; x3 <= 8; x3 += 2) pts.push({ z: 0, x: x3, y: 3 }); // Center shell
+			for (var x4 = 2; x4 <= 8; x4 += 2) pts.push({ z: 0, x: x4, y: 4 }); // Lower shell
+			pts.push({ z: 0, x: 0, y: 5 }, { z: 0, x: 4, y: 5 }, { z: 0, x: 6, y: 5 }, { z: 0, x: 10, y: 5 }); // Rear flippers & pelvis
+			pts.push({ z: 0, x: 4, y: 6 }, { z: 0, x: 6, y: 6 }); // Tail
+
+			/* Layer 1 (4 tiles) */
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
+			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
+
+			return pts; // 28 tiles
 		},
 		'medium': function () {
+			/* TURTLE MEDIUM (48 tiles, 3 layers):
+			   - Head (y=0: x=4,6)
+			   - Front flippers (y=1: x=0,10) + neck (x=4,6)
+			   - Upper shell (y=2: x=2..8)
+			   - Wide shell center (y=3..4: x=0..10)
+			   - Lower shell (y=5: x=2..8)
+			   - Rear flippers (y=6: x=0,10) + pelvis (x=4,6)
+			   - Tail (y=7: x=4,6)
+			   Layer 0: 32 tiles, Layer 1: 12 tiles, Layer 2: 4 tiles
+			   Total: 32 + 12 + 4 = 48 tiles (multiple of 4). */
 			var pts = [];
-			for (var y = 0; y < 5; y++) {
-				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
-			}
-			for (var y1 = 1; y1 < 4; y1++) {
-				for (var x1 = 1; x1 < 5; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
-			}
-			for (var y2 = 1; y2 < 3; y2++) {
-				for (var x2 = 2; x2 < 4; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
-			}
-			pts.push({ z: 1, x: 10, y: 2 });            // head
-			pts.push({ z: 0, x: 0, y: 5 });             // tail
-			pts.push({ z: 0, x: 0, y: 6 }, { z: 0, x: 10, y: 6 }); // front legs
-			return pts; // 50
+			/* Layer 0 (32 tiles) */
+			pts.push({ z: 0, x: 4, y: 0 }, { z: 0, x: 6, y: 0 }); // Head
+			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 4, y: 1 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 10, y: 1 }); // Front flippers & neck
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 0, x: x2, y: 2 }); // Upper shell
+			for (var x3 = 0; x3 <= 10; x3 += 2) pts.push({ z: 0, x: x3, y: 3 }); // Shell upper-mid
+			for (var x4 = 0; x4 <= 10; x4 += 2) pts.push({ z: 0, x: x4, y: 4 }); // Shell center
+			for (var x5 = 2; x5 <= 8; x5 += 2) pts.push({ z: 0, x: x5, y: 5 }); // Lower shell
+			pts.push({ z: 0, x: 0, y: 6 }, { z: 0, x: 4, y: 6 }, { z: 0, x: 6, y: 6 }, { z: 0, x: 10, y: 6 }); // Rear flippers & pelvis
+			pts.push({ z: 0, x: 4, y: 7 }, { z: 0, x: 6, y: 7 }); // Tail
+
+			/* Layer 1 (12 tiles) */
+			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 6, y: 0 }); // Head crown
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
+			for (var l1x3 = 2; l1x3 <= 8; l1x3 += 2) pts.push({ z: 1, x: l1x3, y: 3 });
+			for (var l1x4 = 2; l1x4 <= 8; l1x4 += 2) pts.push({ z: 1, x: l1x4, y: 4 });
+
+			/* Layer 2 (4 tiles) */
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			pts.push({ z: 2, x: 4, y: 4 }, { z: 2, x: 6, y: 4 });
+
+			return pts; // 48 tiles
 		},
 		'large': function () {
+			/* TURTLE LARGE (60 tiles, 3 layers):
+			   - Head (y=0: x=4,6)
+			   - Front flippers (y=1: x=0,10) + neck (x=4,6)
+			   - Upper shell (y=2: x=2..8)
+			   - Broad shell body (y=3..5: x=0..10)
+			   - Lower shell (y=6: x=2..8)
+			   - Rear flippers (y=7: x=0,10) + pelvis (x=4,6)
+			   - Tail (y=8: x=4,6)
+			   Layer 0: 38 tiles, Layer 1: 16 tiles, Layer 2: 6 tiles
+			   Total: 38 + 16 + 6 = 60 tiles (multiple of 4). */
 			var pts = [];
-			for (var y = 0; y < 6; y++) {
-				for (var x = 0; x < 6; x++) pts.push({ z: 0, x: x * 2, y: y });
+			/* Layer 0 (38 tiles) */
+			pts.push({ z: 0, x: 4, y: 0 }, { z: 0, x: 6, y: 0 }); // Head
+			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 4, y: 1 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 10, y: 1 }); // Front flippers & neck
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 0, x: x2, y: 2 }); // Upper shell
+			for (var y0s = 3; y0s <= 5; y0s++) {
+				for (var x0s = 0; x0s <= 10; x0s += 2) pts.push({ z: 0, x: x0s, y: y0s });
 			}
-			for (var y1 = 1; y1 < 5; y1++) {
-				for (var x1 = 1; x1 < 5; x1++) pts.push({ z: 1, x: x1 * 2, y: y1 });
-			}
-			for (var y2 = 2; y2 < 4; y2++) {
-				for (var x2 = 2; x2 < 4; x2++) pts.push({ z: 2, x: x2 * 2, y: y2 });
-			}
-			pts.push({ z: 1, x: 10, y: 2 });            // head
-			pts.push({ z: 0, x: 0, y: 6 });             // tail
-			pts.push({ z: 0, x: 0, y: 7 }, { z: 0, x: 10, y: 7 }); // front legs
-			return pts; // 60
+			for (var x6 = 2; x6 <= 8; x6 += 2) pts.push({ z: 0, x: x6, y: 6 }); // Lower shell
+			pts.push({ z: 0, x: 0, y: 7 }, { z: 0, x: 4, y: 7 }, { z: 0, x: 6, y: 7 }, { z: 0, x: 10, y: 7 }); // Rear flippers & pelvis
+			pts.push({ z: 0, x: 4, y: 8 }, { z: 0, x: 6, y: 8 }); // Tail
+
+			/* Layer 1 (16 tiles) */
+			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 6, y: 0 }); // Head crown
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
+			for (var l1x3 = 2; l1x3 <= 8; l1x3 += 2) pts.push({ z: 1, x: l1x3, y: 3 });
+			for (var l1x4 = 2; l1x4 <= 8; l1x4 += 2) pts.push({ z: 1, x: l1x4, y: 4 });
+			for (var l1x5 = 2; l1x5 <= 8; l1x5 += 2) pts.push({ z: 1, x: l1x5, y: 5 });
+
+			/* Layer 2 (6 tiles) */
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			pts.push({ z: 2, x: 4, y: 4 }, { z: 2, x: 6, y: 4 });
+			pts.push({ z: 2, x: 4, y: 5 }, { z: 2, x: 6, y: 5 });
+
+			return pts; // 60 tiles
 		}
 	},
 
@@ -1783,54 +1826,69 @@ var LAYOUT_BUILDERS = {
 
 	'classic_144': {
 		'large': function () {
-			/* TRADITIONAL CLASSIC 144: multi-tiered 5-layer layout (144 tiles).
-			   Layer 0: 48 tiles (6×8 base)
-			   Layer 1: 40 tiles
+			/* TRADITIONAL CLASSIC 144 (Mobile Turtle / Tartaruga 144):
+			   Multi-tiered 5-layer Turtle formation with distinct limbs & negative space:
+			   - Head (y=0: x=4,6) protruding at top
+			   - 2 Front Flippers (y=1: x=0,10) separated by neck (x=4,6) and armpit indent (y=2: x=0,10 empty)
+			   - 5-layer Carapace Dome (y=2..6) with 3D elevation (z=0..4)
+			   - 2 Rear Flippers (y=7: x=0,10) separated by groin indent (y=6: x=0,10 empty)
+			   - Tail (y=8: x=4,6) protruding at bottom
+			   Layer 0: 38 tiles
+			   Layer 1: 38 tiles
 			   Layer 2: 32 tiles
-			   Layer 3: 16 tiles
-			   Layer 4: 8 tiles
-			   Total: 48 + 40 + 32 + 16 + 8 = 144 tiles.
-			   Bounds: 6 columns (x 0..10) × 8 rows (y 0..7), 0 floating tiles. */
+			   Layer 3: 22 tiles
+			   Layer 4: 14 tiles
+			   Total: 38 + 38 + 32 + 22 + 14 = 144 tiles.
+			   Bounds: 6 columns (x 0..10) × 9 rows (y 0..8), 0 floating tiles. */
 			var pts = [];
-			/* Layer 0: 48 tiles */
-			for (var y0 = 0; y0 < 8; y0++) {
-				for (var x0 = 0; x0 <= 10; x0 += 2) {
-					pts.push({ z: 0, x: x0, y: y0 });
-				}
-			}
-			/* Layer 1: 40 tiles */
-			for (var y1 = 1; y1 < 7; y1++) {
-				for (var x1 = 0; x1 <= 10; x1 += 2) {
-					pts.push({ z: 1, x: x1, y: y1 });
-				}
-			}
-			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 6, y: 0 });
-			pts.push({ z: 1, x: 4, y: 7 }, { z: 1, x: 6, y: 7 });
 
-			/* Layer 2: 32 tiles */
-			for (var y2 = 1; y2 < 7; y2++) {
-				for (var x2 = 2; x2 <= 8; x2 += 2) {
-					pts.push({ z: 2, x: x2, y: y2 });
-				}
+			/* Layer 0: 38 tiles (Base silhouette with distinct head, 4 flippers, shell & tail) */
+			pts.push({ z: 0, x: 4, y: 0 }, { z: 0, x: 6, y: 0 }); // Head
+			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 4, y: 1 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 10, y: 1 }); // Front flippers & neck
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 0, x: x2, y: 2 }); // Upper shell (x=0,10 empty: armpit gap)
+			for (var y0s = 3; y0s <= 5; y0s++) { // Shell body (rows 3,4,5: 6 tiles each = 18)
+				for (var x0s = 0; x0s <= 10; x0s += 2) pts.push({ z: 0, x: x0s, y: y0s });
 			}
-			for (var y2e = 2; y2e < 6; y2e++) {
-				pts.push({ z: 2, x: 0, y: y2e }, { z: 2, x: 10, y: y2e });
-			}
+			for (var x6 = 2; x6 <= 8; x6 += 2) pts.push({ z: 0, x: x6, y: 6 }); // Lower shell (x=0,10 empty: groin gap)
+			pts.push({ z: 0, x: 0, y: 7 }, { z: 0, x: 4, y: 7 }, { z: 0, x: 6, y: 7 }, { z: 0, x: 10, y: 7 }); // Rear flippers & pelvis
+			pts.push({ z: 0, x: 4, y: 8 }, { z: 0, x: 6, y: 8 }); // Tail
 
-			/* Layer 3: 16 tiles */
-			for (var y3 = 2; y3 < 6; y3++) {
-				for (var x3 = 2; x3 <= 8; x3 += 2) {
-					pts.push({ z: 3, x: x3, y: y3 });
-				}
+			/* Layer 1: 38 tiles (Double-height base pad for flippers, head, tail & shell base) */
+			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 6, y: 0 }); // Head pad
+			pts.push({ z: 1, x: 0, y: 1 }, { z: 1, x: 4, y: 1 }, { z: 1, x: 6, y: 1 }, { z: 1, x: 10, y: 1 }); // Front flipper pads
+			for (var l1x2 = 2; l1x2 <= 8; l1x2 += 2) pts.push({ z: 1, x: l1x2, y: 2 });
+			for (var l1ys = 3; l1ys <= 5; l1ys++) {
+				for (var l1xs = 0; l1xs <= 10; l1xs += 2) pts.push({ z: 1, x: l1xs, y: l1ys });
 			}
+			for (var l1x6 = 2; l1x6 <= 8; l1x6 += 2) pts.push({ z: 1, x: l1x6, y: 6 });
+			pts.push({ z: 1, x: 0, y: 7 }, { z: 1, x: 4, y: 7 }, { z: 1, x: 6, y: 7 }, { z: 1, x: 10, y: 7 }); // Rear flipper pads
+			pts.push({ z: 1, x: 4, y: 8 }, { z: 1, x: 6, y: 8 }); // Tail pad
 
-			/* Layer 4: 8 tiles */
-			for (var y4 = 3; y4 < 5; y4++) {
-				for (var x4 = 2; x4 <= 8; x4 += 2) {
-					pts.push({ z: 4, x: x4, y: y4 });
-				}
+			/* Layer 2: 32 tiles (Carapace Body + Head crest) */
+			pts.push({ z: 2, x: 4, y: 0 }, { z: 2, x: 6, y: 0 }); // Head crest
+			pts.push({ z: 2, x: 4, y: 1 }, { z: 2, x: 6, y: 1 }); // Neck
+			for (var l2x2 = 2; l2x2 <= 8; l2x2 += 2) pts.push({ z: 2, x: l2x2, y: 2 });
+			for (var l2ys = 3; l2ys <= 5; l2ys++) {
+				for (var l2xs = 0; l2xs <= 10; l2xs += 2) pts.push({ z: 2, x: l2xs, y: l2ys });
 			}
-			return pts; // 144 tiles
+			for (var l2x6 = 2; l2x6 <= 8; l2x6 += 2) pts.push({ z: 2, x: l2x6, y: 6 });
+			pts.push({ z: 2, x: 4, y: 7 }, { z: 2, x: 6, y: 7 }); // Pelvis
+
+			/* Layer 3: 22 tiles (Carapace Dome + Central Spine) */
+			pts.push({ z: 3, x: 4, y: 1 }, { z: 3, x: 6, y: 1 }); // Neck spine
+			for (var l3x2 = 2; l3x2 <= 8; l3x2 += 2) pts.push({ z: 3, x: l3x2, y: 2 });
+			for (var l3x3 = 2; l3x3 <= 8; l3x3 += 2) pts.push({ z: 3, x: l3x3, y: 3 });
+			for (var l3x4 = 0; l3x4 <= 10; l3x4 += 2) pts.push({ z: 3, x: l3x4, y: 4 }); // Broad center dome
+			for (var l3x5 = 2; l3x5 <= 8; l3x5 += 2) pts.push({ z: 3, x: l3x5, y: 5 });
+			pts.push({ z: 3, x: 4, y: 6 }, { z: 3, x: 6, y: 6 }); // Lower spine
+
+			/* Layer 4: 14 tiles (Carapace Apex Crest) */
+			pts.push({ z: 4, x: 4, y: 2 }, { z: 4, x: 6, y: 2 });
+			for (var l4x3 = 2; l4x3 <= 8; l4x3 += 2) pts.push({ z: 4, x: l4x3, y: 3 });
+			for (var l4x4 = 2; l4x4 <= 8; l4x4 += 2) pts.push({ z: 4, x: l4x4, y: 4 });
+			for (var l4x5 = 2; l4x5 <= 8; l4x5 += 2) pts.push({ z: 4, x: l4x5, y: 5 });
+
+			return pts; // 38 + 38 + 32 + 22 + 14 = 144 tiles
 		}
 	}
 };

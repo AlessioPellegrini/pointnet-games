@@ -47,8 +47,8 @@ var SYMBOL_SETS = {
 	                 'Man4', 'Pin4', 'Sou4', 'Man5', 'Pin5', 'Sou5', 'Man6', 'Pin6', 'Sou6',
 	                 'Man7', 'Pin7', 'Sou7', 'Man8', 'Pin8', 'Sou8', 'Man9', 'Pin9', 'Sou9',
 	                 'Ton', 'Nan', 'Shaa', 'Pei', 'Chun', 'Haku', 'Hatsu'],
-	'default': ['🀄', '🍀', '🌸', '🔥', '❄️', '💎', '⭐', '🌙', '☀️', '🍃', '💜', '🔷', '🍄', '🎈', '🌈', '🍕', '⚽', '🎲', '🐍', '🦋', '🌵', '🍇', '🐙', '🦄', '🍩', '🍪', '🧁', '🍭', '🎯', '🎮', '🎧', '📦', '🔔', '🎁', '🌈', '🦉', '🐢', '🐳', '🦩', '🌺', '🍁', '🌊', '⛰️', '🏝️', '🌋', '🏰', '🚀', '🛸', '⚓', '🎪', '🎨', '🎬', '🏮', '🔮', '⚡', '🌀', '💫', '✨', '☄️', '🪐', '🌌', '🫧', '🍉', '🍓', '🍊', '🥝', '🍌', '🥐', '🧀'],
-	'red':     ['🍎', '🌹', '❤️', '🍒', '🦞', '🔴', '🐞', '🎒', '🍉', '🐙', '🧣', '🍅', '🌶️', '🎈', '🩸', '🧲', '💄', '🍓', '🧧', '🦀', '🍁', '🛑', '🔺', '🐦🔥', '🍑', '❤️‍🔥', '🧡', '🍗', '🥩', '🍷', '🎀', '👠', '🖍️', '🌹', '🌺', '🍄', '🦩', '🐟', '🦐', '🍆', '🍠', '🟥', '🥵', '🔥', '🏮', '🌋', '💖', '💃', '🚨', '🎇', '🧸', '🍬', '🍧', '🍎', '🥊', '♨️', '🍒', '🌸', '🫚', '🫒', '🦞', '🍁', '🫖', '🍇', '🍫', '🍭', '🍩'],
+	'default': ['🀄', '🍀', '🌸', '🔥', '❄️', '💎', '⭐', '🌙', '☀️', '🍃', '💜', '🔷', '🍄', '🎈', '🌈', '🍕', '⚽', '🎲', '🐍', '🦋', '🌵', '🍇', '🐙', '🦄', '🍩', '🍪', '🧁', '🍭', '🎯', '🎮', '🎧', '📦', '🔔', '🎁', '🦉', '🐢', '🐳', '🦩', '🌺', '🍁', '🌊', '⛰️', '🏝️', '🌋', '🏰', '🚀', '🛸', '⚓', '🎪', '🎨', '🎬', '🏮', '🔮', '⚡', '🌀', '💫', '✨', '☄️', '🪐', '🌌', '🫧', '🍉', '🍓', '🍊', '🥝', '🍌', '🥐', '🧀'],
+	'red':     ['🍎', '🌹', '❤️', '🍒', '🦞', '🔴', '🐞', '🎒', '🍉', '🐙', '🧣', '🍅', '🌶️', '🎈', '🩸', '🧲', '💄', '🍓', '🧧', '🦀', '🍁', '🛑', '🔺', '🏎️', '🍑', '❣️', '🧡', '🍗', '🥩', '🍷', '🎀', '👠', '🖍️', '🌹', '🌺', '🍄', '🦩', '🐟', '🦐', '🍆', '🍠', '🟥', '🥵', '🔥', '🏮', '🌋', '💖', '💃', '🚨', '🎇', '🧸', '🍬', '🍧', '🍎', '🥊', '♨️', '🍒', '🌸', '🫚', '🫒', '🦞', '🍁', '🫖', '🍇', '🍫', '🍭', '🍩'],
 	'green':   ['🌿', '🦎', '💚', '🍏', '🦠', '🫑', '🐸', '🐢', '🥑', '🐲', '🌲', '🍀', '🧪', '🍐', '🦜', '🥦', '🐍', '🥒', '🌵', '🌱', '🦗', '🍈', '🍃', '🥬', '🌾', '🫛', '🥝', '🥭', '🍃', '🌳', '🎄', '🌴', '🍀', '☘️', '🧿', '🦖', '🦕', '🐊', '🦍', '🦜', '🍉', '🥒', '🍐', '🥦', '🫑', '🥑', '🍏', '🍵', '🥗', '🍃', '🌿', '🌱', '🌲', '🌳', '🌴', '🌵', '🌾', '🍀', '☘️', '🧫', '🦴', '🫘', '🫚', '🍜', '🥠', '🍃', '💶', '🧤', '🟢'],
 	'blue':    ['🐟', '🌊', '💙', '🧢', '🦋', '🐳', '🔵', '🫐', '🧊', '🐬', '💧', '☂️', '🧤', '⚓', '🦈', '🥶', '💠', '🔷', '🌧️', '⛵', '🐧', '🧿', '🐋', '🦑', '🪼', '🐠', '🐡', '🦀', '🦞', '🐚', '🌌', '❄️', '☃️', '🛷', '⛄', '🧊', '💙', '🩵', '🚙', '✈️', '🛳️', '🚤', '🧜', '🧞', '🧝', '👻', '💤', '🌫️', '🌀', '🌊', '🌧️', '⛈️', '🌩️', '🫧', '💦', '🔹', '🔵', '💎', '🌐', '🧊', '🥛', '🍼', '🧂', '🫖', '🪣', '💧', '🌊'],
 	'gold':    ['⭐', '👑', '🏆', '🔔', '💛', '🪙', '🍯', '🐝', '🌻', '⚜️', '🌟', '🤴', '👸', '💰', '🥇', '✨', '🔶', '🍋', '🦁', '🍞', '🌽', '🟡', '🍌', '🥭', '🍍', '🧀', '🫒', '🌾', '🐤', '🐥', '🦆', '🦢', '🦅', '🦉', '🦁', '🐯', '🐅', '🦁', '🎖️', '🏅', '🎗️', '🪗', '🪘', '🎺', '🎷', '🎸', '🎹', '🎻', '🥁', '🎤', '📯', '🪇', '🫙', '💡', '🏮', '🕯️', '🔆', '☀️', '🟨', '🟧', '🍟', '🍿', '🥞', '🧇', '🥜', '🌰', '🟡', '💫'],
@@ -325,42 +325,42 @@ function buildProgression(count) {
 		       more layouts available per band; the 124-tile layout
 		       (spiral/medium, unique) stays out until the FINAL BOSS
 		       in the last 1%. */
-		var floorIdx = Math.min(tileLevels.length - 1, Math.floor(Math.pow(progress, 2.2) * (tileLevels.length - 1)));
-		if (progress >= 0.99) floorIdx = tileLevels.length - 1;
+		/* Smooth monotonic progression:
+		   floorIdx linearly moves through the unique tileLevels (12 -> 124).
+		   minTiles is the strict floor of the current level band.
+		   bandMax allows adjacent tile tiers for figure variety without dropping to small layouts in late game. */
+		var floorIdx = Math.min(tileLevels.length - 1, Math.floor(progress * (tileLevels.length - 1)));
+		if (progress >= 0.98) floorIdx = tileLevels.length - 1;
 		var floorTiles = tileLevels[floorIdx];
 		var minTiles = Math.max(floorTiles, lastTiles - 8);
-		var bandMax = (floorTiles >= 124) ? 124 : Math.min(108, minTiles + 16);
+		var bandMaxIdx = Math.min(tileLevels.length - 1, floorIdx + 3);
+		var bandMax = (progress >= 0.98) ? 124 : Math.min(108, tileLevels[bandMaxIdx]);
 
 		/* v0.9 blackout: base plane (z=0) all obscured, auto-reveals.
-		   v0.9.3: moved earlier to ~level 101+ (was only 225+ before)
-		   and alternating — so the small/medium HALF layouts appear
-		   even at intermediate levels. */
+		   Active on levels 101+ (alternating). */
 		var blackout = n >= 100 && (n % 2 === 0);
 
 		var candidates = pool.filter(function (item) {
 			return item.playableTiles >= minTiles && item.playableTiles <= bandMax;
 		});
 		if (!candidates.length) {
-			/* Empty band (pool gaps): opens up to minTiles+24,
-			   never to 124 before the final. */
 			candidates = pool.filter(function (item) {
-				return item.playableTiles >= minTiles && item.playableTiles <= Math.min(108, minTiles + 24);
+				return item.playableTiles >= minTiles && item.playableTiles <= Math.min(108, minTiles + 16);
 			});
 		}
 		if (!candidates.length) {
-			/* Last resort: stay on the same tile-count. */
+			candidates = pool.filter(function (item) {
+				return item.playableTiles >= minTiles;
+			});
+		}
+		if (!candidates.length) {
 			candidates = pool.filter(function (item) {
 				return item.playableTiles === lastTiles;
 			});
 		}
 		/* v0.9.2: blackout levels must have at least one free z0 tile
 		   at start (freeBase) — otherwise no obscured tile can reveal
-		   and the level starts blocked (e.g. labyrinth/medium on L275
-		   after the dedupe).
-		   v0.9.3: PREFER the HALF layouts (the "half above obscured
-		   base" effect, requested) ALTERNATED — half of the blackouts
-		   use a HALF with a free base, half use any freeBase, so the
-		   effect is frequent but the FULL layout variety stays. */
+		   and the level starts blocked. */
 		if (blackout) {
 			var wantHalf = (blackCount % 2 === 0);
 			var halfFb = candidates.filter(function (c) { return c.isHalf && c.freeBase; });
@@ -392,21 +392,12 @@ function buildProgression(count) {
 			var halfCandidates = halfPool.filter(function (p) {
 				return p.playableTiles >= minTiles && p.playableTiles <= bandMax;
 			});
-			if (!halfCandidates.length) {
-				halfCandidates = halfPool.filter(function (p) { return p.playableTiles >= minTiles; });
-			}
-			if (!halfCandidates.length) {
-				halfCandidates = halfPool.filter(function (p) { return p.playableTiles >= lastTiles - 8; });
-			}
 			if (halfCandidates.length) {
 				var hTarget = progress * (halfCandidates.length - 1);
 				var hIdx = Math.max(0, Math.min(halfCandidates.length - 1, Math.round(hTarget + ((halfCount % 3) - 1))));
 				item = halfCandidates[hIdx];
 				halfCount++;
 				prevLayout = item.layout;
-				/* v0.9.3: if blackout and the chosen half has no free
-				   base (e.g. halfcover/xl), fall back to a HALF
-				   freeBase or any freeBase in the band. */
 				if (blackout && !item.freeBase) {
 					var hb2 = candidates.filter(function (c) { return c.isHalf && c.freeBase; });
 					if (!hb2.length) hb2 = candidates.filter(function (c) { return c.freeBase; });
@@ -418,11 +409,9 @@ function buildProgression(count) {
 			}
 		}
 
-		/* v0.9.3: coverage guarantee — if there are layouts never used
+		/* Coverage guarantee: if there are layouts never used
 		   that fit the current band (and respect freeBase on
-		   blackouts), pick the one with fewest tiles. Prevents the
-		   permanent exclusion of small layouts (e.g. star, harp)
-		   caused by the HALF preference / blackout rotation. */
+		   blackouts), pick the one with fewest tiles. */
 		var unused = pool.filter(function (c) {
 			if (usedLayouts[c.layout]) return false;
 			if (c.playableTiles < minTiles || c.playableTiles > bandMax) return false;
@@ -546,32 +535,105 @@ function generateLevel(levelIndex) {
 		var deck = [];
 
 		if (isClassic && layout.length === 144) {
-			/* Full traditional 144 deck: 34 standard symbols × 4 + 4 flowers + 4 seasons */
-			for (var si = 0; si < 34; si++) {
-				var csym = uniqueSymbols[si % uniqueSymbols.length];
-				for (var ccopy = 0; ccopy < 4; ccopy++) {
-					deck.push({
-						symbol: csym,
-						svg: svgDir ? 'assets/' + svgDir + '/' + csym + '.svg' : null,
-						wildcardGroup: null
-					});
-				}
-			}
+			/* Progressive 144 Boss Fight Deck:
+			   Zone 1 (L10..60): 12 distinct symbols × 12 copies = 144 (fast, high fluidity, easy matching).
+			   Zone 2 (L70..150): 17 distinct symbols × 8 copies = 136 + 4 Flowers + 4 Seasons = 144.
+			   Zone 3 (L160..250): 20 distinct symbols (16×6 + 4×10 = 136) + 4 Flowers + 4 Seasons = 144.
+			   Zone 4 (L260..330): 34 distinct symbols × 4 copies = 136 + 4 Flowers + 4 Seasons = 144 (Master traditional). */
 			var flowers = ['Flower1', 'Flower2', 'Flower3', 'Flower4'];
 			var seasons = ['Season1', 'Season2', 'Season3', 'Season4'];
-			for (var f = 0; f < 4; f++) {
-				deck.push({
-					symbol: flowers[f],
-					svg: svgDir ? 'assets/' + svgDir + '/' + flowers[f] + '.svg' : null,
-					wildcardGroup: 'flower'
-				});
-			}
-			for (var s = 0; s < 4; s++) {
-				deck.push({
-					symbol: seasons[s],
-					svg: svgDir ? 'assets/' + svgDir + '/' + seasons[s] + '.svg' : null,
-					wildcardGroup: 'season'
-				});
+
+			if (levelIndex < 60) {
+				// Zone 1: 12 symbols × 12 copies = 144
+				for (var z1s = 0; z1s < 12; z1s++) {
+					var z1sym = uniqueSymbols[z1s % uniqueSymbols.length];
+					for (var z1c = 0; z1c < 12; z1c++) {
+						deck.push({
+							symbol: z1sym,
+							svg: svgDir ? 'assets/' + svgDir + '/' + z1sym + '.svg' : null,
+							wildcardGroup: null
+						});
+					}
+				}
+			} else if (levelIndex < 150) {
+				// Zone 2: 17 symbols × 8 copies = 136 + 4 flowers + 4 seasons = 144
+				for (var z2s = 0; z2s < 17; z2s++) {
+					var z2sym = uniqueSymbols[z2s % uniqueSymbols.length];
+					for (var z2c = 0; z2c < 8; z2c++) {
+						deck.push({
+							symbol: z2sym,
+							svg: svgDir ? 'assets/' + svgDir + '/' + z2sym + '.svg' : null,
+							wildcardGroup: null
+						});
+					}
+				}
+				for (var f2 = 0; f2 < 4; f2++) {
+					deck.push({
+						symbol: flowers[f2],
+						svg: svgDir ? 'assets/' + svgDir + '/' + flowers[f2] + '.svg' : null,
+						wildcardGroup: 'flower'
+					});
+				}
+				for (var s2 = 0; s2 < 4; s2++) {
+					deck.push({
+						symbol: seasons[s2],
+						svg: svgDir ? 'assets/' + svgDir + '/' + seasons[s2] + '.svg' : null,
+						wildcardGroup: 'season'
+					});
+				}
+			} else if (levelIndex < 250) {
+				// Zone 3: 20 symbols (16×6 + 4×10 = 136) + 4 flowers + 4 seasons = 144
+				for (var z3s = 0; z3s < 20; z3s++) {
+					var z3sym = uniqueSymbols[z3s % uniqueSymbols.length];
+					var copies3 = (z3s < 16) ? 6 : 10;
+					for (var z3c = 0; z3c < copies3; z3c++) {
+						deck.push({
+							symbol: z3sym,
+							svg: svgDir ? 'assets/' + svgDir + '/' + z3sym + '.svg' : null,
+							wildcardGroup: null
+						});
+					}
+				}
+				for (var f3 = 0; f3 < 4; f3++) {
+					deck.push({
+						symbol: flowers[f3],
+						svg: svgDir ? 'assets/' + svgDir + '/' + flowers[f3] + '.svg' : null,
+						wildcardGroup: 'flower'
+					});
+				}
+				for (var s3 = 0; s3 < 4; s3++) {
+					deck.push({
+						symbol: seasons[s3],
+						svg: svgDir ? 'assets/' + svgDir + '/' + seasons[s3] + '.svg' : null,
+						wildcardGroup: 'season'
+					});
+				}
+			} else {
+				// Zone 4: Full traditional 144 deck (34 symbols × 4 + 4 flowers + 4 seasons)
+				for (var si = 0; si < 34; si++) {
+					var csym = uniqueSymbols[si % uniqueSymbols.length];
+					for (var ccopy = 0; ccopy < 4; ccopy++) {
+						deck.push({
+							symbol: csym,
+							svg: svgDir ? 'assets/' + svgDir + '/' + csym + '.svg' : null,
+							wildcardGroup: null
+						});
+					}
+				}
+				for (var f = 0; f < 4; f++) {
+					deck.push({
+						symbol: flowers[f],
+						svg: svgDir ? 'assets/' + svgDir + '/' + flowers[f] + '.svg' : null,
+						wildcardGroup: 'flower'
+					});
+				}
+				for (var s = 0; s < 4; s++) {
+					deck.push({
+						symbol: seasons[s],
+						svg: svgDir ? 'assets/' + svgDir + '/' + seasons[s] + '.svg' : null,
+						wildcardGroup: 'season'
+					});
+				}
 			}
 		} else {
 			var symbolsNeeded = Math.ceil(layout.length / copiesPerSymbol);

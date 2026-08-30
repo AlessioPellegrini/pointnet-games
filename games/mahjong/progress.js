@@ -6,14 +6,16 @@
 'use strict';
 
 	/* ============================================================
-	   STAR RATING (v0.7.0): 1★ any clear, 2★ faster than par,
-	   3★ no undo used. Par = 2s per remaining pair at start.
+	   STAR RATING (v1.3.4): 1★ any clear, 2★ faster than strategic par,
+	   3★ no undo used. Par is fair and generous on large 3D tables.
 	   ============================================================ */
 	function computeStars() {
 		var pairs = pairsLeftAtStart || 1;
-		var parTime = pairs * 2;
+		var isClassic = (app.multiplier && app.multiplier > 1.0);
+		var secondsPerPair = isClassic ? 4.0 : 3.0;
+		var parTime = Math.round(pairs * secondsPerPair);
 		var s = 1;
-		if (app.elapsed <= Math.max(10, parTime)) s++;
+		if (app.elapsed <= Math.max(12, parTime)) s++;
 		if (app.undoUsed === 0) s++;
 		return s;
 	}
@@ -22,6 +24,14 @@
 		stopTimer();
 		if (typeof playSfx === 'function') playSfx('victory');
 		if (typeof spawnVictoryConfetti === 'function') spawnVictoryConfetti();
+
+		/* STRATEGIC COMPLETION BONUSES (v1.3.4):
+		   Reward players for smart resource preservation and clean play. */
+		var noShuffleBonus = (app.shufflesLeft === 3) ? 1500 : (app.shufflesLeft === 2 ? 500 : 0);
+		var noUndoBonus = (app.undoUsed === 0) ? 1000 : 0;
+		var strategicBonus = noShuffleBonus + noUndoBonus;
+		app.score += strategicBonus;
+
 		app.stars = computeStars();
 		var levelNum = app.levelIndex + 1;
 		saveStars(levelNum, app.stars);
@@ -34,10 +44,29 @@
 		saveScores();
 		saveProgressToWP(levelNum, bestScores);
 		submitScoreToWP(computeCumulative(), levelNum, app.elapsed);
-		modalTitle.textContent = '🏆 Level ' + levelNum + ' Cleared!';
-		/* Restore the "Next level" label (a previous loss had changed
-		   it to "Retry"). */
-		if (btnPlayAgain) btnPlayAgain.textContent = '▶ Next level';
+
+		if (levelNum === 330) {
+			/* GRAND FINALE CELEBRATION (v1.3.4) */
+			modalTitle.textContent = '👑 CAMPIONE SUPREMO! 👑';
+			var totalStars = 0;
+			for (var l in bestStars) {
+				if (Object.prototype.hasOwnProperty.call(bestStars, l)) totalStars += bestStars[l];
+			}
+			modalStats.innerHTML = '🎉 <b>CONGRATULAZIONI!</b> Hai conquistato tutti i 330 Livelli di Mahjong Arcade!<br><br>' +
+				'⭐ Stelle Totali: <b>' + totalStars + ' / 990</b><br>' +
+				'🏆 Punteggio Record Cumulativo: <b>' + computeCumulative().toLocaleString() + ' pt</b><br>' +
+				'⏱️ Tempo Ultimo Livello: ' + app.elapsed + 's' +
+				(strategicBonus > 0 ? (' (inclusi +' + strategicBonus + ' bonus strategici!)') : '');
+			if (btnPlayAgain) btnPlayAgain.textContent = '🔄 Rigioca Livelli';
+		} else {
+			modalTitle.textContent = '🏆 Level ' + levelNum + ' Cleared!';
+			if (btnPlayAgain) btnPlayAgain.textContent = '▶ Next level';
+			var bonusText = (strategicBonus > 0) ? (' (+' + strategicBonus + ' bonus strategia!)') : '';
+			modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score + bonusText +
+				'   ·   Best: ' + (bestScores[levelNum] || app.score).toLocaleString() + ' pt (' + (bestStars[levelNum] || 0) + '⭐)' +
+				'   ·   Next: Level ' + Math.min(levelNum + 1, 330);
+		}
+
 		var btnModalShuffle = document.getElementById('btn-modal-shuffle');
 		if (btnModalShuffle) btnModalShuffle.style.display = 'none';
 		if (modalStars) {
@@ -45,9 +74,6 @@
 			for (var si = 0; si < 3; si++) starStr += (si < app.stars) ? '⭐' : '☆';
 			modalStars.textContent = starStr;
 		}
-		modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score +
-			'   ·   Best: ' + (bestStars[levelNum] || 0) + '⭐' +
-			'   ·   Next: Level ' + Math.min(levelNum + 1, 330);
 		var modalLoginHint = document.getElementById('modal-login-hint');
 		if (modalLoginHint) {
 			var isLoggedIn = (typeof window.pointnetGamesAPI !== 'undefined' && typeof window.pointnetGamesAPI.isUserLoggedIn === 'function')
@@ -170,8 +196,59 @@ var bestScores = {};
 					window.__wpLoadedLevel = savedLevel;
 				}
 			}
+
+			/* v1.3.4: leaderboard response from parent WordPress plugin */
+			if (msg.type === 'pointnet-games:leaderboard') {
+				var entries = Array.isArray(msg.data) ? msg.data : (msg.data && msg.data.entries ? msg.data.entries : []);
+				renderDrawerLeaderboard(entries);
+			}
 		});
 	}
+
+	/* ============================================================
+	   DRAWER LEADERBOARD RENDERING (v1.3.4)
+	   Displays Top 10 absolute players with medals and live formatting.
+	   ============================================================ */
+	function renderDrawerLeaderboard(entries) {
+		var listEl = document.getElementById('drawer-lb-list');
+		if (!listEl) return;
+		if (!entries || !entries.length) {
+			listEl.innerHTML = '<div class="drawer-lb-empty">Nessun punteggio ancora registrato. Sii il primo!</div>';
+			return;
+		}
+		var html = '';
+		for (var i = 0; i < Math.min(10, entries.length); i++) {
+			var e = entries[i];
+			var rank = i + 1;
+			var rankClass = (rank === 1) ? 'gold' : (rank === 2 ? 'silver' : (rank === 3 ? 'bronze' : ''));
+			var rankBadge = (rank === 1) ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : (rank + '°')));
+			var name = e.nickname || e.player_name || e.user_login || 'Giocatore';
+			var scoreFormatted = Number(e.score || 0).toLocaleString();
+			html += '<div class="drawer-lb-row">' +
+				'<span class="drawer-lb-rank ' + rankClass + '">' + rankBadge + '</span>' +
+				'<span class="drawer-lb-name" title="' + name + '">' + name + '</span>' +
+				'<span class="drawer-lb-score">' + scoreFormatted + ' pt</span>' +
+			'</div>';
+		}
+		listEl.innerHTML = html;
+	}
+	window.renderDrawerLeaderboard = renderDrawerLeaderboard;
+
+	function fetchDrawerLeaderboard() {
+		var listEl = document.getElementById('drawer-lb-list');
+		if (!listEl) return;
+		listEl.innerHTML = '<div class="drawer-lb-loading">⏳ Caricamento classifica...</div>';
+		if (typeof window.pointnetGamesAPI !== 'undefined' && typeof window.pointnetGamesAPI.getLeaderboard === 'function') {
+			window.pointnetGamesAPI.getLeaderboard(10, function (entries) {
+				renderDrawerLeaderboard(entries);
+			});
+		} else if (window.parent !== window) {
+			window.parent.postMessage({ type: 'pointnet-games:get-leaderboard', data: { limit: 10 } }, '*');
+		} else {
+			renderDrawerLeaderboard([]);
+		}
+	}
+	window.fetchDrawerLeaderboard = fetchDrawerLeaderboard;
 
 	/* PHASE 4: ask the plugin for the user's saved level (logged-in). */
 	function loadProgressFromWP() {

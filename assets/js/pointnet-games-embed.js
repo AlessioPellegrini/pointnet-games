@@ -62,9 +62,12 @@
 
 		button.addEventListener('click', function () {
 			if (element.classList.contains('pointnet-games-fullscreen-active')) {
-				// Exit fullscreen via API if available, otherwise fallback class.
-				if (document.exitFullscreen) {
-					document.exitFullscreen();
+				// Exit fullscreen via API if available and active, otherwise fallback class.
+				if (document.fullscreenElement && document.exitFullscreen) {
+					try {
+						var p = document.exitFullscreen();
+						if (p && p.catch) p.catch(function () {});
+					} catch (e) {}
 				}
 				element.classList.remove('pointnet-games-fullscreen-active');
 				return;

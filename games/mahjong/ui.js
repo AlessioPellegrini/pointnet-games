@@ -105,8 +105,16 @@
 			el.classList.toggle('obscured', !t.removed && !t.staging && !!t.obscured);
 			el.classList.toggle('hinted', !!t.hinted);
 			el.classList.toggle('selected', t === app.selectedTile);
+			el.classList.remove('wildcard', 'wildcard-flower', 'wildcard-season');
 			if (t.wildcardGroup) {
 				el.classList.add('wildcard', 'wildcard-' + t.wildcardGroup);
+			}
+			var svgEl = el.querySelector('.tile-svg');
+			if (svgEl && t.svg) {
+				if (svgEl.getAttribute('src') !== t.svg) {
+					svgEl.src = t.svg;
+				}
+				el.classList.toggle('svg-black', t.svg.indexOf('/black/') !== -1);
 			}
 			if (el._symEl) {
 				el._symEl.textContent = t.obscured ? '🀄' : (t.faceDown ? '🀄' : t.symbol);
@@ -217,6 +225,56 @@
 			spawnBurstAt(rectB.left + rectB.width / 2, rectB.top + rectB.height / 2, 8);
 		}
 	}
+
+	/* CLASSIC MATCH ANIMATION (v1.4.7):
+	   When a pair is matched on the board, creates glowing floating clones
+	   that lift and dissolve with particles, providing satisfying tactile feedback. */
+	function animateClassicMatch(tileA, tileB) {
+		var idxA = app.tiles.indexOf(tileA);
+		var idxB = app.tiles.indexOf(tileB);
+		var elA = idxA >= 0 ? app.tileEls[idxA] : null;
+		var elB = idxB >= 0 ? app.tileEls[idxB] : null;
+
+		function createFlyer(el) {
+			if (!el) return null;
+			var rect = el.getBoundingClientRect();
+			var clone = el.cloneNode(true);
+			clone.classList.remove('selected', 'hinted', 'dragging', 'blocked');
+			clone.classList.add('matching-flyer');
+			clone.style.cssText =
+				'position:fixed;margin:0;z-index:1000;pointer-events:none;' +
+				'left:' + rect.left + 'px;top:' + rect.top + 'px;' +
+				'width:' + rect.width + 'px;height:' + rect.height + 'px;' +
+				'transition:transform 360ms cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 320ms ease, filter 320ms ease;' +
+				'box-shadow: 0 0 24px rgba(56, 189, 248, 0.9), 0 8px 24px rgba(0,0,0,0.5);' +
+				'transform: scale(1.0);';
+			document.body.appendChild(clone);
+			return clone;
+		}
+
+		var flyerA = createFlyer(elA);
+		var flyerB = createFlyer(elB);
+
+		if (flyerA || flyerB) {
+			requestAnimationFrame(function () {
+				if (flyerA) {
+					flyerA.style.transform = 'translateY(-24px) scale(1.2)';
+					flyerA.style.opacity = '0';
+					flyerA.style.filter = 'brightness(1.6)';
+				}
+				if (flyerB) {
+					flyerB.style.transform = 'translateY(-24px) scale(1.2)';
+					flyerB.style.opacity = '0';
+					flyerB.style.filter = 'brightness(1.6)';
+				}
+			});
+			setTimeout(function () {
+				if (flyerA && flyerA.parentNode) flyerA.parentNode.removeChild(flyerA);
+				if (flyerB && flyerB.parentNode) flyerB.parentNode.removeChild(flyerB);
+			}, 400);
+		}
+	}
+	window.animateClassicMatch = animateClassicMatch;
 
 	function spawnVictoryConfetti() {
 		var colors = ['#f59e0b', '#38bdf8', '#10b981', '#ec4899', '#8b5cf6', '#ef4444', '#fbbf24'];

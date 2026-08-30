@@ -22,9 +22,15 @@
 
 	function getFullUrl(relPath) {
 		try {
-			return new URL(relPath, (typeof document !== 'undefined' && document.baseURI) || window.location.href).href;
+			var base = (typeof document !== 'undefined' && document.baseURI) || window.location.href;
+			var cleanPath = encodeURI(decodeURI(relPath));
+			return new URL(cleanPath, base).href;
 		} catch (e) {
-			return relPath;
+			try {
+				return encodeURI(decodeURI(relPath));
+			} catch (err) {
+				return relPath;
+			}
 		}
 	}
 

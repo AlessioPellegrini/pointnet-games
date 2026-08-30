@@ -10,14 +10,14 @@
 var AUDIO_PLAYLIST_ARCADE = [
 	{ src: 'assets/music/zen-remix-main-arcade-melody.mp3', title: 'Zen Remix Main Arcade Melody' },
 	{ src: 'assets/music/zen-arcade.mp3', title: 'Zen Arcade' },
+	{ src: 'assets/music/Mahjong Zen - secondary theme.mp3', title: 'Mahjong Zen (Secondary Theme)' },
 	{ src: 'assets/music/bamboo-shadows.mp3', title: 'Bamboo Shadows' },
 	{ src: 'assets/music/bamboo-shadows-remix.mp3', title: 'Bamboo Shadows (Remix)' }
 ];
 
 /* Playlist for Classic Mode challenges (files in assets/music/classic/) */
 var AUDIO_PLAYLIST_CLASSIC = [
-	{ src: 'assets/music/classic/zen-arcade.mp3', title: 'Classic Zen' },
-	{ src: 'assets/music/classic/bamboo-shadows.mp3', title: 'Classic Bamboo' }
+	{ src: 'assets/music/classic/Zen classic ( arcade main theme).mp3', title: 'Zen Classic (Main Theme)' }
 ];
 
 var AUDIO_PLAYLIST = AUDIO_PLAYLIST_ARCADE;
@@ -83,14 +83,18 @@ function toggleMusic() {
 
 function setMusicMode(mode) {
 	if (!mode) mode = 'arcade';
-	audioState.currentMode = mode;
 	var targetList = (mode === 'classic') ? AUDIO_PLAYLIST_CLASSIC : AUDIO_PLAYLIST_ARCADE;
 	AUDIO_PLAYLIST = targetList;
 
 	if (!audioState.initDone) initAudio();
 	if (window.pointnetMusicPlayer) {
 		window.pointnetMusicPlayer.fallbackPlaylist = AUDIO_PLAYLIST_ARCADE;
-		window.pointnetMusicPlayer.setPlaylist(targetList, window.pointnetMusicPlayer.playing);
+		if (audioState.currentMode !== mode || window.pointnetMusicPlayer.playlist !== targetList) {
+			audioState.currentMode = mode;
+			window.pointnetMusicPlayer.setPlaylist(targetList, window.pointnetMusicPlayer.playing);
+		}
+	} else {
+		audioState.currentMode = mode;
 	}
 }
 

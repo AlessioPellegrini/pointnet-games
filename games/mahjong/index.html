@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>Mahjong Arcade</title>
-	<link rel="stylesheet" href="style.css?v=1.2.5">
+	<link rel="stylesheet" href="style.css?v=1.4.8">
 	<style>
 		/* ============================================================
 		   SPLASH SCREEN + FULLSCREEN — game styles live in style.css
@@ -154,7 +154,7 @@
 	<div id="splash">
 		<div class="splash-inner">
 			<div class="splash-emoji">🀄</div>
-			<h1 class="splash-title">Mahjong Arcade<sup class="splash-version">v1.2.5</sup></h1>
+			<h1 class="splash-title">Mahjong Arcade<sup class="splash-version">v1.4.8</sup></h1>
 			<p class="splash-subtitle">Match identical tiles to clear the board. Free tiles go to the tray — two of the same symbol auto-match!</p>
 			<button id="splash-play" class="splash-play">🎮 PLAY</button>
 			<p class="splash-hint">Tap a free tile to lift it · tap again to send it to the tray</p>
@@ -187,6 +187,37 @@
 	<!-- Action drawer (v0.9.5): le azioni secondarie sono in un pannello
 	     apribile con ☰ per non rubare spazio verticale al board su mobile. -->
 	<div class="action-panel" id="action-panel">
+		<!-- Confronto Punteggi: Record vs Attuale -->
+		<div class="score-comparison-card">
+			<div class="score-cmp-header">
+				<span class="score-cmp-title">📊 CONFRONTO PUNTEGGIO</span>
+				<span class="score-cmp-lvl" id="drawer-level-badge">Livello 1</span>
+			</div>
+			<div class="score-cmp-body">
+				<div class="score-cmp-box">
+					<div class="score-cmp-label">🏆 Tuo Record</div>
+					<div class="score-cmp-val score-best-val" id="drawer-best-score">0</div>
+				</div>
+				<div class="score-cmp-divider">VS</div>
+				<div class="score-cmp-box">
+					<div class="score-cmp-label">🎯 Partita Attuale</div>
+					<div class="score-cmp-val score-curr-val" id="drawer-curr-score">0</div>
+				</div>
+			</div>
+			<div class="score-cmp-status" id="drawer-score-diff">Nessun record ancora registrato</div>
+		</div>
+
+		<!-- Classifica Top 10 Giocatori -->
+		<div class="drawer-leaderboard-card">
+			<div class="drawer-lb-header">
+				<span class="drawer-lb-title">🏆 TOP 10 CLASSIFICA</span>
+				<button class="drawer-lb-refresh" id="btn-refresh-lb" title="Aggiorna classifica" aria-label="Aggiorna classifica">🔄</button>
+			</div>
+			<div class="drawer-lb-list" id="drawer-lb-list">
+				<div class="drawer-lb-loading">⏳ Caricamento classifica...</div>
+			</div>
+		</div>
+
 		<div class="jukebox-panel" id="jukebox-panel">
 			<div class="jukebox-header">
 				<span class="jukebox-badge">🎵 JUKEBOX ZEN</span>
@@ -223,14 +254,36 @@
 			</div>
 		</div>
 
-		<button class="btn" id="btn-sfx-drawer">🔊 Effetti: ON</button>
-		<button class="btn" id="btn-hint">💡 Hint</button>
-		<button class="btn" id="btn-undo">↩️ Undo</button>
-		<button class="btn" id="btn-shuffle">🔀 Shuffle <span id="shuffle-count">x3</span></button>
-		<button class="btn" id="btn-new">🔄 New</button>
-		<input type="number" id="level-input" class="btn-level-input" min="1" max="330" value="1" aria-label="Level number">
-		<button class="btn" id="btn-level-go">Level</button>
+		<div class="drawer-action-buttons">
+			<button class="btn btn-action-main" id="btn-hint">💡 Suggerimento</button>
+			<button class="btn btn-action-main" id="btn-undo">↩️ Annulla</button>
+			<button class="btn btn-action-main" id="btn-shuffle">🔀 Rimescola <span id="shuffle-count">x3</span></button>
+			<button class="btn btn-action-main" id="btn-new">🔄 Riavvia Livello</button>
+			<button class="btn btn-action-main" id="btn-sfx-drawer">🔊 Effetti: ON</button>
+		</div>
+
+		<!-- Pannello Modalità Sviluppatore (Visibile SOLO quando Dev Mode è attiva) -->
+		<div class="dev-tools-card" id="dev-tools-card">
+			<div class="dev-tools-header">
+				<span class="dev-tools-title">🛠️ STRUMENTI SVILUPPATORE</span>
+				<span class="dev-tools-badge">DEV ON</span>
+			</div>
+			<div class="dev-layout-info" id="dev-layout-info">Layout: --</div>
+			<div class="dev-tools-row">
+				<label for="level-input" class="dev-label">Livello:</label>
+				<input type="number" id="level-input" class="btn-level-input" min="1" max="330" value="1" aria-label="Level number">
+				<button class="btn btn-dev-btn" id="btn-level-go">Vai</button>
+				<button class="btn btn-dev-btn" id="btn-dev-win" title="Test vittoria immediata">⚡ Win</button>
+			</div>
+			<div class="dev-tools-row" style="margin-top: 4px;">
+				<button class="btn btn-dev-btn" id="btn-dev-reset-l1" style="flex: 1;">⏮️ Reset a Livello 1</button>
+				<button class="btn btn-dev-off" id="btn-dev-toggle-off" style="flex: 1;">❌ Disattiva Dev</button>
+			</div>
+		</div>
 	</div>
+
+	<!-- Toast Notifiche (es. Attivazione Dev Mode) -->
+	<div id="toast-notify" class="toast-notify"></div>
 
 	<div class="overlay" id="overlay">
 		<div class="modal">
@@ -243,15 +296,15 @@
 		</div>
 	</div>
 
-	<script src="layouts.js?v=1.2.5"></script>
-	<script src="solvable-levels.js?v=1.2.5"></script>
-	<script src="data.js?v=1.2.5"></script>
-	<script src="engine.js?v=1.2.5"></script>
-	<script src="app.js?v=1.2.5"></script>
-	<script src="ui.js?v=1.2.5"></script>
-	<script src="input.js?v=1.2.5"></script>
-	<script src="progress.js?v=1.2.5"></script>
-	<script src="player.js?v=1.2.5"></script>
-	<script src="audio.js?v=1.2.5"></script>
+	<script src="layouts.js?v=1.4.8"></script>
+	<script src="solvable-levels.js?v=1.4.8"></script>
+	<script src="data.js?v=1.4.8"></script>
+	<script src="engine.js?v=1.4.8"></script>
+	<script src="app.js?v=1.4.8"></script>
+	<script src="ui.js?v=1.4.8"></script>
+	<script src="input.js?v=1.4.8"></script>
+	<script src="progress.js?v=1.4.8"></script>
+	<script src="player.js?v=1.4.8"></script>
+	<script src="audio.js?v=1.4.8"></script>
 </body>
 </html>

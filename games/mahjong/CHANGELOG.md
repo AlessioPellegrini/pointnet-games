@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 1.2.5** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 1.4.8** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -35,7 +35,103 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v1.2.5 — Ripristino CSS Splash Button & Registrazione Obbligatoria (HEAD)
+### v1.4.8 — Aggiunta Traccia Arcade "Mahjong Zen (Secondary Theme)" e URI Encoding Robusto (HEAD)
+- **Nuovo Brano Playlist Arcade**: integrata la traccia `Mahjong Zen - secondary theme.mp3` con titolo visualizzato pulito `Mahjong Zen (Secondary Theme)`.
+- **Supporto Nomi con Spazi (`player.js`)**: potenziata la funzione `getFullUrl` con `encodeURI(decodeURI(relPath))` per caricare in modo resiliente qualsiasi file audio contenente spazi o caratteri speciali.
+
+### v1.4.7 — Animazione Luminosa e Dissolvenza Coppie Classic
+- **Animazione Match Classic 3D**: quando viene abbinata una coppia in modalità classica, i cloni delle due tessere si sollevano con un bagliore luminoso ciano/oro (`brightness(1.6)`, `translateY(-24px)`) dissolvendosi fluidamente in volo con particelle, dando un feedback tattile soddisfacente ed eliminando la sparizione a scatto.
+
+### v1.4.6 — Rimozione Simboli Doppi e ZWJ nei Set Emoji
+- **Sanitizzazione Set Simboli (`data.js`)**: rimossi i caratteri composti da doppie emoji (`🐦🔥` e `❤️‍🔥`), sostituiti con simboli singoli puliti e universali (`🏎️` e `❣️`), garantendo che ogni tessera contenga esattamente un unico glifo isolato e leggibile su ogni sistema operativo.
+
+### v1.4.5 — Pulsante Rapido Reset Livello 1
+- **Pulsante `⏮️ Reset a Livello 1`**: integrato nel pannello sviluppatore un pulsante one-tap per azzerare istantaneamente il livello salvato e ripartire dal livello 1 in tutta comodità.
+
+### v1.4.4 — Margini Interni Ottimizzati a 7px
+- **Raffinamento Inset 7px**: aumentato il margine interno a `inset: 7px; width: calc(100% - 14px); height: calc(100% - 14px);` per `.tile-svg` e `calc(100% - 10px)` per lo staging box, garantendo una spaziatura visiva generosa ed equilibrata rispetto ai bordi smussati 3D della tessera.
+
+### v1.4.3 — Margini Interni Eleganti per Tessere SVG Traditional
+- **Margine Interno Inset 4px**: applicato `inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); object-fit: contain;` a `.tile-svg`, lasciando un bordo interno naturale ed elegante che distanzia i simboli dai bordi smussati della tessera.
+- **Staging Box Inset**: applicato `width: calc(100% - 6px); height: calc(100% - 6px); object-fit: contain;` anche agli slot dello staging box.
+
+### v1.4.2 — Risoluzione Errore Sintassi CSS & Sblocco Completo
+- **Fix Critico Sintassi CSS (`style.css`)**: aggiunta la parentesi graffa chiusa `}` mancante su `.tile-overlay` a riga 320 che bloccava il parsing di tutti i selettori successivi (`.tile-svg`, `.action-panel.open`, `.dev-tools-card`, toast notifications).
+- **Attivazione Diretta Dev Mode**: toccando il numerino di versione o il livello in cima si attiva/disattiva istantaneamente la modalità sviluppatore con alert a schermo.
+- **Riapertura Immediata Action Drawer ☰**: risolto il conflitto di rendering CSS; l'hamburger menu si apre e chiude con fluidità immediata.
+
+### v1.4.1 — Risposta Eventi Drawer & Tap Segreti Multipiattaforma
+- **Hamburger Menu ☰ Immediato**: collegato l'evento del drawer a gestione unificata `click` e `pointerdown` con isolamento propagation, prevenendo conflitti con i listener del board.
+- **Gesture Segreta Multi-Elemento**: abilitata la sequenza dei 5 tap segreti per attivare la Modalità Sviluppatore sia sul badge di versione (`.splash-version`), sia sul titolo (`.splash-title`), sull'emoji (`.splash-emoji`), sul badge di livello (`#level-label`) e sul titolo del drawer (`.score-cmp-title`), con supporto touch/pointer e timeout a 3 secondi.
+
+### v1.4.0 — Perfetto Rendering SVG Mahjong Traditional
+- **Scala SVG Perfetta 100%**: ripristinato il posizionamento `top: 0; left: 0; width: 100%; height: 100%` per `.tile-svg`, consentendo alla grafica vettoriale SVG di scalare in modo fluido e naturale sulla faccia di ciascuna tessera $48\times 64\text{px}$ senza ritagli o ingigantimenti.
+
+### v1.3.9 — Contenimento SVG e Overflow Tessere Rigido
+- **Bounding Box Rigido `.tile`**: aggiunto `overflow: hidden` a `.tile` per impedire a qualsiasi elemento figlio (SVG / emoji) di fuoriuscire dai confini della tessera.
+- **Dimensionamento Assoluto `.tile-svg`**: vincolate le dimensioni dell'immagine SVG a `40x56px` con `max-width: 40px` e `max-height: 56px`, bloccando l'espansione intrinseca del canvas SVG.
+
+### v1.3.8 — Fix Board Map Initialization & Layout Scaling
+- **Risolto Crash `board.get is not a function`**: ripristinata correttamente la chiamata `app.board = buildBoard(app.tiles)` all'avvio del livello in `app.js`, consentendo il completamento di `rebuildBoard()` e `fitBoard()` e il corretto ridimensionamento vettoriale di tutte le tessere SVG.
+
+### v1.3.7 — Correzione Dimensioni e Inset Dorso Tessere
+- **Dimensioni Pixel-Identiche**: aggiunto `box-sizing: border-box` a `.tile` e rimosso il bordo esterno che ingrandiva le tessere coperte; tutte le tessere ora mantengono esattamente le dimensioni native ($48\times 64\text{px}$) senza allargamenti.
+- **Dorso Proporzionato**: ridimensionata l'icona interna del dorso (`font-size: 18px` per `?` e `13px` per `🔒`), perfettamente proporzionata alla tessera.
+
+### v1.3.6 — Rendering Dorso Tessere Autentico & Pulizia Badge Numerici
+- **Autentico Dorso Mahjong**: rimosso il contrasto errato e renderizzato il vero dorso blu profondo con emblema centrale 🀄 (e 🔒 per le coperte bloccate).
+- **Badge Numeri Puliti**: i badge numerici degli strati (`plane-badge`) e delle etichette (`num-badge`) sono stati nascosti sia per i giocatori normali sia su tutte le tessere a faccia in giù/blackout, lasciando la superficie delle tessere pulita e impeccabile.
+
+### v1.3.5 — Modalità Sviluppatore Nascosta & Menu Giocatore Pulito
+- **Menu Giocatore Pulito**: rimossi gli strumenti di debug e il salto livello dalla vista standard; il pulsante `🔄 Riavvia Livello` permette di riprovare la tavola corrente senza alterare la progressione.
+- **Attivazione Modalità Sviluppatore (5 Tap Segreti)**: toccando 5 volte rapidamente il numerino di versione nella schermata iniziale o il titolo nel drawer si abilita/disabilita la modalità sviluppatore, con persistenza in `localStorage` e toast alert.
+- **Pannello Dev Strumenti**: quando attiva, mostra nel menu il selettore libero di livello (`[ 1..330 ] Vai`), i metadati tecnici in tempo reale della tavola (`layout`, `variant`, `tessere`, `strati`, `blackout`) e il tasto `⚡ Win` per testare le vittorie.
+
+### v1.3.4 — Punteggio Strategico, Confronto Record & Classifica Top 10 nel Menu
+- **Confronto Record vs Punteggio Attuale nel Drawer**: inserita nell'Hamburger Menu `☰` una card live con il confronto tra il tuo record personale del livello e i punti della partita in corso con badge di stato in tempo reale.
+- **Classifica Top 10 Assoluta nel Drawer**: integrato il pannello con la classifica dei primi 10 giocatori del gioco con medaglie (🥇, 🥈, 🥉), nickname e punteggio, aggiornabile con il tasto `🔄`.
+- **Punteggio Strategico & Finestra Combo Dinamica**: la finestra combo cresce con la dimensione del tavolo ($3.5\text{s} \rightarrow 5.5\text{s} \rightarrow 8.0\text{s}$) permettendo di pianificare le mosse sui tavoli grandi senza fretta; aggiunti il **Layer Depth Bonus** ($+50\dots+75\text{ pt}$ per gli strati superiori $z>0$) e i **Bonus Strategia di Fine Livello** ($+1.500\text{ pt}$ No Shuffle, $+1.000\text{ pt}$ No Undo).
+- **Schermata Finale Epica al Livello 330**: al completamento del gioco si attiva la schermata celebrativa "Campione Supremo" con il computo totale delle stelle (su 990 ⭐) e il punteggio cumulativo totale.
+
+### v1.3.3 — Bilanciamento Progressivo Deck Classic 144 "Boss Fight"
+- **Symbol Concentration nei 144 Tessere**: scalata la concentrazione dei simboli unici per i 33 livelli Classic (Boss Fight ogni 10 livelli):
+  - **Zona 1 (Livelli 10..60)**: 12 simboli unici $\times 12$ copie (tavola scorrevole, tantissime coppie aperte, zero blocchi per i primi boss).
+  - **Zona 2 (Livelli 70..150)**: 17 simboli unici $\times 8$ copie $+$ 4 Fiori $+$ 4 Stagioni (difficoltà media con introduzione jolly).
+  - **Zona 3 (Livelli 160..250)**: 20 simboli unici $+$ 4 Fiori $+$ 4 Stagioni (sfida strategica avanzata).
+  - **Zona 4 (Livelli 260..330)**: 34 simboli unici $\times 4$ copie $+$ 4 Fiori $+$ 4 Stagioni (set tradizionale Mahjong completo a 144 tessere).
+
+### v1.3.2 — Curva di Difficoltà & Densità Tessere Fluida e Monotona
+- **Crescita Lineare Uniforme**: riscritta la curva di progressione in `data.js` legando il target floor all'indice reale della progressione ($12 \rightarrow 124$ tessere).
+- **Eliminazione Cali Improvvisi a Livelli Avanzati**: i filtri blackout e half-cover ora rispettano rigidamente la fascia di tessere minima del livello corrente, eliminando la ricomparsa anomala di schemi piccoli (24–28 tessere) a metà e fine gioco.
+- **Transizione Fluida 4 Zone**: Zona 1 ($12\dots36$), Zona 2 ($40\dots64$), Zona 3 ($68\dots96$), Zona 4 ($100\dots124/144$).
+
+### v1.3.1 — Riprogettazione Completa Tartarughe Arcade (Small, Medium, Large)
+- **Autentica Silhouette Tartaruga per Arcade**: riprogettate tutte e 3 le varianti della figura `turtle` (Arcade):
+  - **`small` (28 tessere)**: testa, 4 zampe, rientri ascellari/inguinali, coda e guscio centrale rialzato a 2 strati (Livelli 15, 93, 131).
+  - **`medium` (48 tessere)**: cupola a 3 strati con ampia apertura carapace, 4 zampe isolate, testa e coda (Livelli 74, 118, 167, 223).
+  - **`large` (60 tessere)**: grande tartaruga verticale a 3 strati con silhouette simmetrica perfetta (Livelli 64, 186, 188, 239).
+- **Risoluzione Asimmetrie Storiche**: eliminata la vecchia configurazione con testa laterale asimmetrica e blocchi rettangolari informi.
+
+### v1.3.0 — Supporto Invio Selettore Livello & Sincronizzazione Live
+- **Tasto Invio / Go nel Selettore Livello**: ora è possibile premere `Invio` (o `Go` / `Invio` sulla tastiera virtuale mobile) direttamente nel campo di input del livello per avviare subito la partita senza dover cliccare il pulsante "Level".
+- **Sincronizzazione Live del Livello**: il campo di input nel cassetto azioni viene ora sincronizzato automaticamente con il numero del livello corrente all'avvio di ogni partita.
+
+### v1.2.9 — Spazi Vuoti e Sagoma Netta Tartaruga Mobile
+- **Sagoma Iconica con Spazi Negativi**: inseriti i vuoti ascellari ($y=2$, $x=0,10$ vuoti) e inguinali ($y=6$, $x=0,10$ vuoti) e staccate le 4 zampe ($x=0$ e $x=10$) dal collo/pelvi. La testa, le 4 zampe, la coda e la cupola centrale a 5 strati (144 tessere totali) sono ora perfettamente sagomate e visibili a colpo d'occhio su mobile.
+
+### v1.2.8 — Layout Autentico Tartaruga Mobile a 144 Tessere
+- **Riprogettazione Layout `classic_144`**: trasformato il vecchio blocco rettangolare in una vera **Tartaruga verticale a 5 strati (144 tessere)** ottimizzata per smartphone (Testa a $y=0$, 4 Zampe/Pinne sporgenti ad apertura angolare a $y=1,7$, Guscio centrale stratificato a 5 piani $z=0\dots4$, e Coda a $y=8$). Zero tile flottanti, 100% responsive su mobile.
+- **Giocabilità Sbloccata**: la nuova silhouette offre molteplici rami e tessere aperte all'avvio su zampe, testa, coda e apice del carapace, eliminando gli stalli forzati del vecchio rettangolo compatto.
+
+### v1.2.7 — Aggiornamento Playlist Classic & Ottimizzazione Switch Brani
+- **Nuova Traccia Classic Dedicata**: collegato `Zen classic ( arcade main theme).mp3` in `assets/music/classic/` a `AUDIO_PLAYLIST_CLASSIC`, correggendo i riferimenti a vecchie tracce non presenti su disco.
+- **Transizione Fluida Playlist**: `setMusicMode()` ora aggiorna la playlist solo quando c'è un reale cambio di modalità (Arcade ↔ Classic), evitando il riavvio della musica ad ogni livello consecutivo della stessa modalità.
+
+### v1.2.6 — Fix Sincronizzazione DOM Shuffle & Rimescolamento Risolvibile
+- **Fix Disallineamento Grafica SVG dopo Shuffle**: in `ui.js`, `updateStates()` ora aggiorna correttamente gli elementi `<img>` con `t.svg` e resetta le classi wildcard (`wildcard-flower`, `wildcard-season`). In precedenza, lo shuffle aggiornava i simboli in memoria ma non la grafica SVG a schermo, causando abbinamenti apparentemente errati (tessere visivamente diverse che si accoppiavano).
+- **Playability Guard nello Shuffle**: in `input.js`, `shuffleBoard()` tenta fino a 50 permutazioni per garantire che dopo lo shuffle ci sia almeno una mossa valida disponibile (`hasAnyValidMove`).
+
+### v1.2.5 — Ripristino CSS Splash Button & Registrazione Obbligatoria
 - **Classifica Esclusiva Utenti Registrati**: solo gli utenti autenticati possono inviare record e scalare la classifica; per gli ospiti è visibile un invito a registrarsi/accedere nel modal di vittoria.
 - **Fix Splash Play Button**: corretta la chiusura della regola CSS `.splash-version` nel blocco `<style>` di `index.html` e reso lo stile del pulsante `🎮 PLAY` completamente autonomo e visibile.
 

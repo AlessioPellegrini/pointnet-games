@@ -71,18 +71,26 @@
 				app.staging = app.staging.filter(function (t) {
 					return t !== prev && t !== tile;
 				});
-				/* COMBO CHAIN (v0.7.0): a match within 3s of the previous
-				   one raises the multiplier (x1 → x2 → x3 … x5 max). */
+				/* COMBO CHAIN (v1.3.4): dynamic combo window (3.5s -> 5.5s -> 8.0s)
+				   rewards strategic planning and calm observation on large tiered boards. */
+				var totalTiles = (app.tiles && app.tiles.length) ? app.tiles.length : 36;
+				var comboWindow = 3500;
+				if (totalTiles > 70) comboWindow = 8000;
+				else if (totalTiles > 36) comboWindow = 5500;
+
 				var now = Date.now();
-				if (app.combo > 0 && now - app.lastMatchTime <= 3000) {
+				if (app.combo > 0 && now - app.lastMatchTime <= comboWindow) {
 					app.combo = Math.min(5, app.combo + 1);
 				} else {
 					app.combo = 1;
 				}
 				app.lastMatchTime = now;
-				var gained = 100 * app.combo;
+				var maxZ = Math.max(prev.z || 0, tile.z || 0);
+				var depthBonus = maxZ > 0 ? (maxZ * 50) : 0;
+				var gained = (100 * app.combo) + depthBonus;
 				app.score += gained;
 				scoreEl.textContent = app.score;
+				if (typeof updateDrawerScoreComparison === 'function') updateDrawerScoreComparison();
 
 				if (typeof playSfx === 'function') {
 					if (app.combo >= 2) playSfx('combo', app.combo);
@@ -170,19 +178,30 @@
 
 	function handleDirectMatch(tileA, tileB) {
 		app.selectedTile = null;
+		if (typeof animateClassicMatch === 'function') {
+			animateClassicMatch(tileA, tileB);
+		}
 		tileA.removed = true;
 		tileB.removed = true;
 
+		var totalTiles = (app.tiles && app.tiles.length) ? app.tiles.length : 144;
+		var comboWindow = 3500;
+		if (totalTiles > 70) comboWindow = 8000;
+		else if (totalTiles > 36) comboWindow = 5500;
+
 		var now = Date.now();
-		if (app.combo > 0 && now - app.lastMatchTime <= 3000) {
+		if (app.combo > 0 && now - app.lastMatchTime <= comboWindow) {
 			app.combo = Math.min(5, app.combo + 1);
 		} else {
 			app.combo = 1;
 		}
 		app.lastMatchTime = now;
-		var gained = Math.round(100 * app.combo * (app.multiplier || 1.5));
+		var maxZ = Math.max(tileA.z || 0, tileB.z || 0);
+		var depthBonus = maxZ > 0 ? (maxZ * 75) : 0;
+		var gained = Math.round((100 * app.combo + depthBonus) * (app.multiplier || 1.5));
 		app.score += gained;
 		scoreEl.textContent = app.score;
+		if (typeof updateDrawerScoreComparison === 'function') updateDrawerScoreComparison();
 
 		if (typeof playSfx === 'function') {
 			if (app.combo >= 2) playSfx('combo', app.combo);
@@ -467,16 +486,22 @@
 				wildcardGroup: t.wildcardGroup || null
 			};
 		});
-		var rng = createRng(Math.floor(Math.random() * 1e9));
-		shuffle(syms, rng);
+		var attempts = 0;
+		while (attempts < 50) {
+			var rng = createRng(Math.floor(Math.random() * 1e9));
+			shuffle(syms, rng);
 
-		remaining.forEach(function (t) {
-			var s = syms[t.memoShuffleIdx];
-			t.symbol = s.symbol;
-			t.svg = s.svg;
-			t.wildcardGroup = s.wildcardGroup;
-			t.faceDown = false;
-		});
+			remaining.forEach(function (t) {
+				var s = syms[t.memoShuffleIdx];
+				t.symbol = s.symbol;
+				t.svg = s.svg;
+				t.wildcardGroup = s.wildcardGroup;
+				t.faceDown = false;
+			});
+
+			if (hasAnyValidMove(app.board, app.mode)) break;
+			attempts++;
+		}
 		app.peeking = null;
 		app.selectedTile = null;
 		app.combo = 0;
@@ -601,14 +626,63 @@
 		});
 	}
 
-	/* Level selector: jump to any level */
-	document.getElementById('btn-level-go').addEventListener('click', function () {
-		var n = parseInt(document.getElementById('level-input').value, 10);
+	/* Level selector: jump to any level (via button click or Enter key) */
+	function doLevelJump() {
+		var inputEl = document.getElementById('level-input');
+		if (!inputEl) return;
+		var n = parseInt(inputEl.value, 10);
 		if (isNaN(n) || n < 1) n = 1;
 		app.levelIndex = Math.min(n - 1, 329);
+		inputEl.value = app.levelIndex + 1;
+		inputEl.blur();
 		saveGame();
 		startGame();
-	});
+	}
+
+	var btnLevelGo = document.getElementById('btn-level-go');
+	if (btnLevelGo) {
+		btnLevelGo.addEventListener('click', doLevelJump);
+	}
+
+	var levelInput = document.getElementById('level-input');
+	if (levelInput) {
+		levelInput.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter' || e.keyCode === 13) {
+				e.preventDefault();
+				doLevelJump();
+			}
+		});
+	}
+
+	/* v1.3.4 — Drawer Score Comparison & Leaderboard sync */
+	function updateDrawerScoreComparison() {
+		var levelNum = app.levelIndex + 1;
+		var best = (typeof bestScores !== 'undefined' && bestScores[levelNum]) ? parseInt(bestScores[levelNum], 10) : 0;
+		var curr = app.score || 0;
+		var badgeEl = document.getElementById('drawer-level-badge');
+		var bestEl = document.getElementById('drawer-best-score');
+		var currEl = document.getElementById('drawer-curr-score');
+		var diffEl = document.getElementById('drawer-score-diff');
+		if (badgeEl) badgeEl.textContent = 'Livello ' + levelNum;
+		if (bestEl) bestEl.textContent = Number(best).toLocaleString();
+		if (currEl) currEl.textContent = Number(curr).toLocaleString();
+		if (diffEl) {
+			if (curr > best && best > 0) {
+				diffEl.textContent = '🔥 Nuovo Record! (+' + Number(curr - best).toLocaleString() + ' pt)';
+				diffEl.className = 'score-cmp-status status-record';
+			} else if (curr === best && curr > 0) {
+				diffEl.textContent = '✨ Pareggio con il tuo Record!';
+				diffEl.className = 'score-cmp-status status-tie';
+			} else if (best > 0) {
+				diffEl.textContent = '-' + Number(best - curr).toLocaleString() + ' punti dal tuo record';
+				diffEl.className = 'score-cmp-status status-behind';
+			} else {
+				diffEl.textContent = 'Nessun record ancora registrato';
+				diffEl.className = 'score-cmp-status';
+			}
+		}
+	}
+	window.updateDrawerScoreComparison = updateDrawerScoreComparison;
 
 	/* v0.9.4 — Action drawer: open/close the ⚙️ panel, close on tap
 	   outside. Inner IDs are unchanged, the button listeners above
@@ -616,16 +690,82 @@
 	var actionPanel = document.getElementById('action-panel');
 	var actionsBtn = document.getElementById('btn-actions');
 	if (actionsBtn && actionPanel) {
-		actionsBtn.addEventListener('click', function (e) {
-			e.stopPropagation();
-			actionPanel.classList.toggle('open');
-		});
-		document.addEventListener('click', function (e) {
+		function toggleActionDrawer(e) {
+			if (e) {
+				e.stopPropagation();
+				e.preventDefault();
+			}
+			var isOpen = actionPanel.classList.toggle('open');
+			if (isOpen) {
+				updateDrawerScoreComparison();
+				if (typeof fetchDrawerLeaderboard === 'function') fetchDrawerLeaderboard();
+			}
+		}
+		actionsBtn.addEventListener('click', toggleActionDrawer);
+
+		document.addEventListener('pointerdown', function (e) {
 			if (actionPanel.classList.contains('open') &&
 			    !actionPanel.contains(e.target) &&
-			    e.target !== actionsBtn) {
+			    e.target !== actionsBtn &&
+			    !actionsBtn.contains(e.target)) {
 				actionPanel.classList.remove('open');
 			}
+		});
+	}
+
+	var btnRefreshLb = document.getElementById('btn-refresh-lb');
+	if (btnRefreshLb) {
+		btnRefreshLb.addEventListener('click', function (e) {
+			e.stopPropagation();
+			if (typeof fetchDrawerLeaderboard === 'function') fetchDrawerLeaderboard();
+		});
+	}
+
+	/* ============================================================
+	   DEV MODE GESTURE & CONTROLS (v1.3.5)
+	   Tapping on version/level/title toggles Developer Mode.
+	   ============================================================ */
+	function handleSecretDevTap(e) {
+		if (e && e.stopPropagation) e.stopPropagation();
+		if (typeof toggleDevMode === 'function') toggleDevMode();
+	}
+
+	['.splash-version', '.splash-title', '.splash-emoji', '#level-label', '#drawer-level-badge', '.score-cmp-title'].forEach(function (sel) {
+		var el = document.querySelector(sel);
+		if (el) {
+			el.addEventListener('click', handleSecretDevTap);
+		}
+	});
+
+	var btnDevOff = document.getElementById('btn-dev-toggle-off');
+	if (btnDevOff) {
+		btnDevOff.addEventListener('click', function (e) {
+			e.stopPropagation();
+			if (typeof toggleDevMode === 'function') toggleDevMode(false);
+		});
+	}
+
+	var btnDevResetL1 = document.getElementById('btn-dev-reset-l1');
+	if (btnDevResetL1) {
+		btnDevResetL1.addEventListener('click', function (e) {
+			e.stopPropagation();
+			app.levelIndex = 0;
+			var inputEl = document.getElementById('level-input');
+			if (inputEl) inputEl.value = 1;
+			saveGame();
+			if (typeof saveProgressToWP === 'function') saveProgressToWP(1, bestScores);
+			startGame();
+			if (actionPanel) actionPanel.classList.remove('open');
+			if (typeof showToast === 'function') showToast('🔄 Livello resettato a 1');
+		});
+	}
+
+	var btnDevWin = document.getElementById('btn-dev-win');
+	if (btnDevWin) {
+		btnDevWin.addEventListener('click', function (e) {
+			e.stopPropagation();
+			if (actionPanel) actionPanel.classList.remove('open');
+			if (typeof levelComplete === 'function') levelComplete();
 		});
 	}
 
