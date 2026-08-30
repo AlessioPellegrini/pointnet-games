@@ -2260,5 +2260,126 @@ var LAYOUT_BUILDERS = {
 			out.conveyorTrack = track;
 			return out;
 		}
+	},
+
+	'conveyor_temple': {
+		/* Outer conveyor ring + inner tiered ziggurat with half-grid steps (48 tiles) */
+		'regular': function () {
+			var track = buildRectTrack(0, 10, 0, 7); // 24 tiles on ring
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center base z0 (16 tiles) */
+			for (var y0 = 2; y0 <= 5; y0++) {
+				for (var x0 = 2; x0 <= 8; x0 += 2) pts.push({ z: 0, x: x0, y: y0 });
+			}
+			/* Center tier 1: Half-tiles straddling base (6 tiles) */
+			for (var y1 = 2; y1 <= 3; y1++) {
+				for (var x1 = 3; x1 <= 7; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
+			}
+			/* Center tier 2: Full tiles on half crossings (2 tiles) */
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 6, y: 2 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		}
+	},
+
+	'conveyor_cross': {
+		/* 12-sided Greek cross shaped conveyor track + center cross altar (32 tiles) */
+		'regular': function () {
+			var track = [
+				{ x: 4, y: 0 }, { x: 6, y: 0 },
+				{ x: 6, y: 1 }, { x: 6, y: 2 },
+				{ x: 8, y: 2 }, { x: 10, y: 2 },
+				{ x: 10, y: 3 }, { x: 10, y: 4 },
+				{ x: 8, y: 4 }, { x: 6, y: 4 },
+				{ x: 6, y: 5 }, { x: 6, y: 6 },
+				{ x: 4, y: 6 }, { x: 4, y: 5 },
+				{ x: 4, y: 4 }, { x: 2, y: 4 },
+				{ x: 0, y: 4 }, { x: 0, y: 3 },
+				{ x: 0, y: 2 }, { x: 2, y: 2 },
+				{ x: 4, y: 2 }, { x: 4, y: 1 }
+			]; // 22 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center cross core */
+			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 3 });
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 }, { z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 4 });
+			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		}
+	},
+
+	'conveyor_butterfly': {
+		/* Hourglass / Butterfly shaped conveyor ring + central torso (36 tiles) */
+		'regular': function () {
+			var track = [
+				{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 8, y: 0 }, { x: 10, y: 0 },
+				{ x: 10, y: 1 }, { x: 8, y: 2 }, { x: 6, y: 3 },
+				{ x: 8, y: 4 }, { x: 10, y: 5 }, { x: 10, y: 6 },
+				{ x: 8, y: 6 }, { x: 6, y: 6 }, { x: 4, y: 6 }, { x: 2, y: 6 }, { x: 0, y: 6 },
+				{ x: 0, y: 5 }, { x: 2, y: 4 }, { x: 4, y: 3 },
+				{ x: 2, y: 2 }, { x: 0, y: 1 }
+			]; // 20 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center torso & antennae */
+			for (var y = 1; y <= 5; y++) {
+				if (y === 3) continue;
+				pts.push({ z: 0, x: 4, y: y }, { z: 0, x: 6, y: y });
+			}
+			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		}
+	},
+
+	'conveyor_fortress': {
+		/* 4 Corner Bastions + Moat Conveyor Ring + Center Keep (32 tiles) */
+		'regular': function () {
+			var track = buildRectTrack(2, 8, 1, 5); // 14 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			var corners = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 0, y: 6 }, { x: 10, y: 6 }];
+			corners.forEach(function (c) {
+				pts.push({ z: 0, x: c.x, y: c.y }, { z: 1, x: c.x, y: c.y }, { z: 2, x: c.x, y: c.y });
+			});
+			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 3 });
+			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		}
+	},
+
+	'conveyor_diamond': {
+		/* Octagonal / Diamond shaped conveyor track + center jewel pyramid (32 tiles) */
+		'regular': function () {
+			var track = [
+				{ x: 4, y: 0 }, { x: 6, y: 0 },
+				{ x: 8, y: 1 }, { x: 10, y: 2 }, { x: 10, y: 4 },
+				{ x: 8, y: 5 }, { x: 6, y: 6 }, { x: 4, y: 6 },
+				{ x: 2, y: 5 }, { x: 0, y: 4 }, { x: 0, y: 2 },
+				{ x: 2, y: 1 }
+			]; // 12 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			for (var y = 2; y <= 4; y++) {
+				for (var x = 2; x <= 8; x += 2) pts.push({ z: 0, x: x, y: y });
+			}
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 }, { z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 4 });
+			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		}
 	}
 };

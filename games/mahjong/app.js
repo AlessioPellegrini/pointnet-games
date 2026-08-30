@@ -110,6 +110,16 @@
 	}
 	window.toggleDevMode = toggleDevMode;
 
+	function jumpToLevel(lvl) {
+		var n = parseInt(lvl, 10);
+		if (!isNaN(n) && n >= 1) {
+			app.levelIndex = n - 1;
+			startGame();
+			showToast('📍 Livello ' + n);
+		}
+	}
+	window.jumpToLevel = jumpToLevel;
+
 	function updateDevLayoutInfo() {
 		var devInfoEl = document.getElementById('dev-layout-info');
 		if (devInfoEl && typeof LAST_LEVEL_DEF !== 'undefined' && LAST_LEVEL_DEF) {

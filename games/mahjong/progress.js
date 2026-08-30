@@ -91,7 +91,7 @@
 		try {
 			var qs = new URLSearchParams(window.location.search);
 			var lvl = parseInt(qs.get('level'), 10);
-			if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 329);
+			if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 339);
 		} catch (e) {}
 	}
 
@@ -106,7 +106,7 @@
 			var raw = localStorage.getItem('wp_mahjong_arcade_level');
 			if (raw !== null) {
 				var n = parseInt(raw, 10);
-				if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 329);
+				if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 339);
 			}
 		} catch (e) {}
 	}

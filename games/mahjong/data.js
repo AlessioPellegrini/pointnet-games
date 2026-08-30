@@ -409,27 +409,30 @@ function buildProgression(count) {
 			}
 		}
 
+		/* Special Conveyor Challenge every 10 levels on the 5s (15, 25, 35, 45...) */
+		var isConveyorLevel = ((n + 1) % 10 === 5);
+
 		/* Coverage guarantee: if there are layouts never used
 		   that fit the current band (and respect freeBase on
 		   blackouts), pick the one with fewest tiles. */
-		var unused = pool.filter(function (c) {
-			if (usedLayouts[c.layout]) return false;
-			if (c.playableTiles < minTiles || c.playableTiles > bandMax) return false;
-			if (blackout && !c.freeBase) return false;
-			return true;
-		});
-		if (unused.length) {
-			unused.sort(function (a, b) { return a.playableTiles - b.playableTiles || a.score - b.score; });
-			item = unused[0];
-			prevLayout = item.layout;
+		if (!isConveyorLevel) {
+			var unused = pool.filter(function (c) {
+				if (usedLayouts[c.layout]) return false;
+				if (c.playableTiles > bandMax) return false;
+				if (n > 80 && c.playableTiles < minTiles) return false;
+				if (blackout && !c.freeBase) return false;
+				return true;
+			});
+			if (unused.length) {
+				unused.sort(function (a, b) { return a.playableTiles - b.playableTiles || a.score - b.score; });
+				item = unused[0];
+				prevLayout = item.layout;
+			}
 		}
-		usedLayouts[item.layout] = true;
 
-		/* Special Conveyor Challenge every 10 levels on the 5s (15, 25, 35, 45...) */
-		var isConveyorLevel = ((n + 1) % 10 === 5);
 		if (isConveyorLevel) {
 			var convVariants = pool.filter(function (p) {
-				return (p.layout === 'conveyor_ring' || p.layout === 'conveyor_inset');
+				return p.layout.indexOf('conveyor_') === 0;
 			});
 			convVariants.sort(function (a, b) { return a.playableTiles - b.playableTiles; });
 
@@ -452,10 +455,28 @@ function buildProgression(count) {
 				var convIdx = Math.min(convCandidates.length - 1, Math.floor(progress * convCandidates.length));
 				item = convCandidates[convIdx];
 				prevLayout = item.layout;
-				usedLayouts[item.layout] = true;
 			}
 		}
 
+		/* Explicit Demo Showcase Levels 336+ for new conveyor figures */
+		if (n + 1 === 336) {
+			item = { layout: 'conveyor_temple', variant: 'regular', playableTiles: 48 };
+			isConveyorLevel = true;
+		} else if (n + 1 === 337) {
+			item = { layout: 'conveyor_cross', variant: 'regular', playableTiles: 32 };
+			isConveyorLevel = true;
+		} else if (n + 1 === 338) {
+			item = { layout: 'conveyor_butterfly', variant: 'regular', playableTiles: 36 };
+			isConveyorLevel = true;
+		} else if (n + 1 === 339) {
+			item = { layout: 'conveyor_fortress', variant: 'regular', playableTiles: 32 };
+			isConveyorLevel = true;
+		} else if (n + 1 === 341) {
+			item = { layout: 'conveyor_diamond', variant: 'regular', playableTiles: 32 };
+			isConveyorLevel = true;
+		}
+
+		usedLayouts[item.layout] = true;
 		lastTiles = item.playableTiles;
 
 		/* covered: grows with the level but never beyond floor(tiles/6) pairs */
@@ -481,7 +502,7 @@ function buildProgression(count) {
 			blackout: blackout,
 			mode: 'arcade',
 			multiplier: 1.0,
-			isConveyor: isConveyorLevel || (item.layout === 'conveyor_ring' || item.layout === 'conveyor_inset'),
+			isConveyor: isConveyorLevel || (item.layout.indexOf('conveyor_') === 0),
 			index: n + 1
 		});
 	}
@@ -491,12 +512,12 @@ function buildProgression(count) {
 /* Generate the full progression once (lazy). */
 var PROGRESSION = null;
 function ensureProgression() {
-	if (!PROGRESSION) PROGRESSION = buildProgression(330);
+	if (!PROGRESSION) PROGRESSION = buildProgression(345);
 	return PROGRESSION;
 }
 
 function getLevelDef(index) {
-	index = Math.max(0, Math.min(index, 329));
+	index = Math.max(0, Math.min(index, 344));
 	var p = ensureProgression()[index];
 	return {
 		layout: p.layout,
