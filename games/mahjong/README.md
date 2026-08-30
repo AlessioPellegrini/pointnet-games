@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 1.4.8** — **Arcade & Classic Modes**: 39 layout figure (compreso il layout speciale `classic_144` a 5 strati) con **330 livelli progressivi** e **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) con **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, visualizzazione della durata dei brani nella playlist, controlli di navigazione (`⏮️ ⏯️ ⏭️ 🔀`), selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni, rilevamento deadlock e moltiplicatore **$\times 1.5$** integrato nel punteggio cumulato. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊), particelle visive e recupero tramite **Shuffle** nel modal di Game Over.
+> **Version: 1.5.0** — **Arcade & Classic Modes + Conveyor Ring Dynamic Boards**: 41 layout figure (compreso il layout speciale `classic_144` a 5 strati e i nuovi circuiti chiusi a nastro `conveyor_ring` e `conveyor_inset`) con **330 livelli progressivi**, **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) e **sfide Arcade Conveyor ogni 10 livelli sui numeri 5** (15, 25, 35, 45...) con nastro rotante ad avanzamento step-by-step sbloccato a "spiraglio". **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, visualizzazione della durata dei brani nella playlist, controlli di navigazione (`⏮️ ⏯️ ⏭️ 🔀`), selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni, animazioni 3D di dissolvenza, rilevamento deadlock e moltiplicatore **$\times 1.5$** integrato nel punteggio cumulato. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊), particelle visive e recupero tramite **Shuffle** nel modal di Game Over.
 
 ## 🔖 Version bump checklist
 
@@ -200,7 +200,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v1.4.8 — Aggiunta Traccia Arcade "Mahjong Zen (Secondary Theme)" e URI Encoding Robusto (current)
+### v1.5.0 — Modalità Arcade Dinamica: Anello Rotante "Conveyor Ring" (current)
+- **Nuovi Layout Rettangolari a Nastro (`conveyor_ring` e `conveyor_inset`)**: inseriti nuovi circuiti chiusi a forma di rettangolo continuo su `z=0` (small, medium, large, xl) con strutture centrali multipiano progressive.
+- **Logica di Sblocco a "Spiraglio Libero"**: l'anello si attiva non appena compare almeno una tessera libera o uno slot aperto sul nastro (`isConveyorUnlocked`), permettendo di avviare la rotazione subito dopo i primi tocchi strategici.
+- **Avanzamento a Step**: ogni tessera inviata allo staging muove il nastro di 1 passo in avanti in senso orario; i match diretti o combinati muovono il nastro di 2 passi (`stepConveyor`).
+- **Scorrimento Fluido & Binari Visivi**: transizione fluida CSS a 280ms (`.tile.conveyor-moving`) e guide grafiche sul tavolo da gioco (`.conveyor-slot-indicator`) con badge `🔄 CONVEYOR` in testata.
+- **Integrazione nei Livelli "5"**: sfide Conveyor integrate ogni 10 livelli sui numeri 5 (15, 25, 35... 325) con difficoltà crescente e piena compatibilità con Blackout e Quads.
+
+### v1.4.8 — Aggiunta Traccia Arcade "Mahjong Zen (Secondary Theme)" e URI Encoding Robusto
 - **Nuovo Brano Playlist Arcade**: integrata la traccia `Mahjong Zen - secondary theme.mp3` con titolo visualizzato pulito `Mahjong Zen (Secondary Theme)`.
 - **Supporto Nomi con Spazi (`player.js`)**: potenziata la funzione `getFullUrl` con `encodeURI(decodeURI(relPath))` per caricare in modo resiliente qualsiasi file audio contenente spazi o caratteri speciali.
 

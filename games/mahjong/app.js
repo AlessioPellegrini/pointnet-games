@@ -119,6 +119,7 @@
 			}
 			devInfoEl.textContent = 'Layout: ' + LAST_LEVEL_DEF.layout + '/' + LAST_LEVEL_DEF.variant +
 				' (' + app.tiles.length + ' tessere) · Strati: ' + (maxZ + 1) +
+				' · Conveyor: ' + (app.conveyorTrack ? 'ON' : 'OFF') +
 				' · Blackout: ' + (LAST_LEVEL_DEF.blackout ? 'ON' : 'OFF');
 		}
 	}
@@ -140,7 +141,10 @@
 	}
 
 	function stopTimer() {
-		if (app.timerInterval) { clearInterval(app.timerInterval); app.timerInterval = null; }
+		if (app.timerInterval) {
+			clearInterval(app.timerInterval);
+			app.timerInterval = null;
+		}
 	}
 
 	function startGame() {
@@ -158,6 +162,8 @@
 		app.history = [];
 		app.tiles = generateLevel(app.levelIndex);
 		app.board = buildBoard(app.tiles);
+		app.conveyorTrack = (app.tiles && app.tiles.conveyorTrack) ? app.tiles.conveyorTrack : null;
+		app.conveyorUnlocked = false;
 		pairsLeftAtStart = pairsLeft();
 		app.mode = (LAST_LEVEL_DEF && LAST_LEVEL_DEF.mode) ? LAST_LEVEL_DEF.mode : 'arcade';
 		app.multiplier = (LAST_LEVEL_DEF && LAST_LEVEL_DEF.multiplier) ? LAST_LEVEL_DEF.multiplier : 1.0;
@@ -167,9 +173,15 @@
 
 		if (app.mode === 'classic') {
 			document.body.classList.add('mode-classic');
+			document.body.classList.remove('mode-conveyor');
 			levelLabelEl.innerHTML = (app.levelIndex + 1) + ' <span class="badge-classic">CLASSIC</span>';
+		} else if (app.conveyorTrack) {
+			document.body.classList.remove('mode-classic');
+			document.body.classList.add('mode-conveyor');
+			levelLabelEl.innerHTML = (app.levelIndex + 1) + ' <span class="badge-conveyor">🔄 CONVEYOR</span>';
 		} else {
 			document.body.classList.remove('mode-classic');
+			document.body.classList.remove('mode-conveyor');
 			levelLabelEl.textContent = app.levelIndex + 1;
 		}
 		if (typeof setMusicMode === 'function') setMusicMode(app.mode);

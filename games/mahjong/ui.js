@@ -79,8 +79,29 @@
 			boardEl.appendChild(el);
 			app.tileEls[idx] = el;
 		}
+		renderConveyorTrackOverlay();
 		updateStates();
 		fitBoard();
+	}
+
+	/* Renders subtle visual track markers on z0 beneath the tiles */
+	function renderConveyorTrackOverlay() {
+		var old = boardEl.querySelector('.conveyor-track-layer');
+		if (old) old.remove();
+		if (!app.conveyorTrack || !app.conveyorTrack.length) return;
+
+		var layer = document.createElement('div');
+		layer.className = 'conveyor-track-layer';
+		for (var i = 0; i < app.conveyorTrack.length; i++) {
+			var pt = app.conveyorTrack[i];
+			var pos = layoutPos({ z: 0, x: pt.x, y: pt.y }, app._metrics);
+			var slot = document.createElement('div');
+			slot.className = 'conveyor-slot-indicator';
+			slot.style.setProperty('--tx', pos.x + 'px');
+			slot.style.setProperty('--ty', pos.y + 'px');
+			layer.appendChild(slot);
+		}
+		boardEl.appendChild(layer);
 	}
 
 	function updateStates() {
@@ -275,6 +296,32 @@
 		}
 	}
 	window.animateClassicMatch = animateClassicMatch;
+
+	/* CONVEYOR TILE SLIDE (v1.5.0):
+	   Smoothly slides tiles that moved along the conveyor track. */
+	function updateConveyorTilePositions(shiftedList) {
+		if (!shiftedList || !shiftedList.length) return;
+		for (var s = 0; s < shiftedList.length; s++) {
+			var item = shiftedList[s];
+			var idx = app.tiles.indexOf(item.tile);
+			var el = (idx >= 0) ? app.tileEls[idx] : null;
+			if (el && !item.tile.removed && !item.tile.staging) {
+				var pos = layoutPos(item.tile, app._metrics);
+				el.style.setProperty('--tx', pos.x + 'px');
+				el.style.setProperty('--ty', pos.y + 'px');
+				el.classList.add('conveyor-moving');
+			}
+		}
+		setTimeout(function () {
+			for (var k = 0; k < shiftedList.length; k++) {
+				var tidx = app.tiles.indexOf(shiftedList[k].tile);
+				var tel = (tidx >= 0) ? app.tileEls[tidx] : null;
+				if (tel) tel.classList.remove('conveyor-moving');
+			}
+		}, 300);
+		updateStates();
+	}
+	window.updateConveyorTilePositions = updateConveyorTilePositions;
 
 	function spawnVictoryConfetti() {
 		var colors = ['#f59e0b', '#38bdf8', '#10b981', '#ec4899', '#8b5cf6', '#ef4444', '#fbbf24'];

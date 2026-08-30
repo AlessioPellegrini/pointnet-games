@@ -29,6 +29,18 @@ function dedupePts(pts) {
 	return out;
 }
 
+/* Generates a clockwise rectangular track of coordinates on z=0.
+   x0: min x (even), x1: max x (even)
+   y0: min y (integer), y1: max y (integer) */
+function buildRectTrack(x0, x1, y0, y1) {
+	var track = [];
+	for (var x = x0; x < x1; x += 2) track.push({ x: x, y: y0 });
+	for (var y = y0; y < y1; y++) track.push({ x: x1, y: y });
+	for (var bx = x1; bx > x0; bx -= 2) track.push({ x: bx, y: y1 });
+	for (var by = y1; by > y0; by--) track.push({ x: x0, y: by });
+	return track;
+}
+
 var LAYOUT_BUILDERS = {
 	'halfcover': {
 		'small': function () {
@@ -1889,6 +1901,364 @@ var LAYOUT_BUILDERS = {
 			for (var l4x5 = 2; l4x5 <= 8; l4x5 += 2) pts.push({ z: 4, x: l4x5, y: 5 });
 
 			return pts; // 38 + 38 + 32 + 22 + 14 = 144 tiles
+		}
+	},
+
+	/* ============================================================
+	   CONVEYOR RING LAYOUTS (v1.5.0) — dynamic arcade levels.
+	   Closed rectangular tracks on z=0 where remaining tiles shift
+	   clockwise when the opening is unlocked.
+	   ============================================================ */
+	'conveyor_ring': {
+		'small': function () {
+			/* Outer rectangular ring 4×5 (x 0..6, y 0..4) + center tier (18 -> 16 tiles) */
+			var track = buildRectTrack(0, 6, 0, 4);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center core */
+			pts.push({ z: 0, x: 2, y: 2 }, { z: 0, x: 4, y: 2 });
+			pts.push({ z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'compact': function () {
+			/* Outer rectangular ring 4×6 (x 0..6, y 0..5) + center 2x2 tier (24 tiles) */
+			var track = buildRectTrack(0, 6, 0, 5);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center base z0 (x 2..4, y 2..3) */
+			pts.push({ z: 0, x: 2, y: 2 }, { z: 0, x: 4, y: 2 }, { z: 0, x: 2, y: 3 }, { z: 0, x: 4, y: 3 });
+			/* Center z1 */
+			pts.push({ z: 1, x: 2, y: 2 }, { z: 1, x: 4, y: 2 }, { z: 1, x: 2, y: 3 }, { z: 1, x: 4, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'regular': function () {
+			/* Outer rectangular ring 6×6 (x 0..10, y 0..5) + center 2-tier core (36 tiles) */
+			var track = buildRectTrack(0, 10, 0, 5);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center base z0 (x 2..8, y 1..4) */
+			for (var cy = 1; cy <= 4; cy++) {
+				for (var cx = 2; cx <= 8; cx += 2) pts.push({ z: 0, x: cx, y: cy });
+			}
+			/* Center z1 */
+			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 }, { z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'medium': function () {
+			/* Outer rectangular ring 6×7 (x 0..10, y 0..6) + 2-tier temple core */
+			var track = buildRectTrack(0, 10, 0, 6);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center base z0 (x 2..8, y 1..5) */
+			for (var cy = 1; cy <= 5; cy++) {
+				for (var cx = 2; cx <= 8; cx += 2) pts.push({ z: 0, x: cx, y: cy });
+			}
+			/* Center z1 */
+			for (var cy1 = 2; cy1 <= 4; cy1++) {
+				for (var cx1 = 4; cx1 <= 6; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			/* Center z2 */
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'large': function () {
+			/* Outer rectangular ring 6×8 (x 0..10, y 0..7) + 3-tier castle core */
+			var track = buildRectTrack(0, 10, 0, 7);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center base z0 */
+			for (var cy = 1; cy <= 6; cy++) {
+				for (var cx = 2; cx <= 8; cx += 2) pts.push({ z: 0, x: cx, y: cy });
+			}
+			/* Center z1 */
+			for (var cy1 = 2; cy1 <= 5; cy1++) {
+				for (var cx1 = 2; cx1 <= 8; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			/* Center z2 */
+			for (var cy2 = 3; cy2 <= 4; cy2++) {
+				for (var cx2 = 4; cx2 <= 6; cx2 += 2) pts.push({ z: 2, x: cx2, y: cy2 });
+			}
+			/* Center z3 apex */
+			pts.push({ z: 3, x: 4, y: 3 }, { z: 3, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'xl': function () {
+			/* Outer rectangular ring 6×9 (x 0..10, y 0..8) + 4-tier fortress (84 tiles) */
+			var track = buildRectTrack(0, 10, 0, 8);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center base z0 (28 tiles) */
+			for (var cy0 = 1; cy0 <= 7; cy0++) {
+				for (var cx0 = 2; cx0 <= 8; cx0 += 2) pts.push({ z: 0, x: cx0, y: cy0 });
+			}
+			/* Center z1 (20 tiles) */
+			for (var cy1 = 2; cy1 <= 6; cy1++) {
+				for (var cx1 = 2; cx1 <= 8; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			/* Center z2 (6 tiles) */
+			for (var cy2 = 3; cy2 <= 5; cy2++) {
+				for (var cx2 = 4; cx2 <= 6; cx2 += 2) pts.push({ z: 2, x: cx2, y: cy2 });
+			}
+			/* Center z3 (2 tiles) */
+			pts.push({ z: 3, x: 4, y: 4 }, { z: 3, x: 6, y: 4 });
+			/* Center z4 apex (2 tiles) */
+			pts.push({ z: 4, x: 4, y: 4 }, { z: 4, x: 6, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'master': function () {
+			/* Outer rectangular ring 6×9 + 5-tier fortress (108 tiles) */
+			var track = buildRectTrack(0, 10, 0, 8);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Center base z0 (28 tiles) */
+			for (var cy0 = 1; cy0 <= 7; cy0++) {
+				for (var cx0 = 2; cx0 <= 8; cx0 += 2) pts.push({ z: 0, x: cx0, y: cy0 });
+			}
+			/* Center z1 (28 tiles) */
+			for (var cy1 = 1; cy1 <= 7; cy1++) {
+				for (var cx1 = 2; cx1 <= 8; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			/* Center z2 (20 tiles) */
+			for (var cy2 = 2; cy2 <= 6; cy2++) {
+				for (var cx2 = 2; cx2 <= 8; cx2 += 2) pts.push({ z: 2, x: cx2, y: cy2 });
+			}
+			/* Center z3 (6 tiles) */
+			for (var cy3 = 3; cy3 <= 5; cy3++) {
+				for (var cx3 = 4; cx3 <= 6; cx3 += 2) pts.push({ z: 3, x: cx3, y: cy3 });
+			}
+			/* Center z4 apex (2 tiles) */
+			pts.push({ z: 4, x: 4, y: 4 }, { z: 4, x: 6, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'boss': function () {
+			/* Outer rectangular ring 6×9 + 6-tier colossal citadel (144 tiles) */
+			var track = buildRectTrack(0, 10, 0, 8);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			for (var cy0 = 1; cy0 <= 7; cy0++) {
+				for (var cx0 = 2; cx0 <= 8; cx0 += 2) pts.push({ z: 0, x: cx0, y: cy0 });
+			}
+			for (var cy1 = 1; cy1 <= 7; cy1++) {
+				for (var cx1 = 2; cx1 <= 8; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			for (var cy2 = 1; cy2 <= 7; cy2++) {
+				for (var cx2 = 2; cx2 <= 8; cx2 += 2) pts.push({ z: 2, x: cx2, y: cy2 });
+			}
+			for (var cy3 = 2; cy3 <= 6; cy3++) {
+				for (var cx3 = 2; cx3 <= 8; cx3 += 2) pts.push({ z: 3, x: cx3, y: cy3 });
+			}
+			for (var cy4 = 3; cy4 <= 5; cy4++) {
+				for (var cx4 = 4; cx4 <= 6; cx4 += 2) pts.push({ z: 4, x: cx4, y: cy4 });
+			}
+			pts.push({ z: 5, x: 4, y: 4 }, { z: 5, x: 6, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		}
+	},
+
+	'conveyor_inset': {
+		'small': function () {
+			/* Inset rectangular ring 4×5 (x 2..6, y 1..5) with outer corner anchors */
+			var track = buildRectTrack(2, 6, 1, 5);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Outer corners */
+			pts.push({ z: 0, x: 0, y: 0 }, { z: 0, x: 8, y: 0 }, { z: 0, x: 0, y: 6 }, { z: 0, x: 8, y: 6 });
+			/* Center core */
+			pts.push({ z: 0, x: 4, y: 3 }, { z: 1, x: 4, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'compact': function () {
+			/* Inset rectangular ring 4×6 (x 2..6, y 1..6) with outer corner anchors (24 tiles) */
+			var track = buildRectTrack(2, 6, 1, 6);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Outer corners */
+			pts.push({ z: 0, x: 0, y: 0 }, { z: 0, x: 8, y: 0 }, { z: 0, x: 0, y: 7 }, { z: 0, x: 8, y: 7 });
+			/* Center core */
+			pts.push({ z: 0, x: 4, y: 3 }, { z: 1, x: 4, y: 3 }, { z: 0, x: 4, y: 4 }, { z: 1, x: 4, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'regular': function () {
+			/* Inset rectangular ring 4×6 (x 2..8, y 1..6) with outer border anchors (32 tiles) */
+			var track = buildRectTrack(2, 8, 1, 6);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Outer corners */
+			pts.push({ z: 0, x: 0, y: 0 }, { z: 0, x: 10, y: 0 }, { z: 0, x: 0, y: 7 }, { z: 0, x: 10, y: 7 });
+			/* Center core z0 & z1 */
+			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 3 }, { z: 0, x: 4, y: 4 }, { z: 0, x: 6, y: 4 });
+			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 }, { z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 4 });
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'medium': function () {
+			/* Inset rectangular ring 4×6 (x 2..8, y 1..6) with outer border pillars (52 tiles) */
+			var track = buildRectTrack(2, 8, 1, 6);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Outer perimeter pillars */
+			for (var py = 0; py <= 7; py += 2) {
+				pts.push({ z: 0, x: 0, y: py }, { z: 0, x: 10, y: py });
+			}
+			for (var px = 2; px <= 8; px += 2) {
+				pts.push({ z: 0, x: px, y: 0 }, { z: 0, x: px, y: 7 });
+			}
+			/* Center core z0 & z1 */
+			for (var cy = 2; cy <= 5; cy++) {
+				for (var cx = 4; cx <= 6; cx += 2) {
+					pts.push({ z: 0, x: cx, y: cy });
+					pts.push({ z: 1, x: cx, y: cy });
+				}
+			}
+			/* Center z2 */
+			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 }, { z: 2, x: 4, y: 4 }, { z: 2, x: 6, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'large': function () {
+			/* Inset rectangular ring 4×7 (x 2..8, y 1..7) + outer battlements + 3-tier keep (72 tiles) */
+			var track = buildRectTrack(2, 8, 1, 7);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Outer battlements (18 tiles) */
+			for (var py = 0; py <= 8; py++) {
+				pts.push({ z: 0, x: 0, y: py }, { z: 0, x: 10, y: py });
+			}
+			/* Outer border corners (4 tiles) */
+			pts.push({ z: 0, x: 2, y: 0 }, { z: 0, x: 8, y: 0 }, { z: 0, x: 2, y: 8 }, { z: 0, x: 8, y: 8 });
+			/* Center core z0 (10 tiles) */
+			for (var cy0 = 2; cy0 <= 6; cy0++) {
+				for (var cx0 = 4; cx0 <= 6; cx0 += 2) pts.push({ z: 0, x: cx0, y: cy0 });
+			}
+			/* Center core z1 (14 tiles) */
+			for (var cy1 = 1; cy1 <= 7; cy1++) {
+				for (var cx1 = 4; cx1 <= 6; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			/* Center core z2 (6 tiles) */
+			for (var cy2 = 3; cy2 <= 5; cy2++) {
+				for (var cx2 = 4; cx2 <= 6; cx2 += 2) pts.push({ z: 2, x: cx2, y: cy2 });
+			}
+			/* Center core z3 (2 tiles) */
+			pts.push({ z: 3, x: 4, y: 4 }, { z: 3, x: 6, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'xl': function () {
+			/* Inset rectangular ring 4×7 (x 2..8, y 1..7) + 4-tier fortress (84 tiles) */
+			var track = buildRectTrack(2, 8, 1, 7);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			for (var py = 0; py <= 8; py++) {
+				pts.push({ z: 0, x: 0, y: py }, { z: 0, x: 10, y: py });
+			}
+			for (var cy0 = 2; cy0 <= 6; cy0++) {
+				for (var cx0 = 4; cx0 <= 6; cx0 += 2) pts.push({ z: 0, x: cx0, y: cy0 });
+			}
+			for (var cy1 = 2; cy1 <= 6; cy1++) {
+				for (var cx1 = 4; cx1 <= 6; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			for (var cy2 = 2; cy2 <= 6; cy2++) {
+				for (var cx2 = 4; cx2 <= 6; cx2 += 2) pts.push({ z: 2, x: cx2, y: cy2 });
+			}
+			for (var cy3 = 3; cy3 <= 5; cy3++) {
+				for (var cx3 = 4; cx3 <= 6; cx3 += 2) pts.push({ z: 3, x: cx3, y: cy3 });
+			}
+			pts.push({ z: 4, x: 4, y: 4 }, { z: 4, x: 6, y: 4 });
+			for (var px = 2; px <= 8; px += 2) pts.push({ z: 0, x: px, y: 0 }, { z: 0, x: px, y: 8 });
+			pts.push({ z: 1, x: 0, y: 0 }, { z: 1, x: 10, y: 0 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'master': function () {
+			/* Inset rectangular ring 4×7 (x 2..8, y 1..7) + 5-tier fortress (108 tiles) */
+			var track = buildRectTrack(2, 8, 1, 7);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			/* Outer battlements (18 tiles) */
+			for (var py = 0; py <= 8; py++) {
+				pts.push({ z: 0, x: 0, y: py }, { z: 0, x: 10, y: py });
+			}
+			/* Outer borders (8 tiles) */
+			for (var px = 2; px <= 8; px += 2) {
+				pts.push({ z: 0, x: px, y: 0 }, { z: 0, x: px, y: 8 });
+			}
+			/* Center core z0 (10 tiles) */
+			for (var cy0 = 2; cy0 <= 6; cy0++) {
+				for (var cx0 = 4; cx0 <= 6; cx0 += 2) pts.push({ z: 0, x: cx0, y: cy0 });
+			}
+			/* Center core z1 (28 tiles) */
+			for (var cy1 = 1; cy1 <= 7; cy1++) {
+				for (var cx1 = 2; cx1 <= 8; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			/* Center core z2 (20 tiles) */
+			for (var cy2 = 2; cy2 <= 6; cy2++) {
+				for (var cx2 = 2; cx2 <= 8; cx2 += 2) pts.push({ z: 2, x: cx2, y: cy2 });
+			}
+			/* Center core z3 (6 tiles) */
+			for (var cy3 = 3; cy3 <= 5; cy3++) {
+				for (var cx3 = 4; cx3 <= 6; cx3 += 2) pts.push({ z: 3, x: cx3, y: cy3 });
+			}
+			/* Center core z4 (2 tiles) */
+			pts.push({ z: 4, x: 4, y: 4 }, { z: 4, x: 6, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'boss': function () {
+			/* Inset rectangular ring 4×7 + 6-tier colossal keep (144 tiles) */
+			var track = buildRectTrack(2, 8, 1, 7);
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			for (var py = 0; py <= 8; py++) {
+				pts.push({ z: 0, x: 0, y: py }, { z: 0, x: 10, y: py });
+			}
+			for (var px = 2; px <= 8; px += 2) {
+				pts.push({ z: 0, x: px, y: 0 }, { z: 0, x: px, y: 8 });
+			}
+			for (var cy0 = 2; cy0 <= 6; cy0++) {
+				for (var cx0 = 4; cx0 <= 6; cx0 += 2) pts.push({ z: 0, x: cx0, y: cy0 });
+			}
+			for (var cy1 = 1; cy1 <= 7; cy1++) {
+				for (var cx1 = 2; cx1 <= 8; cx1 += 2) pts.push({ z: 1, x: cx1, y: cy1 });
+			}
+			for (var cy2 = 1; cy2 <= 7; cy2++) {
+				for (var cx2 = 2; cx2 <= 8; cx2 += 2) pts.push({ z: 2, x: cx2, y: cy2 });
+			}
+			for (var cy3 = 2; cy3 <= 6; cy3++) {
+				for (var cx3 = 2; cx3 <= 8; cx3 += 2) pts.push({ z: 3, x: cx3, y: cy3 });
+			}
+			for (var cy4 = 3; cy4 <= 5; cy4++) {
+				for (var cx4 = 4; cx4 <= 6; cx4 += 2) pts.push({ z: 4, x: cx4, y: cy4 });
+			}
+			pts.push({ z: 5, x: 4, y: 4 }, { z: 5, x: 6, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
 		}
 	}
 };

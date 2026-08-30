@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 1.4.8** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 1.5.0** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -9,11 +9,14 @@
 ## Test (script permanenti)
 
 ```bash
-# Verifica layout builder: 0 tile flottanti, coordinate valide (39 layout)
+# Verifica layout builder: 0 tile flottanti, coordinate valide (41 layout)
 node games/mahjong/tests/test-layouts.js
 
-# Verifica progressione: 330 livelli, 33 classic, drop <= 8, tutte le figure usate
+# Verifica progressione: 330 livelli, 33 classic, 46 conveyor, drop <= 8, tutte le figure usate
 node games/mahjong/tests/test-progression.js
+
+# Verifica meccanica Anello Rotante Conveyor: sblocco a spiraglio e rotazione continua
+node games/mahjong/tests/test-conveyor.js
 
 # Verifica blackout: zona 101+, alternanza, obscured solo su z=0, auto-reveal
 node games/mahjong/tests/test-blackout.js
@@ -35,7 +38,14 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v1.4.8 — Aggiunta Traccia Arcade "Mahjong Zen (Secondary Theme)" e URI Encoding Robusto (HEAD)
+### v1.5.0 — Modalità Arcade Dinamica: Anello Rotante "Conveyor Ring" (HEAD)
+- **Nuovi Layout Rettangolari a Nastro (`conveyor_ring` e `conveyor_inset`)**: inseriti nuovi circuiti chiusi a forma di rettangolo continuo su `z=0` (small, medium, large, xl) con strutture centrali multipiano progressive.
+- **Logica di Sblocco a "Spiraglio Libero"**: l'anello si attiva non appena compare almeno una tessera libera o uno slot aperto sul nastro (`isConveyorUnlocked`), permettendo di avviare la rotazione subito dopo i primi tocchi strategici.
+- **Avanzamento a Step**: ogni tessera inviata allo staging muove il nastro di 1 passo in avanti in senso orario; i match diretti o combinati muovono il nastro di 2 passi (`stepConveyor`).
+- **Scorrimento Fluido & Binari Visivi**: transizione fluida CSS a 280ms (`.tile.conveyor-moving`) e guide grafiche sul tavolo da gioco (`.conveyor-slot-indicator`) con badge `🔄 CONVEYOR` in testata.
+- **Integrazione nei Livelli "5"**: sfide Conveyor integrate ogni 10 livelli sui numeri 5 (15, 25, 35... 325) con difficoltà crescente e piena compatibilità con Blackout e Quads.
+
+### v1.4.8 — Aggiunta Traccia Arcade "Mahjong Zen (Secondary Theme)" e URI Encoding Robusto
 - **Nuovo Brano Playlist Arcade**: integrata la traccia `Mahjong Zen - secondary theme.mp3` con titolo visualizzato pulito `Mahjong Zen (Secondary Theme)`.
 - **Supporto Nomi con Spazi (`player.js`)**: potenziata la funzione `getFullUrl` con `encodeURI(decodeURI(relPath))` per caricare in modo resiliente qualsiasi file audio contenente spazi o caratteri speciali.
 

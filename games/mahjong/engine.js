@@ -124,6 +124,73 @@ function isFree(board, tile) {
 	return !(hasLeft && hasRight);
 }
 
+/* ============================================================
+   CONVEYOR RING MECHANICS (v1.5.0)
+   ============================================================ */
+function isConveyorUnlocked(board, track, tiles) {
+	if (!track || !track.length || !board) return false;
+	/* Unlocked if at least one active tile on the track is FREE (an opening),
+	   or if at least one track position is empty (open slot). */
+	for (var i = 0; i < track.length; i++) {
+		var pt = track[i];
+		var tile = board.get(makeKey(0, pt.x, pt.y));
+		if (!tile || tile.removed || tile.staging) {
+			return true; /* Empty opening available */
+		}
+		if (isFree(board, tile)) {
+			return true; /* Clickable free opening available */
+		}
+	}
+	return false;
+}
+
+function stepConveyor(board, track, steps, tiles) {
+	if (!track || !track.length || !board || !tiles) return [];
+	steps = steps || 1;
+
+	/* Find all active tiles currently on the track */
+	var trackTileMap = [];
+	for (var i = 0; i < track.length; i++) {
+		var pt = track[i];
+		var t = board.get(makeKey(0, pt.x, pt.y));
+		if (t && !t.removed && !t.staging) {
+			trackTileMap.push({ trackIdx: i, tile: t });
+		}
+	}
+
+	if (!trackTileMap.length) return [];
+
+	/* Remove old positions from board map */
+	for (var r = 0; r < trackTileMap.length; r++) {
+		board.delete(trackTileMap[r].tile.key);
+	}
+
+	/* Move tiles forward along the track */
+	var shifted = [];
+	for (var m = 0; m < trackTileMap.length; m++) {
+		var item = trackTileMap[m];
+		var newIdx = (item.trackIdx + steps) % track.length;
+		var newPos = track[newIdx];
+		var oldPos = { x: item.tile.x, y: item.tile.y };
+		item.tile.x = newPos.x;
+		item.tile.y = newPos.y;
+		item.tile.key = makeKey(0, newPos.x, newPos.y);
+		shifted.push({
+			tile: item.tile,
+			from: oldPos,
+			to: newPos
+		});
+	}
+
+	/* Re-insert new positions into board map */
+	for (var s = 0; s < trackTileMap.length; s++) {
+		var shiftedTile = trackTileMap[s].tile;
+		board.set(shiftedTile.key, shiftedTile);
+	}
+
+	return shifted;
+}
+
 /* PHYSICS RULE: every tile at z>0 MUST have support below.
    - A FULL tile (x,y) requires a FULL tile directly at (z-1, x, y).
    - A HALF tile (x,y) requires 4 FULL tiles at (x±1,y) and (x±1,y+1)

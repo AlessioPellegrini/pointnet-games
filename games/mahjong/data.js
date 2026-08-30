@@ -425,6 +425,37 @@ function buildProgression(count) {
 		}
 		usedLayouts[item.layout] = true;
 
+		/* Special Conveyor Challenge every 10 levels on the 5s (15, 25, 35, 45...) */
+		var isConveyorLevel = ((n + 1) % 10 === 5);
+		if (isConveyorLevel) {
+			var convVariants = pool.filter(function (p) {
+				return (p.layout === 'conveyor_ring' || p.layout === 'conveyor_inset');
+			});
+			convVariants.sort(function (a, b) { return a.playableTiles - b.playableTiles; });
+
+			var convCandidates = convVariants.filter(function (p) {
+				return p.playableTiles >= minTiles && p.playableTiles <= bandMax;
+			});
+			if (!convCandidates.length) {
+				var bestConv = convVariants[0];
+				var bestDiff = 9999;
+				for (var cv = 0; cv < convVariants.length; cv++) {
+					var diff = Math.abs(convVariants[cv].playableTiles - floorTiles);
+					if (diff <= bestDiff) {
+						bestDiff = diff;
+						bestConv = convVariants[cv];
+					}
+				}
+				convCandidates = [bestConv];
+			}
+			if (convCandidates.length) {
+				var convIdx = Math.min(convCandidates.length - 1, Math.floor(progress * convCandidates.length));
+				item = convCandidates[convIdx];
+				prevLayout = item.layout;
+				usedLayouts[item.layout] = true;
+			}
+		}
+
 		lastTiles = item.playableTiles;
 
 		/* covered: grows with the level but never beyond floor(tiles/6) pairs */
@@ -450,6 +481,7 @@ function buildProgression(count) {
 			blackout: blackout,
 			mode: 'arcade',
 			multiplier: 1.0,
+			isConveyor: isConveyorLevel || (item.layout === 'conveyor_ring' || item.layout === 'conveyor_inset'),
 			index: n + 1
 		});
 	}
@@ -476,8 +508,8 @@ function getLevelDef(index) {
 		blackout: !!p.blackout,
 		mode: p.mode || 'arcade',
 		multiplier: p.multiplier || 1.0,
-		min: p.index,
-		max: p.index
+		isConveyor: !!p.isConveyor,
+		index: p.index
 	};
 }
 
@@ -696,6 +728,7 @@ function generateLevel(levelIndex) {
 		if (solvable) {
 			if (level.blackout) applyBlackout(tiles);
 			if (level.covered > 0) applyFaceDown(tiles, level.covered, board, level.mode);
+			tiles.conveyorTrack = chosen.conveyorTrack || null;
 			return tiles;
 		}
 		if (!solvable) {
@@ -706,6 +739,7 @@ function generateLevel(levelIndex) {
 			if (freeCount >= 4) {
 				if (level.blackout) applyBlackout(tiles);
 				if (level.covered > 0) applyFaceDown(tiles, level.covered, board, level.mode);
+				tiles.conveyorTrack = chosen.conveyorTrack || null;
 				return tiles;
 			}
 		}
@@ -714,6 +748,7 @@ function generateLevel(levelIndex) {
 	var fallbackBoard = buildBoard(lastBest);
 	if (level.blackout) applyBlackout(lastBest);
 	if (level.covered > 0) applyFaceDown(lastBest, level.covered, fallbackBoard, level.mode);
+	if (lastBest) lastBest.conveyorTrack = chosen.conveyorTrack || null;
 	return lastBest;
 }
 

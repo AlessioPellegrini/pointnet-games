@@ -33,6 +33,21 @@
 		}
 	}
 
+	function triggerConveyorStep(steps) {
+		if (!app.conveyorTrack || !app.conveyorTrack.length) return;
+		var unlockedNow = isConveyorUnlocked(app.board, app.conveyorTrack, app.tiles);
+		if (!app.conveyorUnlocked && unlockedNow) {
+			app.conveyorUnlocked = true;
+			if (typeof showToast === 'function') showToast('🌀 Nastro Attivato!');
+		}
+		if (!app.conveyorUnlocked) return;
+
+		var shifted = stepConveyor(app.board, app.conveyorTrack, steps, app.tiles);
+		if (shifted && shifted.length && typeof updateConveyorTilePositions === 'function') {
+			updateConveyorTilePositions(shifted);
+		}
+	}
+
 	function moveToStaging(tile) {
 		if (app.staging.length >= MAX_STAGING) return;
 		if (tile.staging || tile.removed) return;
@@ -133,6 +148,7 @@
 		pairsLeftEl.textContent = pairsLeft();
 		updateStates();
 		renderStaging();
+		triggerConveyorStep(matched ? 2 : 1);
 
 		/* Launch the flying clone towards its slot */
 		if (flyer) {
@@ -223,6 +239,7 @@
 
 		pairsLeftEl.textContent = pairsLeft();
 		updateStates();
+		triggerConveyorStep(2);
 
 		if (pairsLeft() === 0) {
 			levelComplete();

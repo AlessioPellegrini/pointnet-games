@@ -1169,3 +1169,45 @@ body.mode-classic .staging-box {
 	transform: translate(var(--tx), calc(var(--ty) - 4px)) !important;
 	transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
+/* ============================================================
+   CONVEYOR RING MODE STYLES (v1.5.0)
+   ============================================================ */
+.badge-conveyor {
+	display: inline-block;
+	background: linear-gradient(135deg, #0284c7, #38bdf8);
+	color: #041326;
+	font-size: 0.65rem;
+	font-weight: 900;
+	padding: 1px 6px;
+	border-radius: 4px;
+	margin-left: 4px;
+	letter-spacing: 0.5px;
+	box-shadow: 0 1px 6px rgba(56, 189, 248, 0.4);
+	vertical-align: middle;
+}
+
+.conveyor-track-layer {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 0;
+}
+
+.conveyor-slot-indicator {
+	position: absolute;
+	width: var(--tile-w);
+	height: var(--tile-h);
+	transform: translate(var(--tx), var(--ty));
+	border: 1.5px dashed rgba(56, 189, 248, 0.22);
+	border-radius: 6px;
+	box-sizing: border-box;
+	background: rgba(56, 189, 248, 0.03);
+	pointer-events: none;
+}
+
+.tile.conveyor-moving {
+	transition: transform 280ms cubic-bezier(0.25, 1, 0.5, 1) !important;
+	will-change: transform;
+	z-index: 2 !important;
+}
