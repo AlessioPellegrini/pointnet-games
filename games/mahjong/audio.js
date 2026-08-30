@@ -11,6 +11,7 @@ var AUDIO_PLAYLIST_ARCADE = [
 	{ src: 'assets/music/zen-remix-main-arcade-melody.mp3', title: 'Zen Remix Main Arcade Melody' },
 	{ src: 'assets/music/zen-arcade.mp3', title: 'Zen Arcade' },
 	{ src: 'assets/music/mahjong-zen-secondary-theme.mp3', title: 'Mahjong Zen (Secondary Theme)' },
+	{ src: 'assets/music/mahjong-zen-secondary-theme-safri-duo.mp3', title: 'Mahjong Zen (Tribute to Safri Duo)' },
 	{ src: 'assets/music/bamboo-shadows.mp3', title: 'Bamboo Shadows' },
 	{ src: 'assets/music/bamboo-shadows-remix.mp3', title: 'Bamboo Shadows (Remix)' }
 ];
