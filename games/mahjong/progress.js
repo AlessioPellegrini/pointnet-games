@@ -35,7 +35,7 @@
 		app.stars = computeStars();
 		var levelNum = app.levelIndex + 1;
 		saveStars(levelNum, app.stars);
-		app.levelIndex = Math.min(levelNum, 329);
+		app.levelIndex = Math.min(levelNum, 344);
 		saveGame();
 		/* PHASE 4: persist progress + submit the score to the leaderboard. */
 		if (!bestScores[levelNum] || app.score > bestScores[levelNum]) {
@@ -45,26 +45,25 @@
 		saveProgressToWP(levelNum, bestScores);
 		submitScoreToWP(computeCumulative(), levelNum, app.elapsed);
 
-		if (levelNum === 330) {
+		if (levelNum === 345) {
 			/* GRAND FINALE CELEBRATION (v1.3.4) */
 			modalTitle.textContent = '👑 CAMPIONE SUPREMO! 👑';
 			var totalStars = 0;
 			for (var l in bestStars) {
 				if (Object.prototype.hasOwnProperty.call(bestStars, l)) totalStars += bestStars[l];
 			}
-			modalStats.innerHTML = '🎉 <b>CONGRATULAZIONI!</b> Hai conquistato tutti i 330 Livelli di Mahjong Arcade!<br><br>' +
-				'⭐ Stelle Totali: <b>' + totalStars + ' / 990</b><br>' +
+			modalStats.innerHTML = '🎉 <b>CONGRATULAZIONI!</b> Hai conquistato tutti i Livelli di Mahjong Arcade!<br><br>' +
+				'⭐ Stelle Totali: <b>' + totalStars + '</b><br>' +
 				'🏆 Punteggio Record Cumulativo: <b>' + computeCumulative().toLocaleString() + ' pt</b><br>' +
 				'⏱️ Tempo Ultimo Livello: ' + app.elapsed + 's' +
 				(strategicBonus > 0 ? (' (inclusi +' + strategicBonus + ' bonus strategici!)') : '');
 			if (btnPlayAgain) btnPlayAgain.textContent = '🔄 Rigioca Livelli';
 		} else {
-			modalTitle.textContent = '🏆 Level ' + levelNum + ' Cleared!';
-			if (btnPlayAgain) btnPlayAgain.textContent = '▶ Next level';
-			var bonusText = (strategicBonus > 0) ? (' (+' + strategicBonus + ' bonus strategia!)') : '';
-			modalStats.textContent = 'Time: ' + app.elapsed + 's   ·   Score: ' + app.score + bonusText +
-				'   ·   Best: ' + (bestScores[levelNum] || app.score).toLocaleString() + ' pt (' + (bestStars[levelNum] || 0) + '⭐)' +
-				'   ·   Next: Level ' + Math.min(levelNum + 1, 330);
+			modalTitle.textContent = (app.mode === 'classic') ? '🏛️ Sfida Classica Completata!' : '🏆 Livello Superato!';
+			modalStars.textContent = '⭐'.repeat(app.stars) + '☆'.repeat(3 - app.stars);
+			var ptsText = (app.score > 0) ? ('🎯 Punteggio: <b>' + app.score + ' pt</b>' + (strategicBonus > 0 ? (' (+' + strategicBonus + ' bonus)') : '') + '<br>') : '';
+			modalStats.innerHTML = ptsText + '⏱️ Tempo: ' + app.elapsed + 's · ⭐ Stelle: ' + app.stars + '/3';
+			if (btnPlayAgain) btnPlayAgain.textContent = '▶ Livello ' + (levelNum + 1);
 		}
 
 		var btnModalShuffle = document.getElementById('btn-modal-shuffle');
