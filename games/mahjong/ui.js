@@ -306,10 +306,10 @@
 			var idx = app.tiles.indexOf(item.tile);
 			var el = (idx >= 0) ? app.tileEls[idx] : null;
 			if (el && !item.tile.removed && !item.tile.staging) {
+				el.classList.add('conveyor-moving');
 				var pos = layoutPos(item.tile, app._metrics);
 				el.style.setProperty('--tx', pos.x + 'px');
 				el.style.setProperty('--ty', pos.y + 'px');
-				el.classList.add('conveyor-moving');
 			}
 		}
 		setTimeout(function () {
@@ -318,7 +318,7 @@
 				var tel = (tidx >= 0) ? app.tileEls[tidx] : null;
 				if (tel) tel.classList.remove('conveyor-moving');
 			}
-		}, 300);
+		}, 520);
 		updateStates();
 	}
 	window.updateConveyorTilePositions = updateConveyorTilePositions;

@@ -21,10 +21,15 @@
 	}
 
 	function getFullUrl(relPath) {
+		if (!relPath) return '';
 		try {
 			var base = (typeof document !== 'undefined' && document.baseURI) || window.location.href;
+			var baseClean = base.split('#')[0].split('?')[0];
+			if (!baseClean.endsWith('/')) {
+				baseClean = baseClean.substring(0, baseClean.lastIndexOf('/') + 1);
+			}
 			var cleanPath = encodeURI(decodeURI(relPath));
-			return new URL(cleanPath, base).href;
+			return new URL(cleanPath, baseClean).href;
 		} catch (e) {
 			try {
 				return encodeURI(decodeURI(relPath));
@@ -32,6 +37,19 @@
 				return relPath;
 			}
 		}
+	}
+
+	function getAlternateUrl(url) {
+		if (!url) return null;
+		// If URL has %20 or spaces, try slugified / dashed lowercase version
+		if (url.indexOf('%20') !== -1 || url.indexOf(' ') !== -1) {
+			var decoded = decodeURI(url);
+			var filename = decoded.substring(decoded.lastIndexOf('/') + 1);
+			var dirPath = decoded.substring(0, decoded.lastIndexOf('/') + 1);
+			var altName = filename.toLowerCase().replace(/\s*\([^)]*\)/g, '').replace(/[\s_]+/g, '-').replace(/-+\./, '.');
+			return getFullUrl(dirPath + altName);
+		}
+		return null;
 	}
 
 	function PointNetMusicPlayer(options) {
@@ -114,6 +132,17 @@
 		});
 
 		this.audio.addEventListener('error', function () {
+			if (!self._retriedAlt && self.playlist[self.trackIndex]) {
+				var alt = getAlternateUrl(self.playlist[self.trackIndex].src);
+				if (alt && alt !== self.audio.src) {
+					self._retriedAlt = true;
+					self.audio.src = alt;
+					self.audio.currentTime = 0;
+					if (self.playing || !self.muted) self.play();
+					return;
+				}
+			}
+			self._retriedAlt = false;
 			self.playing = false;
 			if (self.fallbackPlaylist && self.playlist !== self.fallbackPlaylist) {
 				console.warn('[PointNetMusicPlayer] Track failed (404), switching to fallback playlist');
@@ -139,7 +168,16 @@
 					self.updateUI();
 				});
 				probe.addEventListener('error', function () {
-					/* Silently ignore 404 or unsupported files during duration preload */
+					var alt = getAlternateUrl(tr.src);
+					if (alt && alt !== probe.src) {
+						var probe2 = new Audio();
+						probe2.preload = 'metadata';
+						probe2.src = alt;
+						probe2.addEventListener('loadedmetadata', function () {
+							self.trackDurations[tr.src] = probe2.duration;
+							self.updateUI();
+						});
+					}
 				});
 			} catch (e) {}
 		});

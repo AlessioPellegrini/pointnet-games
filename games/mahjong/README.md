@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 1.5.0** — **Arcade & Classic Modes + Conveyor Ring Dynamic Boards**: 41 layout figure (compreso il layout speciale `classic_144` a 5 strati e i nuovi circuiti chiusi a nastro `conveyor_ring` e `conveyor_inset`) con **330 livelli progressivi**, **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) e **sfide Arcade Conveyor ogni 10 livelli sui numeri 5** (15, 25, 35, 45...) con nastro rotante ad avanzamento step-by-step sbloccato a "spiraglio". **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, visualizzazione della durata dei brani nella playlist, controlli di navigazione (`⏮️ ⏯️ ⏭️ 🔀`), selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni, animazioni 3D di dissolvenza, rilevamento deadlock e moltiplicatore **$\times 1.5$** integrato nel punteggio cumulato. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊), particelle visive e recupero tramite **Shuffle** nel modal di Game Over.
+> **Version: 1.5.1** — **Arcade & Classic Modes + Conveyor Ring Dynamic Boards**: 41 layout figure (compreso il layout speciale `classic_144` a 5 strati e i nuovi circuiti chiusi a nastro `conveyor_ring` e `conveyor_inset`) con **330 livelli progressivi**, **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) e **sfide Arcade Conveyor ogni 10 livelli sui numeri 5** (15, 25, 35, 45...) con nastro rotante ad avanzamento step-by-step sbloccato a "spiraglio". **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, visualizzazione della durata dei brani nella playlist, controlli di navigazione (`⏮️ ⏯️ ⏭️ 🔀`), selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni, animazioni 3D di dissolvenza, rilevamento deadlock e moltiplicatore **$\times 1.5$** integrato nel punteggio cumulato. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊), particelle visive e recupero tramite **Shuffle** nel modal di Game Over.
 
 ## 🔖 Version bump checklist
 
@@ -200,7 +200,17 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 ## Changelog
 
-### v1.5.0 — Modalità Arcade Dinamica: Anello Rotante "Conveyor Ring" (current)
+### v1.5.1 — Movimento Morbido Corona, Regole Covered e Audio Resilience (current)
+- **Scorrimento Morbido ed Elastico**: esteso il tempo di transizione dello scorrimento a 480ms (`cubic-bezier(0.22, 1, 0.36, 1)`) con bagliore cyan (`box-shadow`), eliminando qualsiasi scatto repentino.
+- **Regole Covered & Step Calibrati**: 
+  - 1° click su tessera coperta (`faceDown`): si scopre a vista e la corona rimane **ferma** (0 passi).
+  - 2° click sulla tessera appena scoperta: entra nello staging e la corona avanza di **1 passo**.
+  - Match diretto di coppia (coperta o meno): la coppia viene abbinata e la corona avanza di esattamente **2 passi**.
+- **Caricamento Audio Universale & Resilience Spazi (`player.js`)**:
+  - Risoluzione URL assoluta robusta priva di query/hash che previene 404 su server WordPress e CDN.
+  - Generazione di copie normalizzate (`mahjong-zen-secondary-theme.mp3`) con retry automatico (`getAlternateUrl`) in caso di discrepanze di encoding spazi tra browser e web server.
+
+### v1.5.0 — Modalità Arcade Dinamica: Anello Rotante "Conveyor Ring"
 - **Nuovi Layout Rettangolari a Nastro (`conveyor_ring` e `conveyor_inset`)**: inseriti nuovi circuiti chiusi a forma di rettangolo continuo su `z=0` (small, medium, large, xl) con strutture centrali multipiano progressive.
 - **Logica di Sblocco a "Spiraglio Libero"**: l'anello si attiva non appena compare almeno una tessera libera o uno slot aperto sul nastro (`isConveyorUnlocked`), permettendo di avviare la rotazione subito dopo i primi tocchi strategici.
 - **Avanzamento a Step**: ogni tessera inviata allo staging muove il nastro di 1 passo in avanti in senso orario; i match diretti o combinati muovono il nastro di 2 passi (`stepConveyor`).

@@ -48,7 +48,7 @@
 		}
 	}
 
-	function moveToStaging(tile) {
+	function moveToStaging(tile, skipConveyor) {
 		if (app.staging.length >= MAX_STAGING) return;
 		if (tile.staging || tile.removed) return;
 
@@ -148,7 +148,9 @@
 		pairsLeftEl.textContent = pairsLeft();
 		updateStates();
 		renderStaging();
-		triggerConveyorStep(matched ? 2 : 1);
+		if (!skipConveyor) {
+			triggerConveyorStep(1);
+		}
 
 		/* Launch the flying clone towards its slot */
 		if (flyer) {
@@ -332,8 +334,9 @@
 				app.autoMatching = true;
 				setTimeout(function () {
 					app.autoMatching = false;
-					moveToStaging(first);
-					moveToStaging(tile);
+					moveToStaging(first, true);
+					moveToStaging(tile, true);
+					triggerConveyorStep(2);
 				}, 250);
 				return;
 			}
@@ -380,8 +383,9 @@
 			if (app.peeking.key !== tile.key && app.peeking.symbol === tile.symbol) {
 				var first = app.peeking;
 				app.peeking = null;
-				moveToStaging(first);
-				moveToStaging(tile);
+				moveToStaging(first, true);
+				moveToStaging(tile, true);
+				triggerConveyorStep(2);
 				return;
 			}
 			/* Otherwise: re-cover the peeked tile. */

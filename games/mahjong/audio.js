@@ -10,14 +10,14 @@
 var AUDIO_PLAYLIST_ARCADE = [
 	{ src: 'assets/music/zen-remix-main-arcade-melody.mp3', title: 'Zen Remix Main Arcade Melody' },
 	{ src: 'assets/music/zen-arcade.mp3', title: 'Zen Arcade' },
-	{ src: 'assets/music/Mahjong Zen - secondary theme.mp3', title: 'Mahjong Zen (Secondary Theme)' },
+	{ src: 'assets/music/mahjong-zen-secondary-theme.mp3', title: 'Mahjong Zen (Secondary Theme)' },
 	{ src: 'assets/music/bamboo-shadows.mp3', title: 'Bamboo Shadows' },
 	{ src: 'assets/music/bamboo-shadows-remix.mp3', title: 'Bamboo Shadows (Remix)' }
 ];
 
 /* Playlist for Classic Mode challenges (files in assets/music/classic/) */
 var AUDIO_PLAYLIST_CLASSIC = [
-	{ src: 'assets/music/classic/Zen classic ( arcade main theme).mp3', title: 'Zen Classic (Main Theme)' }
+	{ src: 'assets/music/classic/zen-classic-arcade-main-theme.mp3', title: 'Zen Classic (Main Theme)' }
 ];
 
 var AUDIO_PLAYLIST = AUDIO_PLAYLIST_ARCADE;
