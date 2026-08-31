@@ -90,7 +90,7 @@
 		try {
 			var qs = new URLSearchParams(window.location.search);
 			var lvl = parseInt(qs.get('level'), 10);
-			if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 339);
+			if (!isNaN(lvl) && lvl >= 1) app.levelIndex = Math.min(lvl - 1, 344);
 		} catch (e) {}
 	}
 
@@ -105,7 +105,7 @@
 			var raw = localStorage.getItem('wp_mahjong_arcade_level');
 			if (raw !== null) {
 				var n = parseInt(raw, 10);
-				if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 339);
+				if (!isNaN(n) && n >= 0) app.levelIndex = Math.min(n, 344);
 			}
 		} catch (e) {}
 	}
@@ -259,7 +259,7 @@ var bestScores = {};
 				if (app.tiles.length === 0 &&
 				    !new URLSearchParams(window.location.search).get('level') &&
 				    savedLevel > 0) {
-					app.levelIndex = Math.min(savedLevel - 1, 329);
+					app.levelIndex = Math.min(savedLevel - 1, 344);
 					window.__wpLoadedLevel = savedLevel;
 				}
 				/* Merge server-side best scores so the cumulative total
