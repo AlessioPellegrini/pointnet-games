@@ -674,11 +674,17 @@
 		if (!inputEl) return;
 		var n = parseInt(inputEl.value, 10);
 		if (isNaN(n) || n < 1) n = 1;
-		app.levelIndex = Math.min(n - 1, 329);
-		inputEl.value = app.levelIndex + 1;
+		n = Math.max(1, Math.min(n, 330));
+		if (typeof jumpToLevel === 'function') {
+			jumpToLevel(n);
+		} else {
+			app.levelIndex = n - 1;
+			saveGame();
+			if (typeof saveProgressToWP === 'function') saveProgressToWP(n, typeof bestScores !== 'undefined' ? bestScores : {});
+			startGame();
+		}
+		inputEl.value = n;
 		inputEl.blur();
-		saveGame();
-		startGame();
 	}
 
 	var btnLevelGo = document.getElementById('btn-level-go');

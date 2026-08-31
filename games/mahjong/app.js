@@ -113,7 +113,10 @@
 	function jumpToLevel(lvl) {
 		var n = parseInt(lvl, 10);
 		if (!isNaN(n) && n >= 1) {
+			n = Math.max(1, Math.min(n, 330));
 			app.levelIndex = n - 1;
+			if (typeof saveGame === 'function') saveGame();
+			if (typeof saveProgressToWP === 'function') saveProgressToWP(n, typeof bestScores !== 'undefined' ? bestScores : {});
 			startGame();
 			showToast('📍 Livello ' + n);
 		}

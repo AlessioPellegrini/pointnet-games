@@ -35,14 +35,14 @@
 		app.stars = computeStars();
 		var levelNum = app.levelIndex + 1;
 		saveStars(levelNum, app.stars);
-		app.levelIndex = Math.min(levelNum, 329);
-		saveGame();
-		/* PHASE 4: persist progress + submit the score to the leaderboard. */
 		if (!bestScores[levelNum] || app.score > bestScores[levelNum]) {
 			bestScores[levelNum] = app.score;
 		}
 		saveScores();
-		saveProgressToWP(levelNum, bestScores);
+		var nextLevelNum = Math.min(levelNum + 1, 330);
+		app.levelIndex = nextLevelNum - 1;
+		saveGame();
+		saveProgressToWP(nextLevelNum, bestScores);
 		submitScoreToWP(computeCumulative(), levelNum, app.elapsed);
 
 		if (levelNum === 330) {
@@ -291,6 +291,8 @@ var bestScores = {};
 			}
 		} catch (e) {}
 	}
+	window.saveProgressToWP = saveProgressToWP;
+	window.saveGame = saveGame;
 
 	/* PHASE 4: submit the completed level score to the leaderboard. */
 	function submitScoreToWP(score, level, elapsed) {
