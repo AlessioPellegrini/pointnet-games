@@ -263,19 +263,39 @@ function canMatch(tileA, tileB, mode) {
    stacked on top of itself. */
 function fixVerticalCollisions(tiles) {
 	if (!tiles || !tiles.length) return 0;
+	function getColTiles(x, y) {
+		var res = [];
+		for (var i = 0; i < tiles.length; i++) {
+			var t = tiles[i];
+			if (!t.removed && !t.staging && t.x === x && t.y === y) res.push(t);
+		}
+		return res;
+	}
 	var fixed = 0;
-	for (var a = 0; a < tiles.length; a++) {
-		var tA = tiles[a];
-		if (tA.removed || tA.staging) continue;
-		for (var b = a + 1; b < tiles.length; b++) {
-			var tB = tiles[b];
-			if (tB.removed || tB.staging) continue;
-			var sameCol = (tA.x === tB.x && tA.y === tB.y && tA.z !== tB.z);
-			if (sameCol && canMatch(tA, tB, 'classic')) {
-				for (var c = 0; c < tiles.length; c++) {
-					var tC = tiles[c];
-					if (!tC.removed && !tC.staging && (tC.x !== tA.x || tC.y !== tA.y)) {
-						if (!canMatch(tC, tA, 'classic') && !canMatch(tC, tB, 'classic')) {
+	for (var pass = 0; pass < 20; pass++) {
+		var hadCollision = false;
+		for (var a = 0; a < tiles.length; a++) {
+			var tA = tiles[a];
+			if (tA.removed || tA.staging) continue;
+			for (var b = a + 1; b < tiles.length; b++) {
+				var tB = tiles[b];
+				if (tB.removed || tB.staging) continue;
+				if (tA.x === tB.x && tA.y === tB.y && tA.z !== tB.z && canMatch(tA, tB, 'classic')) {
+					hadCollision = true;
+					for (var c = 0; c < tiles.length; c++) {
+						var tC = tiles[c];
+						if (tC.removed || tC.staging || (tC.x === tA.x && tC.y === tA.y)) continue;
+						var colC = getColTiles(tC.x, tC.y);
+						var colA = getColTiles(tA.x, tA.y);
+						var safeInColC = true;
+						for (var ic = 0; ic < colC.length; ic++) {
+							if (colC[ic] !== tC && canMatch(colC[ic], tB, 'classic')) { safeInColC = false; break; }
+						}
+						var safeInColA = true;
+						for (var ia = 0; ia < colA.length; ia++) {
+							if (colA[ia] !== tB && canMatch(colA[ia], tC, 'classic')) { safeInColA = false; break; }
+						}
+						if (safeInColC && safeInColA) {
 							var tmpSym = tB.symbol, tmpSvg = tB.svg, tmpWild = tB.wildcardGroup;
 							tB.symbol = tC.symbol; tB.svg = tC.svg; tB.wildcardGroup = tC.wildcardGroup;
 							tC.symbol = tmpSym; tC.svg = tmpSvg; tC.wildcardGroup = tmpWild;
@@ -286,6 +306,7 @@ function fixVerticalCollisions(tiles) {
 				}
 			}
 		}
+		if (!hadCollision) break;
 	}
 	return fixed;
 }
