@@ -727,6 +727,10 @@ function generateLevel(levelIndex) {
 			});
 		}
 
+		if (typeof fixVerticalCollisions === 'function') {
+			fixVerticalCollisions(tiles);
+		}
+
 		var board = buildBoard(tiles);
 
 		function hasFreePair() {

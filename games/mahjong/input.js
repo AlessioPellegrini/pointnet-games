@@ -314,6 +314,12 @@
 				return;
 			}
 			if (app.selectedTile === tile) {
+				/* Double safety: if the tile directly below is an identical match, match the stack */
+				var tileBelow = app.board.get(makeKey(tile.z - 1, tile.x, tile.y));
+				if (tileBelow && !tileBelow.removed && !tileBelow.staging && canMatch(tile, tileBelow, 'classic')) {
+					handleDirectMatch(tile, tileBelow);
+					return;
+				}
 				app.selectedTile = null;
 				updateStates();
 				return;
@@ -530,6 +536,10 @@
 				t.wildcardGroup = s.wildcardGroup;
 				t.faceDown = false;
 			});
+
+			if (typeof fixVerticalCollisions === 'function') {
+				fixVerticalCollisions(remaining);
+			}
 
 			if (hasAnyValidMove(app.board, app.mode)) break;
 			attempts++;

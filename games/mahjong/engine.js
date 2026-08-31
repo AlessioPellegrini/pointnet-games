@@ -256,6 +256,40 @@ function canMatch(tileA, tileB, mode) {
 	return tileA.symbol === tileB.symbol;
 }
 
+/* PREVENT VERTICAL IDENTICAL STACKS (v1.5.2):
+   Ensures that two tiles stacked vertically in the same column
+   never share the same symbol or wildcard group, eliminating
+   the classic self-blocking deadlock where the last remaining pair is
+   stacked on top of itself. */
+function fixVerticalCollisions(tiles) {
+	if (!tiles || !tiles.length) return 0;
+	var fixed = 0;
+	for (var a = 0; a < tiles.length; a++) {
+		var tA = tiles[a];
+		if (tA.removed || tA.staging) continue;
+		for (var b = a + 1; b < tiles.length; b++) {
+			var tB = tiles[b];
+			if (tB.removed || tB.staging) continue;
+			var sameCol = (tA.x === tB.x && tA.y === tB.y && tA.z !== tB.z);
+			if (sameCol && canMatch(tA, tB, 'classic')) {
+				for (var c = 0; c < tiles.length; c++) {
+					var tC = tiles[c];
+					if (!tC.removed && !tC.staging && (tC.x !== tA.x || tC.y !== tA.y)) {
+						if (!canMatch(tC, tA, 'classic') && !canMatch(tC, tB, 'classic')) {
+							var tmpSym = tB.symbol, tmpSvg = tB.svg, tmpWild = tB.wildcardGroup;
+							tB.symbol = tC.symbol; tB.svg = tC.svg; tB.wildcardGroup = tC.wildcardGroup;
+							tC.symbol = tmpSym; tC.svg = tmpSvg; tC.wildcardGroup = tmpWild;
+							fixed++;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	return fixed;
+}
+
 /* Deadlock check: returns true if there is at least ONE playable match */
 function hasAnyValidMove(board, mode) {
 	var free = [];

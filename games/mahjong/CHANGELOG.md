@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 1.5.1** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 1.5.2** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -9,10 +9,10 @@
 ## Test (script permanenti)
 
 ```bash
-# Verifica layout builder: 0 tile flottanti, coordinate valide (41 layout)
+# Verifica layout builder: 0 tile flottanti, coordinate valide (46 layout)
 node games/mahjong/tests/test-layouts.js
 
-# Verifica progressione: 330 livelli, 33 classic, 83 conveyor, drop <= 8, tutte le figure usate
+# Verifica progressione: 330 livelli, 33 classic, 92 conveyor, drop <= 8, tutte le figure usate
 node games/mahjong/tests/test-progression.js
 
 # Verifica meccanica Anello Rotante Conveyor: sblocco a spiraglio e rotazione continua
@@ -38,7 +38,19 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v1.5.1 — Movimento Morbido Corona, Regole Covered e Audio Resilience (HEAD)
+### v1.5.2 — Prevenzione Auto-Blocco Verticale, Figure Sagomate Conveyor e Traccia Safri Duo (HEAD)
+- **Prevenzione Auto-Blocco Verticale (`fixVerticalCollisions`)**: introdotto un algoritmo in `engine.js`, `data.js` e nello `shuffleBoard` che garantisce che due tessere identiche o dello stesso gruppo wildcard non siano MAI impilate direttamente nella stessa colonna verticale $(x,y)$. Questo risolve definitivamente il deadlock a fine partita in cui l'ultima coppia rimaneva bloccata l'una sopra l'altra.
+- **Risoluzione di Sicurezza per Coppie Impilate (Classic Mode)**: se una tessera selezionata ha sotto di sé la tessera gemella identica, il secondo tocco sulla pila rimuove direttamente entrambe le tessere completando il match.
+- **5 Nuove Figure Sagomate Conveyor & Livelli Demo 336+**:
+  - `conveyor_temple` (48 tessere): corona rotante perimetrale con tempio centrale a gradoni su griglia mezzana (`isHalf: true`).
+  - `conveyor_cross` (32 tessere): tracciato a croce greca a 12 lati.
+  - `conveyor_butterfly` (36 tessere): circuito a farfalla/clessidra a lobi alari.
+  - `conveyor_fortress` (32 tessere): 4 bastioni angolari e anello a fossato.
+  - `conveyor_diamond` (32 tessere): anello ottagonale a diamante a 45°.
+- **Traccia Musicale "Mahjong Zen (Tribute to Safri Duo)"**: aggiunta la nuova traccia ritmica alla rotazione Arcade e al selettore Jukebox.
+- **Sblocco Limite Livelli a 345 & Selettore Livelli Sviluppatore**: rimossa la soglia massima fissa a 329, abilitato il salto a qualsiasi livello demo da menu Dev e URL `?level=N`.
+
+### v1.5.1 — Movimento Morbido Corona, Regole Covered e Audio Resilience
 - **Scorrimento Morbido ed Elastico**: esteso il tempo di transizione dello scorrimento a 480ms (`cubic-bezier(0.22, 1, 0.36, 1)`) con bagliore cyan (`box-shadow`), eliminando qualsiasi scatto repentino.
 - **Regole Covered & Step Calibrati**: 
   - 1° click su tessera coperta (`faceDown`): si scopre a vista e la corona rimane **ferma** (0 passi).
