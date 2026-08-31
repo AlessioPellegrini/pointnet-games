@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 1.5.1** — **Arcade & Classic Modes + Conveyor Ring Dynamic Boards**: 41 layout figure (compreso il layout speciale `classic_144` a 5 strati e i nuovi circuiti chiusi a nastro `conveyor_ring` e `conveyor_inset`) con **330 livelli progressivi**, **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) e **sfide Arcade Conveyor ogni 10 livelli sui numeri 5** (15, 25, 35, 45...) con nastro rotante ad avanzamento step-by-step sbloccato a "spiraglio". **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, visualizzazione della durata dei brani nella playlist, controlli di navigazione (`⏮️ ⏯️ ⏭️ 🔀`), selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni, animazioni 3D di dissolvenza, rilevamento deadlock e moltiplicatore **$\times 1.5$** integrato nel punteggio cumulato. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊), particelle visive e recupero tramite **Shuffle** nel modal di Game Over.
+> **Version: 1.5.2** — **Arcade & Classic Modes + Conveyor Ring Dynamic Boards + Vertical Anti-Lock Protection**: 46 layout figure (compreso il layout speciale `classic_144` a 5 strati, le nuove figure sagomate `conveyor_temple` con mezze tessere, `conveyor_cross`, `conveyor_butterfly`, `conveyor_fortress`, `conveyor_diamond` e i circuiti `conveyor_ring`/`conveyor_inset`) con **345 livelli progressivi sbloccati**, **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) e **sfide Arcade Conveyor ogni 10 livelli sui numeri 5** (15, 25, 35, 45...) con nastro rotante ad avanzamento step-by-step sbloccato a "spiraglio". **Algoritmo di Prevenzione Auto-Blocco Verticale (`fixVerticalCollisions`)** e doppia sicurezza Classic per eliminare qualsiasi stallo residuo a fine partita. **Playlist Arcade a 6 Tracce** con la nuova hit ritmica "Mahjong Zen (Tribute to Safri Duo)". **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊).
 
 ## 🔖 Version bump checklist
 
@@ -198,9 +198,32 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 - **API integration**: `window.pointnetGamesAPI.submitScore()` for leaderboard (Phase 4)
 - **License**: GPL-2.0+ — original implementation inspired by ffalt/mah (MIT)
 
+## 🗺️ Roadmap di Sviluppo
+
+- [x] **v1.5.0**: Modalità Arcade Dinamica con Anello Rotante "Conveyor Ring" rettangolare e logica di sblocco a spiraglio.
+- [x] **v1.5.1**: Transizione morbida elastica a 480ms con glow ciano, regole covered/direct-match a step calibrati e player audio resiliente a spazi e subpath WordPress.
+- [x] **v1.5.2**: 
+  - 5 Nuove Figure Sagomate Conveyor (`temple` con half-tiles, `cross`, `butterfly`, `fortress`, `diamond`) con livelli demo 336+.
+  - Protezione da Auto-Blocco Verticale (`fixVerticalCollisions`) e doppia sicurezza Classic su pile residue.
+  - Nuova traccia ritmica "Mahjong Zen (Tribute to Safri Duo)" (6 brani in rotazione).
+  - Sblocco totale limite livelli a 345 con selettore Dev.
+- [ ] **v1.6.0 (Prossimo Step)**: **Generazione a Ritroso Nativa (*Native Reverse Generation Engine*)** — Algoritmo costruttivo che popola il tabellone partendo da tessere contemporaneamente libere e procedendo verso l'interno, garantendo matematicamente il 100% di solvibilità e 0 collisioni verticali in 0.5ms senza backtracking.
+
 ## Changelog
 
-### v1.5.1 — Movimento Morbido Corona, Regole Covered e Audio Resilience (current)
+### v1.5.2 — Prevenzione Auto-Blocco Verticale, Figure Sagomate Conveyor e Traccia Safri Duo (current)
+- **Prevenzione Auto-Blocco Verticale (`fixVerticalCollisions`)**: introdotto un algoritmo in `engine.js`, `data.js` e nello `shuffleBoard` che garantisce che due tessere identiche o dello stesso gruppo wildcard non siano MAI impilate direttamente nella stessa colonna verticale $(x,y)$. Questo risolve definitivamente il deadlock a fine partita in cui l'ultima coppia rimaneva bloccata l'una sopra l'altra.
+- **Risoluzione di Sicurezza per Coppie Impilate (Classic Mode)**: se una tessera selezionata ha sotto di sé la tessera gemella identica, il secondo tocco sulla pila rimuove direttamente entrambe le tessere completando il match.
+- **5 Nuove Figure Sagomate Conveyor & Livelli Demo 336+**:
+  - `conveyor_temple` (48 tessere): corona rotante perimetrale con tempio centrale a gradoni su griglia mezzana (`isHalf: true`).
+  - `conveyor_cross` (32 tessere): tracciato a croce greca a 12 lati.
+  - `conveyor_butterfly` (36 tessere): circuito a farfalla/clessidra a lobi alari.
+  - `conveyor_fortress` (32 tessere): 4 bastioni angolari e anello a fossato.
+  - `conveyor_diamond` (32 tessere): anello ottagonale a diamante a 45°.
+- **Traccia Musicale "Mahjong Zen (Tribute to Safri Duo)"**: aggiunta la nuova traccia ritmica alla rotazione Arcade e al selettore Jukebox.
+- **Sblocco Limite Livelli a 345 & Selettore Livelli Sviluppatore**: rimossa la soglia massima fissa a 329, abilitato il salto a qualsiasi livello demo da menu Dev e URL `?level=N`.
+
+### v1.5.1 — Movimento Morbido Corona, Regole Covered e Audio Resilience
 - **Scorrimento Morbido ed Elastico**: esteso il tempo di transizione dello scorrimento a 480ms (`cubic-bezier(0.22, 1, 0.36, 1)`) con bagliore cyan (`box-shadow`), eliminando qualsiasi scatto repentino.
 - **Regole Covered & Step Calibrati**: 
   - 1° click su tessera coperta (`faceDown`): si scopre a vista e la corona rimane **ferma** (0 passi).
