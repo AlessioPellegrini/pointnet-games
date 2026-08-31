@@ -226,15 +226,17 @@ function buildProgression(count) {
 		}
 		return false;
 	}
-	/* pool of all layout×variant combinations */
+	/* pool of all standard layout×variant combinations + dedicated conveyor pool */
 	var pool = [];
+	var conveyorPool = [];
 	Object.keys(LAYOUT_BUILDERS).forEach(function (layout) {
+		if (layout === 'classic_144') return;
 		Object.keys(LAYOUT_BUILDERS[layout]).forEach(function (variant) {
 			var b = LAYOUT_BUILDERS[layout][variant]();
 			var nb = b.filter(function (p) { return p.y >= 0; });
 			var tc = nb.length;
 			if (tc % 2 !== 0) tc -= 1;
-			pool.push({
+			var entry = {
 				layout: layout,
 				variant: variant,
 				tiles: tc,
@@ -242,10 +244,16 @@ function buildProgression(count) {
 				score: computeDifficulty(nb, 0),
 				isHalf: nb.some(function (t) { return t.isHalf; }),
 				freeBase: hasFreeBase(nb)
-			});
+			};
+			if (layout.indexOf('conveyor_') === 0) {
+				conveyorPool.push(entry);
+			} else {
+				pool.push(entry);
+			}
 		});
 	});
 	pool.sort(function (a, b) { return a.playableTiles - b.playableTiles || a.score - b.score || a.tiles - b.tiles; });
+	conveyorPool.sort(function (a, b) { return a.playableTiles - b.playableTiles || a.score - b.score; });
 
 	/* Unique pool tile-counts in order (no gaps): the growth floor is
 	   picked as a quantile of this list, so it never lands on a value
@@ -368,12 +376,18 @@ function buildProgression(count) {
 				candidates = halfFb;
 			} else {
 				var fbCandidates = candidates.filter(function (c) { return c.freeBase; });
-				if (fbCandidates.length) candidates = fbCandidates;
+				if (fbCandidates.length) {
+					candidates = fbCandidates;
+				} else {
+					var allFb = pool.filter(function (c) { return c.freeBase && c.playableTiles >= minTiles - 8; });
+					if (allFb.length) candidates = allFb;
+				}
 			}
 			blackCount++;
 		}
 
 		/* round-robin over the candidate set: variation without locks */
+		if (!candidates || !candidates.length) candidates = pool;
 		var idx = rr0 % candidates.length;
 		var item = candidates[idx];
 		var guard = 0;
@@ -430,32 +444,21 @@ function buildProgression(count) {
 			}
 		}
 
-		if (isConveyorLevel) {
-			var convVariants = pool.filter(function (p) {
-				return p.layout.indexOf('conveyor_') === 0;
-			});
-			convVariants.sort(function (a, b) { return a.playableTiles - b.playableTiles; });
-
-			var convCandidates = convVariants.filter(function (p) {
+		if (isConveyorLevel && conveyorPool.length) {
+			var convCandidates = conveyorPool.filter(function (p) {
 				return p.playableTiles >= minTiles && p.playableTiles <= bandMax;
 			});
 			if (!convCandidates.length) {
-				var bestConv = convVariants[0];
-				var bestDiff = 9999;
-				for (var cv = 0; cv < convVariants.length; cv++) {
-					var diff = Math.abs(convVariants[cv].playableTiles - floorTiles);
-					if (diff <= bestDiff) {
-						bestDiff = diff;
-						bestConv = convVariants[cv];
-					}
-				}
-				convCandidates = [bestConv];
+				convCandidates = conveyorPool.filter(function (p) {
+					return p.playableTiles <= bandMax;
+				});
 			}
-			if (convCandidates.length) {
-				var convIdx = Math.min(convCandidates.length - 1, Math.floor(progress * convCandidates.length));
-				item = convCandidates[convIdx];
-				prevLayout = item.layout;
-			}
+			if (!convCandidates.length) convCandidates = [conveyorPool[0]];
+			var unusedConv = convCandidates.filter(function (p) { return !usedLayouts[p.layout]; });
+			var poolToUse = unusedConv.length ? unusedConv : convCandidates;
+			var convIdx = Math.min(poolToUse.length - 1, Math.floor(progress * poolToUse.length));
+			item = poolToUse[convIdx];
+			prevLayout = item.layout;
 		}
 
 		/* Explicit Demo Showcase Levels 336+ for new conveyor figures */
@@ -463,15 +466,9 @@ function buildProgression(count) {
 			item = { layout: 'conveyor_temple', variant: 'regular', playableTiles: 48 };
 			isConveyorLevel = true;
 		} else if (n + 1 === 337) {
-			item = { layout: 'conveyor_cross', variant: 'regular', playableTiles: 32 };
-			isConveyorLevel = true;
-		} else if (n + 1 === 338) {
-			item = { layout: 'conveyor_butterfly', variant: 'regular', playableTiles: 36 };
-			isConveyorLevel = true;
-		} else if (n + 1 === 339) {
 			item = { layout: 'conveyor_fortress', variant: 'regular', playableTiles: 32 };
 			isConveyorLevel = true;
-		} else if (n + 1 === 341) {
+		} else if (n + 1 === 338) {
 			item = { layout: 'conveyor_diamond', variant: 'regular', playableTiles: 32 };
 			isConveyorLevel = true;
 		}

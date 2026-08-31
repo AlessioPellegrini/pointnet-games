@@ -2284,62 +2284,6 @@ var LAYOUT_BUILDERS = {
 		}
 	},
 
-	'conveyor_cross': {
-		/* 12-sided Greek cross shaped conveyor track + center cross altar (32 tiles) */
-		'regular': function () {
-			var track = [
-				{ x: 4, y: 0 }, { x: 6, y: 0 },
-				{ x: 6, y: 1 }, { x: 6, y: 2 },
-				{ x: 8, y: 2 }, { x: 10, y: 2 },
-				{ x: 10, y: 3 }, { x: 10, y: 4 },
-				{ x: 8, y: 4 }, { x: 6, y: 4 },
-				{ x: 6, y: 5 }, { x: 6, y: 6 },
-				{ x: 4, y: 6 }, { x: 4, y: 5 },
-				{ x: 4, y: 4 }, { x: 2, y: 4 },
-				{ x: 0, y: 4 }, { x: 0, y: 3 },
-				{ x: 0, y: 2 }, { x: 2, y: 2 },
-				{ x: 4, y: 2 }, { x: 4, y: 1 }
-			]; // 22 tiles
-			var pts = [];
-			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
-			/* Center cross core */
-			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 3 });
-			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 }, { z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 4 });
-			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
-			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
-			var out = evenTrim(pts);
-			out.conveyorTrack = track;
-			return out;
-		}
-	},
-
-	'conveyor_butterfly': {
-		/* Hourglass / Butterfly shaped conveyor ring + central torso (36 tiles) */
-		'regular': function () {
-			var track = [
-				{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 8, y: 0 }, { x: 10, y: 0 },
-				{ x: 10, y: 1 }, { x: 8, y: 2 }, { x: 6, y: 3 },
-				{ x: 8, y: 4 }, { x: 10, y: 5 }, { x: 10, y: 6 },
-				{ x: 8, y: 6 }, { x: 6, y: 6 }, { x: 4, y: 6 }, { x: 2, y: 6 }, { x: 0, y: 6 },
-				{ x: 0, y: 5 }, { x: 2, y: 4 }, { x: 4, y: 3 },
-				{ x: 2, y: 2 }, { x: 0, y: 1 }
-			]; // 20 tiles
-			var pts = [];
-			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
-			/* Center torso & antennae */
-			for (var y = 1; y <= 5; y++) {
-				if (y === 3) continue;
-				pts.push({ z: 0, x: 4, y: y }, { z: 0, x: 6, y: y });
-			}
-			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
-			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
-			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 });
-			var out = evenTrim(pts);
-			out.conveyorTrack = track;
-			return out;
-		}
-	},
-
 	'conveyor_fortress': {
 		/* 4 Corner Bastions + Moat Conveyor Ring + Center Keep (32 tiles) */
 		'regular': function () {
