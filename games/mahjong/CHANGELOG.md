@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 1.5.2** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 1.6.0** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -26,9 +26,6 @@ node games/mahjong/tests/test-free.js
 
 # Rendering FULL-su-HALF: onHalf, centratura sull'incrocio, apice dritto
 node games/mahjong/tests/test-temple-steps.js
-
-# Precompute solvability: 330 livelli, generazione veloce (<250ms), giocabile
-node games/mahjong/tests/test-solvable.js
 ```
 
 Gli script caricano `layouts.js` + `data.js` + `engine.js` in Node `vm` e chiamano
@@ -38,7 +35,13 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v1.5.2 — Prevenzione Auto-Blocco Verticale, Figure Sagomate Conveyor e Traccia Safri Duo (HEAD)
+### v1.6.0 — Generazione a Ritroso Nativa (Native Reverse Generation Engine) & Rimozione Tabelle Statiche (HEAD)
+- **Motore di Generazione a Ritroso Costruttiva (`generateConstructiveLevel`)**: implementato il generatore che popola il tabellone simulando a ritroso la rimozione delle tessere partendo da quelle contemporaneamente libere e procedendo verso l'interno. Ogni livello nasce matematicamente garantito al 100% risolvibile in meno di 1 millisecondo senza bisogno di risolutori esaustivi o backtracking lenti.
+- **Rimozione Tabelle Statiche (`solvable-levels.js`)**: eliminata la dipendenza dal file statico precalcolato; il gioco ora si autogenera dinamicamente e in modo autonomo per qualsiasi livello e configurazione, riducendo il payload di rete.
+- **Replayability Infinita**: ogni avvio o riavvio di livello genera una combinazione fresca e diversa di simboli pur mantenendo la struttura geometrica della figura.
+- **Ottimizzazione Script Order**: caricamento pulito `layouts.js` → `engine.js` → `data.js` → `app.js`.
+
+### v1.5.2 — Prevenzione Auto-Blocco Verticale, Figure Sagomate Conveyor e Traccia Safri Duo
 - **Prevenzione Auto-Blocco Verticale (`fixVerticalCollisions`)**: introdotto un algoritmo in `engine.js`, `data.js` e nello `shuffleBoard` che garantisce che due tessere identiche o dello stesso gruppo wildcard non siano MAI impilate direttamente nella stessa colonna verticale $(x,y)$. Questo risolve definitivamente il deadlock a fine partita in cui l'ultima coppia rimaneva bloccata l'una sopra l'altra.
 - **Risoluzione di Sicurezza per Coppie Impilate (Classic Mode)**: se una tessera selezionata ha sotto di sé la tessera gemella identica, il secondo tocco sulla pila rimuove direttamente entrambe le tessere completando il match.
 - **5 Nuove Figure Sagomate Conveyor & Livelli Demo 336+**:

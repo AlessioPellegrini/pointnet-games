@@ -1,7 +1,7 @@
 {
 	"name": "Mahjong Arcade",
 	"slug": "mahjong",
-	"version": "1.5.2",
+	"version": "1.6.0",
 	"author": "PointNet Games",
 	"description": "Mahjong Solitaire with dual Arcade and Classic modes: 330 progressive levels, 4-slot staging box in arcade, special 144-tile Classic Challenges with flower/season wildcards every 10 levels, combo scoring with x1.5 classic bonus, shuffle power-up, offline precompute solver. Mobile-first, no pan/zoom.",
 	"type": "iframe",

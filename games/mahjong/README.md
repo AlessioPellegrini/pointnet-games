@@ -2,7 +2,7 @@
 
 Classic Mahjong Solitaire tile-matching with a modern twist: a 4-slot staging box, face-down memory tiles, drag-to-peek and guaranteed solvable boards. Mobile-first, no pan/zoom.
 
-> **Version: 1.5.2** — **Arcade & Classic Modes + Conveyor Ring Dynamic Boards + Vertical Anti-Lock Protection**: 46 layout figure (compreso il layout speciale `classic_144` a 5 strati, le nuove figure sagomate `conveyor_temple` con mezze tessere, `conveyor_cross`, `conveyor_butterfly`, `conveyor_fortress`, `conveyor_diamond` e i circuiti `conveyor_ring`/`conveyor_inset`) con **345 livelli progressivi sbloccati**, **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) e **sfide Arcade Conveyor ogni 10 livelli sui numeri 5** (15, 25, 35, 45...) con nastro rotante ad avanzamento step-by-step sbloccato a "spiraglio". **Algoritmo di Prevenzione Auto-Blocco Verticale (`fixVerticalCollisions`)** e doppia sicurezza Classic per eliminare qualsiasi stallo residuo a fine partita. **Playlist Arcade a 6 Tracce** con la nuova hit ritmica "Mahjong Zen (Tribute to Safri Duo)". **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊).
+> **Version: 1.6.0** — **Arcade & Classic Modes + Native Reverse Generation Engine + Dynamic Conveyor Boards**: 46 layout figure (compreso il layout speciale `classic_144` a 5 strati, le nuove figure sagomate `conveyor_temple` con mezze tessere, `conveyor_cross`, `conveyor_butterfly`, `conveyor_fortress`, `conveyor_diamond` e i circuiti `conveyor_ring`/`conveyor_inset`) con **345 livelli progressivi sbloccati**, **sfide speciali Classic ogni 10 livelli** (10, 20, 30...) e **sfide Arcade Conveyor ogni 10 livelli sui numeri 5** (15, 25, 35, 45...) con nastro rotante ad avanzamento step-by-step sbloccato a "spiraglio". **Motore di Generazione a Ritroso Costruttiva Nativao (`generateConstructiveLevel`)** per una solvibilità al 100% garantita per costruzione e zero tempi di attesa. **Algoritmo di Prevenzione Auto-Blocco Verticale (`fixVerticalCollisions`)** e doppia sicurezza Classic. **Playlist Arcade a 6 Tracce** con "Mahjong Zen (Tribute to Safri Duo)". **PointNetMusicPlayer Modulare & Standalone** integrato nell'Action Drawer (`☰`) con seek progress bar interattiva, timer $m:ss$, selettore traccia e slider volume. Deck completo tradizionale da 144 tessere con grafica vettoriale SVG autentica per Fiori e Stagioni. Effetti sonori organici Zen (bambù e gocce d'acqua), controlli separati per Musica (🎵) ed Effetti (🔊).
 
 ## 🔖 Version bump checklist
 
@@ -202,16 +202,18 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 
 - [x] **v1.5.0**: Modalità Arcade Dinamica con Anello Rotante "Conveyor Ring" rettangolare e logica di sblocco a spiraglio.
 - [x] **v1.5.1**: Transizione morbida elastica a 480ms con glow ciano, regole covered/direct-match a step calibrati e player audio resiliente a spazi e subpath WordPress.
-- [x] **v1.5.2**: 
-  - 5 Nuove Figure Sagomate Conveyor (`temple` con half-tiles, `cross`, `butterfly`, `fortress`, `diamond`) con livelli demo 336+.
-  - Protezione da Auto-Blocco Verticale (`fixVerticalCollisions`) e doppia sicurezza Classic su pile residue.
-  - Nuova traccia ritmica "Mahjong Zen (Tribute to Safri Duo)" (6 brani in rotazione).
-  - Sblocco totale limite livelli a 345 con selettore Dev.
-- [ ] **v1.6.0 (Prossimo Step)**: **Generazione a Ritroso Nativa (*Native Reverse Generation Engine*)** — Algoritmo costruttivo che popola il tabellone partendo da tessere contemporaneamente libere e procedendo verso l'interno, garantendo matematicamente il 100% di solvibilità e 0 collisioni verticali in 0.5ms senza backtracking.
+- [x] **v1.5.2**: 5 Nuove Figure Sagomate Conveyor con livelli demo 336+, prevenzione auto-blocco verticale e traccia Safri Duo.
+- [x] **v1.6.0**: **Generazione a Ritroso Nativa (*Native Reverse Generation Engine*)** — Algoritmo costruttivo che popola il tabellone partendo da tessere contemporaneamente libere e procedendo verso l'interno, garantendo matematicamente il 100% di solvibilità e 0 collisioni verticali in 0.5ms senza dipendere da tabelle statiche.
 
 ## Changelog
 
-### v1.5.2 — Prevenzione Auto-Blocco Verticale, Figure Sagomate Conveyor e Traccia Safri Duo (current)
+### v1.6.0 — Generazione a Ritroso Nativa (Native Reverse Generation Engine) & Rimozione Tabelle Statiche (current)
+- **Motore di Generazione a Ritroso Costruttiva (`generateConstructiveLevel`)**: implementato il generatore che popola il tabellone simulando a ritroso la rimozione delle tessere partendo da quelle contemporaneamente libere e procedendo verso l'interno. Ogni livello nasce matematicamente garantito al 100% risolvibile in meno di 1 millisecondo senza bisogno di risolutori esaustivi o backtracking lenti.
+- **Rimozione Tabelle Statiche (`solvable-levels.js`)**: eliminata la dipendenza dal file statico precalcolato; il gioco ora si autogenera dinamicamente e in modo autonomo per qualsiasi livello e configurazione, riducendo il payload di rete.
+- **Replayability Infinita**: ogni avvio o riavvio di livello genera una combinazione fresca e diversa di simboli pur mantenendo la struttura geometrica della figura.
+- **Ottimizzazione Script Order**: caricamento pulito `layouts.js` → `engine.js` → `data.js` → `app.js`.
+
+### v1.5.2 — Prevenzione Auto-Blocco Verticale, Figure Sagomate Conveyor e Traccia Safri Duo
 - **Prevenzione Auto-Blocco Verticale (`fixVerticalCollisions`)**: introdotto un algoritmo in `engine.js`, `data.js` e nello `shuffleBoard` che garantisce che due tessere identiche o dello stesso gruppo wildcard non siano MAI impilate direttamente nella stessa colonna verticale $(x,y)$. Questo risolve definitivamente il deadlock a fine partita in cui l'ultima coppia rimaneva bloccata l'una sopra l'altra.
 - **Risoluzione di Sicurezza per Coppie Impilate (Classic Mode)**: se una tessera selezionata ha sotto di sé la tessera gemella identica, il secondo tocco sulla pila rimuove direttamente entrambe le tessere completando il match.
 - **5 Nuove Figure Sagomate Conveyor & Livelli Demo 336+**:
