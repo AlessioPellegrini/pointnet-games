@@ -674,7 +674,7 @@
 		if (!inputEl) return;
 		var n = parseInt(inputEl.value, 10);
 		if (isNaN(n) || n < 1) n = 1;
-		app.levelIndex = Math.min(n - 1, 344);
+		app.levelIndex = Math.min(n - 1, 329);
 		inputEl.value = app.levelIndex + 1;
 		inputEl.blur();
 		saveGame();

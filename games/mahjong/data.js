@@ -461,18 +461,6 @@ function buildProgression(count) {
 			prevLayout = item.layout;
 		}
 
-		/* Explicit Demo Showcase Levels 336+ for new conveyor figures */
-		if (n + 1 === 336) {
-			item = { layout: 'conveyor_temple', variant: 'regular', playableTiles: 48 };
-			isConveyorLevel = true;
-		} else if (n + 1 === 337) {
-			item = { layout: 'conveyor_fortress', variant: 'regular', playableTiles: 32 };
-			isConveyorLevel = true;
-		} else if (n + 1 === 338) {
-			item = { layout: 'conveyor_diamond', variant: 'regular', playableTiles: 32 };
-			isConveyorLevel = true;
-		}
-
 		usedLayouts[item.layout] = true;
 		lastTiles = item.playableTiles;
 
@@ -509,12 +497,12 @@ function buildProgression(count) {
 /* Generate the full progression once (lazy). */
 var PROGRESSION = null;
 function ensureProgression() {
-	if (!PROGRESSION) PROGRESSION = buildProgression(345);
+	if (!PROGRESSION) PROGRESSION = buildProgression(330);
 	return PROGRESSION;
 }
 
 function getLevelDef(index) {
-	index = Math.max(0, Math.min(index, 344));
+	index = Math.max(0, Math.min(index, 329));
 	var p = ensureProgression()[index];
 	return {
 		layout: p.layout,
