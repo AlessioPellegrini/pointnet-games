@@ -801,10 +801,40 @@
 			var inputEl = document.getElementById('level-input');
 			if (inputEl) inputEl.value = 1;
 			saveGame();
-			if (typeof saveProgressToWP === 'function') saveProgressToWP(1, bestScores);
+			if (typeof saveProgressToWP === 'function') saveProgressToWP(1, typeof bestScores !== 'undefined' ? bestScores : {});
 			startGame();
 			if (actionPanel) actionPanel.classList.remove('open');
-			if (typeof showToast === 'function') showToast('🔄 Livello resettato a 1');
+			if (typeof showToast === 'function') showToast('🔄 Livello impostato a 1');
+		});
+	}
+
+	var btnDevResetAll = document.getElementById('btn-dev-reset-all');
+	if (btnDevResetAll) {
+		btnDevResetAll.addEventListener('click', function (e) {
+			e.stopPropagation();
+			if (typeof localStorage !== 'undefined') {
+				try {
+					localStorage.removeItem('wp_mahjong_arcade_level');
+					localStorage.removeItem('wp_mahjong_arcade_stars');
+					localStorage.removeItem('wp_mahjong_arcade_scores');
+				} catch (err) {}
+			}
+			if (typeof bestStars !== 'undefined') {
+				for (var k1 in bestStars) delete bestStars[k1];
+			}
+			if (typeof bestScores !== 'undefined') {
+				for (var k2 in bestScores) delete bestScores[k2];
+			}
+			app.levelIndex = 0;
+			app.score = 0;
+			var inputEl = document.getElementById('level-input');
+			if (inputEl) inputEl.value = 1;
+			saveGame();
+			if (typeof saveProgressToWP === 'function') saveProgressToWP(1, {});
+			if (typeof submitScoreToWP === 'function') submitScoreToWP(0, 1, 0);
+			startGame();
+			if (actionPanel) actionPanel.classList.remove('open');
+			if (typeof showToast === 'function') showToast('🧹 Tutti i dati e record azzerati!');
 		});
 	}
 
