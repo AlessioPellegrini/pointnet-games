@@ -245,10 +245,12 @@ function buildProgression(count) {
 				isHalf: nb.some(function (t) { return t.isHalf; }),
 				freeBase: hasFreeBase(nb)
 			};
-			if (layout.indexOf('conveyor_') === 0) {
-				conveyorPool.push(entry);
-			} else {
-				pool.push(entry);
+			if (entry.playableTiles >= 36) {
+				if (layout.indexOf('conveyor_') === 0) {
+					conveyorPool.push(entry);
+				} else {
+					pool.push(entry);
+				}
 			}
 		});
 	});
@@ -284,9 +286,7 @@ function buildProgression(count) {
 	var rr0 = 0;
 	var prevLayout = null;
 	var lastTiles = 0;
-	/* v0.9.3: coverage guarantee for the 38 layouts — the HALF preference
-	   on blackouts could permanently drop a layout from rotation
-	   (e.g. crown, unique at 52 tiles). Track the ones already used. */
+	/* v0.9.3: coverage guarantee for the layouts — track already used. */
 	var usedLayouts = {};
 	var blackCount = 0; /* blackout counter for the HALF/freeBase alternation */
 
@@ -294,12 +294,16 @@ function buildProgression(count) {
 	var arcadeIndex = 0;
 
 	for (var n = 0; n < count; n++) {
-		/* CLASSIC CHALLENGE: every 10 levels (10, 20, 30, ...) */
+		/* CLASSIC CHALLENGE: every 10 levels (10, 20, 30, ...)
+		   - Level 10: Chapter 1 Mini-Boss (small turtle: 48 tiles)
+		   - Level 20: Chapter 2 Medium Boss (medium turtle: 72 tiles)
+		   - Level 30+: Full Classic Grand Boss (large turtle: 144 tiles) */
 		if ((n + 1) % 10 === 0) {
-			var isDarkClassic = ((n + 1) % 20 === 0);
+			var isDarkClassic = ((n + 1) % 20 === 0 && n + 1 >= 20);
+			var classicVariant = (n + 1 === 10) ? 'small' : ((n + 1 === 20) ? 'medium' : 'large');
 			out.push({
 				layout: 'classic_144',
-				variant: 'large',
+				variant: classicVariant,
 				symSet: isDarkClassic ? 'classic-dark' : 'classic',
 				covered: 0,
 				maxStaging: 4,
@@ -317,36 +321,20 @@ function buildProgression(count) {
 		/* Zone only for symSet selection (never back). */
 		var zoneIdx = Math.min(3, Math.floor(progress * 4));
 
-		/* v0.8.2: the tile-count TREND is always growing (levels advance
-		   towards the final mega-tables) but a small -8 tile swing is
-		   allowed between adjacent levels. This keeps VARIETY: the pool
-		   has gaps (56→60→64→68→76→80→84→92→96) and few layouts per
-		   band; with a strict no-drop you'd get stuck on the band's
-		   minimum layout for dozens of levels. The GLOBAL FLOOR is a
-		   quantile of the real tile-counts (tileLevels) with a VERY
-		   SLOW curve (progress^2.2) that guarantees the underlying
-		   growing trend.
-		   Choice band: [minTiles, bandMax] where
-		     - minTiles = max(floorTiles, lastTiles - 8)  → trend +
-		       small swing for variety
-		     - bandMax  = minTiles + 16 (capped at 108 until floor<124) →
-		       more layouts available per band; the 124-tile layout
-		       (spiral/medium, unique) stays out until the FINAL BOSS
-		       in the last 1%. */
 		/* Smooth monotonic progression:
-		   floorIdx linearly moves through the unique tileLevels (12 -> 124).
+		   floorIdx linearly moves through the unique tileLevels (36 -> 124).
 		   minTiles is the strict floor of the current level band.
 		   bandMax allows adjacent tile tiers for figure variety without dropping to small layouts in late game. */
 		var floorIdx = Math.min(tileLevels.length - 1, Math.floor(progress * (tileLevels.length - 1)));
 		if (progress >= 0.98) floorIdx = tileLevels.length - 1;
 		var floorTiles = tileLevels[floorIdx];
-		var minTiles = Math.max(floorTiles, lastTiles - 8);
 		var bandMaxIdx = Math.min(tileLevels.length - 1, floorIdx + 3);
 		var bandMax = (progress >= 0.98) ? 124 : Math.min(108, tileLevels[bandMaxIdx]);
+		var minTiles = Math.min(bandMax, Math.max(floorTiles, Math.min(108, lastTiles) - 8));
 
 		/* v0.9 blackout: base plane (z=0) all obscured, auto-reveals.
-		   Active on levels 101+ (alternating). */
-		var blackout = n >= 100 && (n % 2 === 0);
+		   Active on levels 50+ (alternating). */
+		var blackout = n >= 49 && (n % 2 === 0);
 
 		var candidates = pool.filter(function (item) {
 			return item.playableTiles >= minTiles && item.playableTiles <= bandMax;
@@ -423,8 +411,8 @@ function buildProgression(count) {
 			}
 		}
 
-		/* Special Conveyor Challenge every 10 levels on the 5s (15, 25, 35, 45...) */
-		var isConveyorLevel = ((n + 1) % 10 === 5);
+		/* Special Conveyor Challenge every 10 levels on the 5s starting from Level 15 (15, 25, 35, 45...) */
+		var isConveyorLevel = (n + 1 >= 15) && ((n + 1) % 10 === 5);
 
 		/* Coverage guarantee: if there are layouts never used
 		   that fit the current band (and respect freeBase on
@@ -445,15 +433,21 @@ function buildProgression(count) {
 		}
 
 		if (isConveyorLevel && conveyorPool.length) {
+			var convMin = Math.max(minTiles, lastTiles - 8);
 			var convCandidates = conveyorPool.filter(function (p) {
-				return p.playableTiles >= minTiles && p.playableTiles <= bandMax;
+				return p.playableTiles >= convMin && p.playableTiles <= bandMax + 8;
 			});
 			if (!convCandidates.length) {
 				convCandidates = conveyorPool.filter(function (p) {
-					return p.playableTiles <= bandMax;
+					return p.playableTiles >= minTiles - 8 && p.playableTiles <= bandMax + 16;
 				});
 			}
-			if (!convCandidates.length) convCandidates = [conveyorPool[0]];
+			if (!convCandidates.length) {
+				var sortedByDist = conveyorPool.slice().sort(function (a, b) {
+					return Math.abs(a.playableTiles - minTiles) - Math.abs(b.playableTiles - minTiles);
+				});
+				convCandidates = [sortedByDist[0]];
+			}
 			var unusedConv = convCandidates.filter(function (p) { return !usedLayouts[p.layout]; });
 			var poolToUse = unusedConv.length ? unusedConv : convCandidates;
 			var convIdx = Math.min(poolToUse.length - 1, Math.floor(progress * poolToUse.length));

@@ -1837,6 +1837,69 @@ var LAYOUT_BUILDERS = {
 	},
 
 	'classic_144': {
+		'small': function () {
+			/* MINI CLASSIC TURTLE (48 tiles) - Introductory Chapter 1 Boss:
+			   Layer 0: 32 tiles base silhouette
+			   Layer 1: 16 tiles carapace dome
+			   Total: 48 tiles (12 matching quadruplets). */
+			var pts = [];
+			/* Layer 0: 32 tiles */
+			pts.push({ z: 0, x: 4, y: 0 }, { z: 0, x: 6, y: 0 }); // Head
+			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 4, y: 1 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 10, y: 1 }); // Flippers & neck
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 0, x: x2, y: 2 }); // Upper shell (4)
+			for (var x3 = 0; x3 <= 10; x3 += 2) pts.push({ z: 0, x: x3, y: 3 }); // Mid shell (6)
+			for (var x4 = 0; x4 <= 10; x4 += 2) pts.push({ z: 0, x: x4, y: 4 }); // Mid shell (6)
+			for (var x5 = 2; x5 <= 8; x5 += 2) pts.push({ z: 0, x: x5, y: 5 }); // Lower shell (4)
+			pts.push({ z: 0, x: 0, y: 6 }, { z: 0, x: 4, y: 6 }, { z: 0, x: 6, y: 6 }, { z: 0, x: 10, y: 6 }); // Rear flippers & pelvis (4)
+			pts.push({ z: 0, x: 4, y: 7 }, { z: 0, x: 6, y: 7 }); // Tail (2)
+
+			/* Layer 1: 16 tiles */
+			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 6, y: 0 }); // Head pad (2)
+			for (var l1x2 = 4; l1x2 <= 6; l1x2 += 2) pts.push({ z: 1, x: l1x2, y: 2 }); // (2)
+			for (var l1x3 = 2; l1x3 <= 8; l1x3 += 2) pts.push({ z: 1, x: l1x3, y: 3 }); // (4)
+			for (var l1x4 = 2; l1x4 <= 8; l1x4 += 2) pts.push({ z: 1, x: l1x4, y: 4 }); // (4)
+			for (var l1x5 = 4; l1x5 <= 6; l1x5 += 2) pts.push({ z: 1, x: l1x5, y: 5 }); // (2)
+			pts.push({ z: 1, x: 4, y: 7 }, { z: 1, x: 6, y: 7 }); // Tail pad (2)
+
+			return pts; // 32 + 16 = 48 tiles
+		},
+
+		'medium': function () {
+			/* MEDIUM CLASSIC TURTLE (72 tiles) - Intermediate Chapter 2 Boss:
+			   Layer 0: 38 tiles full classic base
+			   Layer 1: 22 tiles mid shell dome
+			   Layer 2: 12 tiles apex crest
+			   Total: 72 tiles (18 matching quadruplets). */
+			var pts = [];
+			/* Layer 0: 38 tiles */
+			pts.push({ z: 0, x: 4, y: 0 }, { z: 0, x: 6, y: 0 });
+			pts.push({ z: 0, x: 0, y: 1 }, { z: 0, x: 4, y: 1 }, { z: 0, x: 6, y: 1 }, { z: 0, x: 10, y: 1 });
+			for (var x2 = 2; x2 <= 8; x2 += 2) pts.push({ z: 0, x: x2, y: 2 });
+			for (var y0s = 3; y0s <= 5; y0s++) {
+				for (var x0s = 0; x0s <= 10; x0s += 2) pts.push({ z: 0, x: x0s, y: y0s });
+			}
+			for (var x6 = 2; x6 <= 8; x6 += 2) pts.push({ z: 0, x: x6, y: 6 });
+			pts.push({ z: 0, x: 0, y: 7 }, { z: 0, x: 4, y: 7 }, { z: 0, x: 6, y: 7 }, { z: 0, x: 10, y: 7 });
+			pts.push({ z: 0, x: 4, y: 8 }, { z: 0, x: 6, y: 8 });
+
+			/* Layer 1: 22 tiles */
+			pts.push({ z: 1, x: 4, y: 0 }, { z: 1, x: 6, y: 0 });
+			pts.push({ z: 1, x: 4, y: 1 }, { z: 1, x: 6, y: 1 });
+			for (var l1x2 = 2; l1x2 <= 8; l1x2 += 2) pts.push({ z: 1, x: l1x2, y: 2 });
+			for (var l1x3 = 2; l1x3 <= 8; l1x3 += 2) pts.push({ z: 1, x: l1x3, y: 3 });
+			for (var l1x4 = 2; l1x4 <= 8; l1x4 += 2) pts.push({ z: 1, x: l1x4, y: 4 });
+			for (var l1x5 = 2; l1x5 <= 8; l1x5 += 2) pts.push({ z: 1, x: l1x5, y: 5 });
+			pts.push({ z: 1, x: 4, y: 8 }, { z: 1, x: 6, y: 8 });
+
+			/* Layer 2: 12 tiles */
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 6, y: 2 });
+			for (var l2x3 = 2; l2x3 <= 8; l2x3 += 2) pts.push({ z: 2, x: l2x3, y: 3 });
+			for (var l2x4 = 2; l2x4 <= 8; l2x4 += 2) pts.push({ z: 2, x: l2x4, y: 4 });
+			pts.push({ z: 2, x: 4, y: 5 }, { z: 2, x: 6, y: 5 });
+
+			return pts; // 38 + 22 + 12 = 72 tiles
+		},
+
 		'large': function () {
 			/* TRADITIONAL CLASSIC 144 (Mobile Turtle / Tartaruga 144):
 			   Multi-tiered 5-layer Turtle formation with distinct limbs & negative space:
