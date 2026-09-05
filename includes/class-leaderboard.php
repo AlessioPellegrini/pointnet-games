@@ -374,4 +374,33 @@ class PointNet_Games_Leaderboard {
 
 		return function_exists( 'mb_substr' ) ? mb_substr( $ua, 0, 255 ) : substr( $ua, 0, 255 );
 	}
+
+	/**
+	 * Delete all leaderboard scores for a given user and game.
+	 *
+	 * @param int $game_id Game post ID.
+	 * @param int $user_id WP user ID.
+	 *
+	 * @return int|false Rows affected or false on failure.
+	 */
+	public static function reset_user_scores( $game_id, $user_id ) {
+		global $wpdb;
+
+		$table   = pointnet_games_scores_table();
+		$game_id = absint( $game_id );
+		$user_id = absint( $user_id );
+
+		if ( ! $user_id || ! $game_id ) {
+			return false;
+		}
+
+		return $wpdb->delete(
+			$table,
+			array(
+				'game_id' => $game_id,
+				'user_id' => $user_id,
+			),
+			array( '%d', '%d' )
+		);
+	}
 }

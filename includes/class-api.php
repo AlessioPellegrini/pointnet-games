@@ -368,33 +368,43 @@ class PointNet_Games_API {
 			$params = $request->get_params();
 		}
 
-		$level  = isset( $params['level'] ) ? absint( $params['level'] ) : 0;
-		$scores = isset( $params['scores'] ) && is_array( $params['scores'] ) ? $params['scores'] : array();
+		$level    = isset( $params['level'] ) ? absint( $params['level'] ) : 0;
+		$scores   = isset( $params['scores'] ) && is_array( $params['scores'] ) ? $params['scores'] : array();
+		$is_reset = ! empty( $params['reset'] ) || ( 1 === $level && empty( $scores ) );
 
-		/* Clamp level: a game can register up to 300 levels (Mahjong).
-		   Use a safe generic cap to avoid storing absurd values. */
-		$level = min( 300, max( 1, $level ) );
+		/* Clamp level: support up to 500 levels. */
+		$level = min( 500, max( 1, $level ) );
 
 		$progress = get_user_meta( $user_id, '_pointnet_games_progress', true );
 		$progress = is_array( $progress ) ? $progress : array();
 		$current  = isset( $progress[ $game_id ] ) ? $progress[ $game_id ] : array();
 
-		/* Only move forward: the saved level never goes backwards. */
-		$current['level'] = max( isset( $current['level'] ) ? (int) $current['level'] : 0, $level );
-		/* Merge per-level best scores, keeping the highest. */
-		$existing = isset( $current['scores'] ) && is_array( $current['scores'] ) ? $current['scores'] : array();
-		foreach ( $scores as $lvl => $val ) {
-			$lvl = absint( $lvl );
-			$val = absint( $val );
-			if ( $lvl >= 1 && $lvl <= 300 && $val > 0 ) {
-				$existing[ $lvl ] = max( isset( $existing[ $lvl ] ) ? (int) $existing[ $lvl ] : 0, $val );
+		if ( $is_reset ) {
+			$current['level']            = $level;
+			$current['scores']           = array();
+			$current['cumulative_score'] = 0;
+			$current['updated']          = time();
+			PointNet_Games_Leaderboard::reset_user_scores( $game_id, $user_id );
+		} else {
+			/* Save level directly (supports both forward progress and dev level jumps) */
+			$current['level'] = $level;
+			/* Merge per-level best scores, keeping the highest. */
+			$existing = isset( $current['scores'] ) && is_array( $current['scores'] ) ? $current['scores'] : array();
+			foreach ( $scores as $lvl => $val ) {
+				$lvl = absint( $lvl );
+				$val = absint( $val );
+				if ( $lvl >= 1 && $lvl <= 500 && $val > 0 ) {
+					$existing[ $lvl ] = max( isset( $existing[ $lvl ] ) ? (int) $existing[ $lvl ] : 0, $val );
+				}
 			}
+			$cumulative = 0;
+			foreach ( $existing as $val ) {
+				$cumulative += absint( $val );
+			}
+			$current['scores']           = $existing;
+			$current['cumulative_score'] = $cumulative;
+			$current['updated']          = time();
 		}
-		$cumulative = 0;
-		foreach ( $existing as $val ) { $cumulative += absint( $val ); }
-		$current['scores'] = $existing;
-		$current['cumulative_score'] = $cumulative;
-		$current['updated']    = time();
 
 		$progress[ $game_id ] = $current;
 		update_user_meta( $user_id, '_pointnet_games_progress', $progress );

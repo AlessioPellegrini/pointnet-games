@@ -830,7 +830,7 @@
 			var inputEl = document.getElementById('level-input');
 			if (inputEl) inputEl.value = 1;
 			saveGame();
-			if (typeof saveProgressToWP === 'function') saveProgressToWP(1, {});
+			if (typeof saveProgressToWP === 'function') saveProgressToWP(1, {}, true);
 			if (typeof submitScoreToWP === 'function') submitScoreToWP(0, 1, 0);
 			startGame();
 			if (actionPanel) actionPanel.classList.remove('open');

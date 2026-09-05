@@ -277,16 +277,15 @@ var bestScores = {};
 		}
 	}
 
-	/* PHASE 4: persist reached level + best score to the plugin. */
-	function saveProgressToWP(reachedLevel, scores) {
+	function saveProgressToWP(reachedLevel, scores, isReset) {
 		try {
 			if (typeof window.pointnetGamesAPI !== 'undefined' &&
 			    typeof window.pointnetGamesAPI.saveProgress === 'function') {
-				window.pointnetGamesAPI.saveProgress(reachedLevel, scores);
+				window.pointnetGamesAPI.saveProgress(reachedLevel, scores, isReset);
 			} else if (window.parent !== window) {
 				window.parent.postMessage({
 					type: 'pointnet-games:save-progress',
-					data: { level: reachedLevel, scores: scores }
+					data: { level: reachedLevel, scores: scores, reset: !!isReset }
 				}, '*');
 			}
 		} catch (e) {}

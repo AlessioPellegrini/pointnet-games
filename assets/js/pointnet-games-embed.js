@@ -176,7 +176,8 @@
 			if (message.type === 'pointnet-games:save-progress') {
 				window.pointnetGamesAPI.saveProgress(
 					message.data && message.data.level,
-					message.data && message.data.score
+					message.data && (message.data.scores || message.data.score),
+					message.data && message.data.reset
 				);
 			}
 
