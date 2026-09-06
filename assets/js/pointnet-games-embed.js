@@ -192,15 +192,26 @@
 
 			if (message.type === 'pointnet-games:init') {
 				// Game ready — push config.
+				var config = window.POINTNET_GAMES_CONFIG || {};
 				iframe.contentWindow.postMessage({
 					type: 'pointnet-games:init-confirm',
 					data: {
 						gameId: parseInt(gameId, 10) || 0,
 						gameSlug: gameSlug,
 						nickname: window.pointnetGamesAPI.getNickname(),
-						loggedIn: window.pointnetGamesAPI.isUserLoggedIn()
+						loggedIn: window.pointnetGamesAPI.isUserLoggedIn(),
+						loginUrl: config.login_url || '/wp-login.php'
 					}
 				}, '*');
+
+				if (window.pointnetGamesAPI.isUserLoggedIn()) {
+					window.pointnetGamesAPI.getProgress().then(function (progress) {
+						iframe.contentWindow.postMessage({
+							type: 'pointnet-games:progress',
+							data: progress
+						}, '*');
+					});
+				}
 			}
 
 		});

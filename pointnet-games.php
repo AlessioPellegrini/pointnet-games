@@ -152,6 +152,7 @@ function pointnet_games_enqueue_public_assets() {
 			'nonce'        => wp_create_nonce( 'wp_rest' ),
 			'is_logged_in' => is_user_logged_in(),
 			'nickname'     => pointnet_games_current_nickname(),
+			'login_url'    => esc_url_raw( wp_login_url() ),
 		)
 	);
 }

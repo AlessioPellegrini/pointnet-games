@@ -172,6 +172,61 @@ var bestScores = {};
 			}
 		}
 
+	function updateSplashPlayerStatus() {
+		var statusEl = document.getElementById('splash-player-status');
+		if (!statusEl) return;
+		var loggedIn = false;
+		var nick = '';
+		var loginUrl = '/wp-login.php';
+		if (typeof window.pointnetGamesAPI !== 'undefined' && typeof window.pointnetGamesAPI.isUserLoggedIn === 'function') {
+			loggedIn = window.pointnetGamesAPI.isUserLoggedIn();
+			nick = window.pointnetGamesAPI.getNickname();
+		} else if (window.__wpGamesState) {
+			loggedIn = !!window.__wpGamesState.loggedIn;
+			nick = window.__wpGamesState.nickname || '';
+			if (window.__wpGamesState.loginUrl) loginUrl = window.__wpGamesState.loginUrl;
+		}
+		var currentLvl = app.levelIndex + 1;
+		if (loggedIn) {
+			statusEl.innerHTML = '👤 Connesso come: <b style="color:#38bdf8;">' + (nick || 'Giocatore') + '</b> · Livello <b>' + currentLvl + '</b>';
+		} else {
+			statusEl.innerHTML = '🔒 <a href="' + loginUrl + '" target="_top" style="color:#38bdf8; text-decoration: underline; font-weight: 600;">Accedi al sito</a> per sincronizzare i progressi tra PC e cellulare';
+		}
+	}
+	window.updateSplashPlayerStatus = updateSplashPlayerStatus;
+
+	function applyServerProgress(data) {
+		if (!data || typeof data !== 'object') return;
+		var savedLevel = parseInt(data.level, 10) || 0;
+		if (savedLevel > 0 && !new URLSearchParams(window.location.search).get('level')) {
+			var targetIndex = Math.min(savedLevel - 1, 329);
+			var isClean = (app.tiles.length === 0) || (app.elapsed === 0 && app.history.length === 0);
+			if (isClean) {
+				var changed = (app.levelIndex !== targetIndex);
+				app.levelIndex = targetIndex;
+				window.__wpLoadedLevel = savedLevel;
+				saveGame();
+				var inputEl = document.getElementById('level-input');
+				if (inputEl) inputEl.value = savedLevel;
+				if (app.tiles.length > 0 && changed) {
+					startGame();
+					if (typeof showToast === 'function') {
+						showToast('☁️ Sincronizzato con il server: Livello ' + savedLevel);
+					}
+				}
+			}
+		}
+
+		if (data.scores && typeof data.scores === 'object') {
+			for (var lvl in data.scores) {
+				var val = parseInt(data.scores[lvl], 10) || 0;
+				if (val > (bestScores[lvl] || 0)) bestScores[lvl] = val;
+			}
+			saveScores();
+		}
+		updateSplashPlayerStatus();
+	}
+
 		window.addEventListener('message', function (event) {
 			var msg = event.data;
 			if (!msg || typeof msg !== 'object' || !msg.type) return;
@@ -181,19 +236,13 @@ var bestScores = {};
 				window.__wpGamesState.gameId = msg.data.gameId;
 				window.__wpGamesState.nickname = msg.data.nickname;
 				window.__wpGamesState.loggedIn = msg.data.loggedIn;
+				window.__wpGamesState.loginUrl = msg.data.loginUrl || '/wp-login.php';
+				updateSplashPlayerStatus();
 			}
 
 			/* PHASE 4: saved WP progress (only before the game starts) */
 			if (msg.type === 'pointnet-games:progress' && msg.data) {
-				var savedLevel = parseInt(msg.data.level, 10) || 0;
-				/* Only apply if the user hasn't started playing yet and
-				   no explicit ?level= override is present. */
-				if (app.tiles.length === 0 &&
-				    !new URLSearchParams(window.location.search).get('level') &&
-				    savedLevel > 0) {
-					app.levelIndex = Math.min(savedLevel - 1, 329);
-					window.__wpLoadedLevel = savedLevel;
-				}
+				applyServerProgress(msg.data);
 			}
 
 			/* v1.3.4: leaderboard response from parent WordPress plugin */
@@ -255,22 +304,7 @@ var bestScores = {};
 		if (typeof window.pointnetGamesAPI !== 'undefined' &&
 		    typeof window.pointnetGamesAPI.getProgress === 'function') {
 			window.pointnetGamesAPI.getProgress().then(function (progress) {
-				var savedLevel = parseInt(progress.level, 10) || 0;
-				if (app.tiles.length === 0 &&
-				    !new URLSearchParams(window.location.search).get('level') &&
-				    savedLevel > 0) {
-					app.levelIndex = Math.min(savedLevel - 1, 329);
-					window.__wpLoadedLevel = savedLevel;
-				}
-				/* Merge server-side best scores so the cumulative total
-				   stays coherent across devices. */
-				if (progress.scores && typeof progress.scores === 'object') {
-					for (var lvl in progress.scores) {
-						var val = parseInt(progress.scores[lvl], 10) || 0;
-						if (val > (bestScores[lvl] || 0)) bestScores[lvl] = val;
-					}
-					saveScores();
-				}
+				applyServerProgress(progress);
 			});
 		} else if (inIframe) {
 			window.parent.postMessage({ type: 'pointnet-games:get-progress' }, '*');
@@ -335,16 +369,13 @@ var bestScores = {};
 		};
 	}
 
-		readUrlParams();
+	readUrlParams();
 	if (!new URLSearchParams(window.location.search).get('level')) loadGame();
 	loadStars();
 	loadScores();
 	window.addEventListener('beforeunload', saveGame);
 
-	/* PHASE 4: logged-in users resume from their saved WP level.
-	   The board isn't rendered until PLAY, so this races cleanly with
-	   the rest of the boot and only applies when no ?level= override. */
-	loadProgressFromWP();
-
 	initWPGamesBridge();
 	wirePostMessageAPI();
+	loadProgressFromWP();
+	updateSplashPlayerStatus();
