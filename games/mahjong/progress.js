@@ -228,6 +228,8 @@ var bestScores = {};
 	}
 
 		window.addEventListener('message', function (event) {
+			if (event.origin !== window.location.origin || event.source !== window.parent) return;
+
 			var msg = event.data;
 			if (!msg || typeof msg !== 'object' || !msg.type) return;
 
@@ -257,6 +259,12 @@ var bestScores = {};
 	   DRAWER LEADERBOARD RENDERING (v1.3.4)
 	   Displays Top 10 absolute players with medals and live formatting.
 	   ============================================================ */
+	function escapeHTML(str) {
+		var p = document.createElement('p');
+		p.textContent = str == null ? '' : String(str);
+		return p.innerHTML;
+	}
+
 	function renderDrawerLeaderboard(entries) {
 		var listEl = document.getElementById('drawer-lb-list');
 		if (!listEl) return;
@@ -273,9 +281,9 @@ var bestScores = {};
 			var name = e.nickname || e.player_name || e.user_login || 'Giocatore';
 			var scoreFormatted = Number(e.score || 0).toLocaleString();
 			html += '<div class="drawer-lb-row">' +
-				'<span class="drawer-lb-rank ' + rankClass + '">' + rankBadge + '</span>' +
-				'<span class="drawer-lb-name" title="' + name + '">' + name + '</span>' +
-				'<span class="drawer-lb-score">' + scoreFormatted + ' pt</span>' +
+				'<span class="drawer-lb-rank ' + rankClass + '">' + escapeHTML(rankBadge) + '</span>' +
+				'<span class="drawer-lb-name" title="' + escapeHTML(name) + '">' + escapeHTML(name) + '</span>' +
+				'<span class="drawer-lb-score">' + escapeHTML(scoreFormatted) + ' pt</span>' +
 			'</div>';
 		}
 		listEl.innerHTML = html;
@@ -291,7 +299,7 @@ var bestScores = {};
 				renderDrawerLeaderboard(entries);
 			});
 		} else if (window.parent !== window) {
-			window.parent.postMessage({ type: 'pointnet-games:get-leaderboard', data: { limit: 10 } }, '*');
+			window.parent.postMessage({ type: 'pointnet-games:get-leaderboard', data: { limit: 10 } }, window.location.origin);
 		} else {
 			renderDrawerLeaderboard([]);
 		}
@@ -307,7 +315,7 @@ var bestScores = {};
 				applyServerProgress(progress);
 			});
 		} else if (inIframe) {
-			window.parent.postMessage({ type: 'pointnet-games:get-progress' }, '*');
+			window.parent.postMessage({ type: 'pointnet-games:get-progress' }, window.location.origin);
 		}
 	}
 
@@ -320,7 +328,7 @@ var bestScores = {};
 				window.parent.postMessage({
 					type: 'pointnet-games:save-progress',
 					data: { level: reachedLevel, scores: scores, reset: !!isReset }
-				}, '*');
+				}, window.location.origin);
 			}
 		} catch (e) {}
 	}
@@ -344,7 +352,7 @@ var bestScores = {};
 				window.parent.postMessage({
 					type: 'pointnet-games:submit-score',
 					data: payload
-				}, '*');
+				}, window.location.origin);
 			}
 		} catch (e) {}
 	}

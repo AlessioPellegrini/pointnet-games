@@ -1418,6 +1418,9 @@
 
 		// External start message from the parent page "PLAY" button.
 		window.addEventListener('message', function (event) {
+			if (event.origin !== window.location.origin || event.source !== window.parent) {
+				return;
+			}
 			var msg = event.data;
 			if (!msg || typeof msg !== 'object' || msg.type !== 'pointnet-games:start') {
 				return;
@@ -1443,11 +1446,12 @@
 				if (typeof window.pointnetGamesAPI !== 'undefined') {
 					window.pointnetGamesAPI._setGameId(parseInt(gameId, 10) || 0);
 				} else {
-					window.parent.postMessage({ type: 'pointnet-games:init' }, '*');
+					window.parent.postMessage({ type: 'pointnet-games:init' }, window.location.origin);
 				}
 			}
 
 			window.addEventListener('message', function (event) {
+				if (event.origin !== window.location.origin || event.source !== window.parent) return;
 				var msg = event.data;
 				if (!msg || typeof msg !== 'object' || !msg.type) return;
 
@@ -1471,9 +1475,10 @@
 						window.parent.postMessage({
 							type: 'pointnet-games:submit-score',
 							data: { score: score, meta: meta }
-						}, '*');
+						}, window.location.origin);
 
 						var responseHandler = function (event) {
+							if (event.origin !== window.location.origin || event.source !== window.parent) return;
 							var msg = event.data;
 							if (msg && msg.type === 'pointnet-games:score-submitted') {
 								window.removeEventListener('message', responseHandler);
@@ -1494,9 +1499,10 @@
 						window.parent.postMessage({
 							type: 'pointnet-games:get-leaderboard',
 							data: { limit: limit || 10, difficulty: difficulty || '' }
-						}, '*');
+						}, window.location.origin);
 
 						var responseHandler = function (event) {
+							if (event.origin !== window.location.origin || event.source !== window.parent) return;
 							var msg = event.data;
 							if (msg && msg.type === 'pointnet-games:leaderboard') {
 								window.removeEventListener('message', responseHandler);

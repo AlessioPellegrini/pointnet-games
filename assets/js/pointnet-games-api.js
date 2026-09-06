@@ -118,7 +118,7 @@
 		 *
 		 * @return {Promise}
 		 */
-		submitScore: function (score, meta, callback) {
+		submitScore: function (score, meta, callback, sessionToken) {
 			score = parseInt(score, 10) || 0;
 			meta = meta || {};
 
@@ -134,9 +134,12 @@
 				return Promise.resolve(errRes);
 			}
 
+			var token = sessionToken || this._currentSessionToken || (meta && meta.session_token) || '';
+
 			var payload = {
 				score: score,
-				meta: meta
+				meta: meta,
+				session_token: token
 			};
 
 			var currentGameId = this._currentGameId;
@@ -216,10 +219,16 @@
 		 */
 		startSession: function () {
 			var currentGameId = this._currentGameId;
+			var self = this;
 
 			return request('/game/' + encodeURIComponent(currentGameId) + '/session', {
 				method: 'POST',
 				body: JSON.stringify({})
+			}).then(function (session) {
+				if (session && session.token) {
+					self._currentSessionToken = session.token;
+				}
+				return session;
 			});
 		},
 

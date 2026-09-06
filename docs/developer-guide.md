@@ -174,31 +174,42 @@ Se per qualche motivo `pointnetGamesAPI` non è disponibile direttamente nell'if
 
 ### Messaggi dal gioco → plugin
 
+Per garantire l'isolamento e la sicurezza, specifica sempre `window.location.origin` come targetOrigin (evita `'*'`).
+
 ```javascript
-// Inviare un punteggio
+// Inviare un punteggio (il session_token è gestito automaticamente dal bridge)
 window.parent.postMessage({
     type: 'pointnet-games:submit-score',
     data: { score: 1500, meta: { level: 5 } }
-}, '*');
+}, window.location.origin);
 
 // Richiedere classifica
 window.parent.postMessage({
     type: 'pointnet-games:get-leaderboard',
     data: { limit: 10 }
-}, '*');
+}, window.location.origin);
 
 // Richiedere fullscreen (overlay CSS)
-window.parent.postMessage({ type: 'pointnet-games:fullscreen-request' }, '*');
+window.parent.postMessage({ type: 'pointnet-games:fullscreen-request' }, window.location.origin);
 
 // Uscire dal fullscreen
-window.parent.postMessage({ type: 'pointnet-games:fullscreen-exit' }, '*');
+window.parent.postMessage({ type: 'pointnet-games:fullscreen-exit' }, window.location.origin);
 ```
 
 ### Messaggi dal plugin → gioco
 
+Verifica sempre l'origine (`event.origin`) e la sorgente (`event.source`):
+
 ```javascript
 window.addEventListener('message', function (event) {
+    // Verifica rigorosa dell'origine e del parent window
+    if (event.origin !== window.location.origin || event.source !== window.parent) {
+        return;
+    }
+
     var msg = event.data;
+    if (!msg || typeof msg !== 'object') return;
+
     if (msg.type === 'pointnet-games:score-submitted') {
         // msg.data = { success: true, score_id: 123, position: 4 }
     }
@@ -218,6 +229,9 @@ Il gioco **dovrebbe** gestirlo così:
 
 ```javascript
 window.addEventListener('message', function (event) {
+    if (event.origin !== window.location.origin || event.source !== window.parent) {
+        return;
+    }
     var msg = event.data;
     if (msg && msg.type === 'pointnet-games:start') {
         // 1. Nascondi la splash screen (se presente)

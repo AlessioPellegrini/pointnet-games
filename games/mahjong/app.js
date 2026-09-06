@@ -261,6 +261,9 @@
 
 	// External start message from the parent page "PLAY" button.
 	window.addEventListener('message', function (event) {
+		if (event.origin !== window.location.origin || event.source !== window.parent) {
+			return;
+		}
 		var msg = event.data;
 		if (!msg || typeof msg !== 'object' || msg.type !== 'pointnet-games:start') {
 			return;

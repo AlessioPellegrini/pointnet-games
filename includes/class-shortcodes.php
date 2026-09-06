@@ -129,10 +129,12 @@ class PointNet_Games_Shortcodes {
 				$html .= '<td>' . esc_html( $entry['game_title'] ) . '</td>';
 			}
 
-			if ( $atts['show_meta'] ) {
+			if ( $atts['show_meta'] && ! empty( $entry['meta'] ) && is_array( $entry['meta'] ) ) {
 				$meta_parts = array();
 				foreach ( $entry['meta'] as $meta_key => $meta_value ) {
-					$meta_parts[] = esc_html( $meta_key ) . ': ' . esc_html( $meta_value );
+					if ( is_scalar( $meta_value ) ) {
+						$meta_parts[] = esc_html( (string) $meta_key ) . ': ' . esc_html( (string) $meta_value );
+					}
 				}
 				$html .= '<td>' . implode( ', ', $meta_parts ) . '</td>';
 			}

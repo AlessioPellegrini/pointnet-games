@@ -47,7 +47,7 @@ class PointNet_Games_API {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'submit_score' ),
-				'permission_callback' => array( $this, 'verify_rest_auth' ),
+				'permission_callback' => array( $this, 'verify_authenticated_user' ),
 			)
 		);
 
@@ -57,7 +57,7 @@ class PointNet_Games_API {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'create_session' ),
-				'permission_callback' => array( $this, 'verify_rest_auth' ),
+				'permission_callback' => array( $this, 'verify_authenticated_user' ),
 			)
 		);
 
@@ -98,7 +98,7 @@ class PointNet_Games_API {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_progress' ),
-				'permission_callback' => 'is_user_logged_in',
+				'permission_callback' => array( $this, 'verify_authenticated_user' ),
 			)
 		);
 
@@ -108,7 +108,7 @@ class PointNet_Games_API {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( $this, 'save_progress' ),
-				'permission_callback' => 'is_user_logged_in',
+				'permission_callback' => array( $this, 'verify_authenticated_user' ),
 			)
 		);
 	}
@@ -184,8 +184,53 @@ class PointNet_Games_API {
 			);
 		}
 
-		// Rate limiting check.
-		if ( ! PointNet_Games_Leaderboard::check_rate_limit( $game_id ) ) {
+		$user_id = get_current_user_id();
+
+		// Check against max_score from manifest.
+		$manifest  = get_post_meta( $game_id, '_pointnet_games_manifest', true );
+		$max_score = ( is_array( $manifest ) && isset( $manifest['max_score'] ) ) ? absint( $manifest['max_score'] ) : 0;
+		if ( $max_score > 0 && $score > $max_score ) {
+			return new WP_Error(
+				'pointnet_games_score_exceeds_limit',
+				__( 'Score exceeds the maximum permitted for this game.', 'pointnet-games' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Anti-cheat: Validate game session token and minimum duration.
+		$session_token = isset( $params['session_token'] ) ? sanitize_text_field( $params['session_token'] ) : '';
+		if ( empty( $session_token ) ) {
+			return new WP_Error(
+				'pointnet_games_missing_session',
+				__( 'A valid game session token is required to submit scores.', 'pointnet-games' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		$session_key = 'pointnet_games_session_' . $session_token;
+		$session     = get_transient( $session_key );
+		delete_transient( $session_key ); // One-time token consumption prevents replay attacks.
+
+		if ( ! is_array( $session ) || (int) ( $session['game_id'] ?? 0 ) !== $game_id || (int) ( $session['user_id'] ?? 0 ) !== $user_id ) {
+			return new WP_Error(
+				'pointnet_games_invalid_session',
+				__( 'Invalid or expired game session.', 'pointnet-games' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		// Plausibility check: games cannot be completed in less than 5 seconds.
+		$elapsed = time() - (int) ( $session['started_at'] ?? 0 );
+		if ( $elapsed < 5 ) {
+			return new WP_Error(
+				'pointnet_games_impossible_time',
+				__( 'Game duration is incoherently short.', 'pointnet-games' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Rate limiting check (user ID + IP).
+		if ( ! PointNet_Games_Leaderboard::check_rate_limit( $game_id, $user_id ) ) {
 			return new WP_Error(
 				'pointnet_games_rate_limited',
 				__( 'Too many submissions, try again in a minute.', 'pointnet-games' ),
@@ -193,20 +238,11 @@ class PointNet_Games_API {
 			);
 		}
 
-		if ( ! is_user_logged_in() ) {
-			return new WP_Error(
-				'pointnet_games_login_required',
-				__( 'You must be logged in to save your score to the leaderboard.', 'pointnet-games' ),
-				array( 'status' => 401 )
-			);
-		}
-
-		$user_id  = get_current_user_id();
 		$nickname = pointnet_games_current_nickname();
-		$meta     = isset( $params['meta'] ) && is_array( $params['meta'] ) ? $params['meta'] : array();
+		$raw_meta = isset( $params['meta'] ) && is_array( $params['meta'] ) ? $params['meta'] : array();
 
-		// Sanitize meta recursively.
-		$meta = $this->sanitize_meta( $meta );
+		// Sanitize meta safely without nesting.
+		$meta = $this->sanitize_meta( $raw_meta );
 
 		$result = PointNet_Games_Leaderboard::insert_score( $game_id, $score, $nickname, $meta, $user_id );
 
@@ -238,13 +274,16 @@ class PointNet_Games_API {
 	 */
 	public function create_session( $request ) {
 		$game_id  = (int) $request['id'];
+		$user_id  = get_current_user_id();
 		$token    = wp_generate_password( 32, false );
 		$expires  = time() + HOUR_IN_SECONDS;
 
 		$session = array(
-			'token'   => $token,
-			'expires' => $expires,
-			'game_id' => $game_id,
+			'token'      => $token,
+			'user_id'    => $user_id,
+			'started_at' => time(),
+			'expires'    => $expires,
+			'game_id'    => $game_id,
 		);
 
 		set_transient( 'pointnet_games_session_' . $token, $session, HOUR_IN_SECONDS );
@@ -363,6 +402,17 @@ class PointNet_Games_API {
 			);
 		}
 
+		// Rate limiting: throttle progress saves to prevent DB spam (max 1 save per 3s).
+		$progress_limit_key = 'png_prog_limit_' . $user_id . '_' . $game_id;
+		if ( get_transient( $progress_limit_key ) ) {
+			return new WP_Error(
+				'pointnet_games_rate_limited',
+				__( 'Too many progress saves. Please wait a moment.', 'pointnet-games' ),
+				array( 'status' => 429 )
+			);
+		}
+		set_transient( $progress_limit_key, 1, 3 );
+
 		$params = $request->get_json_params();
 		if ( ! is_array( $params ) ) {
 			$params = $request->get_params();
@@ -421,25 +471,53 @@ class PointNet_Games_API {
 	}
 
 	/**
-	 * Verify nonce for REST requests.
+	 * Verify authentication and nonce for sensitive REST requests.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return true|WP_Error
+	 */
+	public function verify_authenticated_user( $request ) {
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error(
+				'rest_not_logged_in',
+				__( 'Authentication required.', 'pointnet-games' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		$nonce = $request->get_header( 'X-WP-Nonce' );
+		if ( ! $nonce ) {
+			return new WP_Error(
+				'rest_missing_nonce',
+				__( 'Missing X-WP-Nonce header.', 'pointnet-games' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		$nonce = sanitize_text_field( $nonce );
+
+		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			return new WP_Error(
+				'rest_invalid_nonce',
+				__( 'Invalid or expired nonce.', 'pointnet-games' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Backwards-compatibility wrapper for REST auth.
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 *
 	 * @return bool
 	 */
 	public function verify_rest_auth( $request ) {
-		$nonce = $request->get_header( 'X-WP-Nonce' );
-		if ( ! $nonce ) {
-			return false;
-		}
-
-		$nonce = sanitize_text_field( $nonce );
-
-		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-			return false;
-		}
-
-		return true;
+		$check = $this->verify_authenticated_user( $request );
+		return true === $check;
 	}
 
 	/**
@@ -465,22 +543,30 @@ class PointNet_Games_API {
 	}
 
 	/**
-	 * Sanitize nested meta arrays.
+	 * Sanitize meta attributes strictly. Rejects nested arrays to prevent DoS.
+	 * Whitelists common gameplay meta keys and ensures scalar values.
 	 *
 	 * @param array $meta Meta array to sanitize.
 	 *
 	 * @return array
 	 */
 	private function sanitize_meta( $meta ) {
-		$clean = array();
+		$allowed_keys = array( 'difficulty', 'level', 'time_seconds', 'time', 'moves', 'combo', 'hints', 'shuffle' );
+		$clean        = array();
+
 		foreach ( $meta as $key => $value ) {
 			$key = sanitize_key( $key );
-			if ( is_array( $value ) ) {
-				$clean[ $key ] = $this->sanitize_meta( $value );
-			} elseif ( is_numeric( $value ) ) {
+			if ( ! in_array( $key, $allowed_keys, true ) ) {
+				continue;
+			}
+			// Only scalar values allowed - strictly reject nested arrays/objects.
+			if ( is_array( $value ) || is_object( $value ) ) {
+				continue;
+			}
+			if ( is_numeric( $value ) ) {
 				$clean[ $key ] = (float) $value;
 			} else {
-				$clean[ $key ] = sanitize_text_field( $value );
+				$clean[ $key ] = sanitize_text_field( (string) $value );
 			}
 		}
 

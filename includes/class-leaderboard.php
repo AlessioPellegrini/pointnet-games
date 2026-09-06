@@ -292,20 +292,31 @@ class PointNet_Games_Leaderboard {
 	}
 
 	/**
-	 * Check rate limiting for a given IP.
+	 * Check rate limiting for a given user and IP.
 	 *
 	 * @param int $game_id Game post ID.
+	 * @param int $user_id WP User ID.
 	 *
 	 * @return bool True if allowed, false if rate limited.
 	 */
-	public static function check_rate_limit( $game_id ) {
+	public static function check_rate_limit( $game_id, $user_id = 0 ) {
 		global $wpdb;
 
-		$settings = get_option( 'pointnet_games_settings', array() );
-		$rate_limit = (int) $settings['rate_limit'] ?? 5;
+		$settings   = get_option( 'pointnet_games_settings', array() );
+		$rate_limit = isset( $settings['rate_limit'] ) ? (int) $settings['rate_limit'] : 5;
 
 		if ( $rate_limit <= 0 ) {
 			return true;
+		}
+
+		// User-based rate limiting via transient (persists across IP/network shifts).
+		if ( $user_id > 0 ) {
+			$user_key = 'png_rl_u_' . (int) $user_id . '_' . (int) $game_id;
+			$attempts = (int) get_transient( $user_key );
+			if ( $attempts >= $rate_limit ) {
+				return false;
+			}
+			set_transient( $user_key, $attempts + 1, MINUTE_IN_SECONDS );
 		}
 
 		$table   = pointnet_games_scores_table();

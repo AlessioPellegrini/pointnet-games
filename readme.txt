@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.2.5
+Stable tag: 1.2.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,13 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.2.6 =
+* Security hardening: strict unified `permission_callback` verifying authentication and REST nonce on all protected endpoints.
+* Anti-cheat enforcement: server-side validation against `max_score` declared in manifest, one-time anti-cheat game session tokens, and minimum game duration plausibility check.
+* Iframe isolation & postMessage security: added `sandbox="allow-scripts allow-same-origin"` to game iframe, strict origin verification (`event.origin === window.location.origin`), and replaced wildcard targetOrigin `'*'` with explicit origin.
+* Robust data sanitization: strictly scalar metadata sanitization avoiding PHP 8 TypeError DoS, DOM XSS prevention in leaderboard drawer, and hybrid user-ID/IP rate limiting.
+* Privacy: eliminated nonce leakage from iframe query string parameters.
 
 = 1.2.5 =
 * Enforce registered and logged-in users only for leaderboard highscores and progress persistence

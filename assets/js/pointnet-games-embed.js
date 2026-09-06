@@ -106,15 +106,30 @@
 		var gameId = element.getAttribute('data-game-id');
 		var gameSlug = element.getAttribute('data-game-slug');
 
-		// Forward pointnetGamesAPI to the iframe by appending query params.
+		// Forward only gameId via query params to the iframe (never expose nonce in URL).
 		var src = iframe.getAttribute('src');
 		var sep = src.indexOf('?') === -1 ? '?' : '&';
-		iframe.setAttribute('src', src + sep + 'pointnet_game_id=' + encodeURIComponent(gameId) + '&pointnet_games_nonce=' + encodeURIComponent(window.POINTNET_GAMES_CONFIG.nonce));
+		iframe.setAttribute('src', src + sep + 'pointnet_game_id=' + encodeURIComponent(gameId));
 
-		// Relay messages from iframe to the API.
+		var activeSessionToken = '';
+
+		function refreshSessionToken() {
+			if (window.pointnetGamesAPI && window.pointnetGamesAPI.isUserLoggedIn()) {
+				window.pointnetGamesAPI.startSession().then(function (session) {
+					if (session && session.token) {
+						activeSessionToken = session.token;
+					}
+				}).catch(function () {});
+			}
+		}
+
+		// Initial session setup.
+		refreshSessionToken();
+
+		// Relay messages from iframe to the API with strict origin check.
 		window.addEventListener('message', function (event) {
-			// Only accept messages from our game iframes.
-			if (event.source !== iframe.contentWindow) {
+			// Rigorously verify both origin and source window.
+			if (event.origin !== window.location.origin || event.source !== iframe.contentWindow) {
 				return;
 			}
 
@@ -124,19 +139,28 @@
 			}
 
 			if (message.type === 'pointnet-games:submit-score') {
+				var tokenToUse = activeSessionToken || (message.data && message.data.session_token) || '';
+
 				window.pointnetGamesAPI.submitScore(
 					message.data && message.data.score,
-					message.data && message.data.meta
+					message.data && message.data.meta,
+					null,
+					tokenToUse
 				).then(function (response) {
+					// Immediately refresh session for the next round.
+					refreshSessionToken();
+
 					iframe.contentWindow.postMessage({
 						type: 'pointnet-games:score-submitted',
 						data: response
-					}, '*');
+					}, window.location.origin);
 				}).catch(function (error) {
+					refreshSessionToken();
+
 					iframe.contentWindow.postMessage({
 						type: 'pointnet-games:score-error',
 						data: { message: error.message }
-					}, '*');
+					}, window.location.origin);
 				});
 			}
 
@@ -146,7 +170,7 @@
 						iframe.contentWindow.postMessage({
 							type: 'pointnet-games:leaderboard',
 							data: entries
-						}, '*');
+						}, window.location.origin);
 					});
 			}
 
@@ -157,7 +181,7 @@
 						nickname: window.pointnetGamesAPI.getNickname(),
 						loggedIn: window.pointnetGamesAPI.isUserLoggedIn()
 					}
-				}, '*');
+				}, window.location.origin);
 			}
 
 			if (message.type === 'pointnet-games:set-nickname') {
@@ -169,7 +193,7 @@
 					iframe.contentWindow.postMessage({
 						type: 'pointnet-games:progress',
 						data: progress
-					}, '*');
+					}, window.location.origin);
 				});
 			}
 
@@ -191,6 +215,8 @@
 			}
 
 			if (message.type === 'pointnet-games:init') {
+				refreshSessionToken();
+
 				// Game ready — push config.
 				var config = window.POINTNET_GAMES_CONFIG || {};
 				iframe.contentWindow.postMessage({
@@ -202,14 +228,14 @@
 						loggedIn: window.pointnetGamesAPI.isUserLoggedIn(),
 						loginUrl: config.login_url || '/wp-login.php'
 					}
-				}, '*');
+				}, window.location.origin);
 
 				if (window.pointnetGamesAPI.isUserLoggedIn()) {
 					window.pointnetGamesAPI.getProgress().then(function (progress) {
 						iframe.contentWindow.postMessage({
 							type: 'pointnet-games:progress',
 							data: progress
-						}, '*');
+						}, window.location.origin);
 					});
 				}
 			}
@@ -310,7 +336,7 @@
 				// 3. Tell the game to skip its splash and start playing.
 				var iframe = embedEl.querySelector('iframe');
 				if (iframe && iframe.contentWindow) {
-					iframe.contentWindow.postMessage({ type: 'pointnet-games:start' }, '*');
+					iframe.contentWindow.postMessage({ type: 'pointnet-games:start' }, window.location.origin);
 				}
 			});
 		}
