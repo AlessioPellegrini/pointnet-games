@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,12 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.1 =
+* Leaderboard: fixed global multi-game leaderboard query to isolate best score per game per player so all installed games appear simultaneously.
+* Minesweeper: instant leaderboard submission on every completed level in Scalata mode (starting from Level 1).
+* Anti-cheat: tuned minimum plausibility duration to prevent rejecting rapid mobile taps on small boards.
+* Shortcode: added [pointnet_games_leaderboard] plural alias with automatic global=1 default.
 
 = 1.3.0 =
 * GitHub Release Auto-Updater: integrated native GitHub releases updater (matching PointNet MailGuard architecture) for direct 1-click plugin updates and dashboard notifications within WordPress admin.
