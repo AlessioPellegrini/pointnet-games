@@ -130,13 +130,28 @@ class PointNet_Games_Shortcodes {
 			}
 
 			if ( $atts['show_meta'] && ! empty( $entry['meta'] ) && is_array( $entry['meta'] ) ) {
-				$meta_parts = array();
+				$meta_parts    = array();
+				$excluded_keys = array( 'difficulty', 'label', 'session_token', 'time_seconds', 'level_time_seconds', 'level_reached', 'won' );
+
 				foreach ( $entry['meta'] as $meta_key => $meta_value ) {
+					if ( in_array( strtolower( (string) $meta_key ), $excluded_keys, true ) ) {
+						continue;
+					}
 					if ( is_scalar( $meta_value ) ) {
-						$meta_parts[] = esc_html( (string) $meta_key ) . ': ' . esc_html( (string) $meta_value );
+						$label = ucfirst( str_replace( '_', ' ', (string) $meta_key ) );
+						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html( $label ) . ':</strong> ' . esc_html( (string) $meta_value ) . '</span>';
 					}
 				}
-				$html .= '<td>' . implode( ', ', $meta_parts ) . '</td>';
+
+				if ( empty( $meta_parts ) ) {
+					foreach ( $entry['meta'] as $meta_key => $meta_value ) {
+						if ( is_scalar( $meta_value ) && ! in_array( strtolower( (string) $meta_key ), array( 'session_token' ), true ) ) {
+							$meta_parts[] = '<span class="png-meta-item">' . esc_html( (string) $meta_key ) . ': ' . esc_html( (string) $meta_value ) . '</span>';
+						}
+					}
+				}
+
+				$html .= '<td class="pointnet-games-meta-cell">' . implode( ' <span class="png-meta-sep">&bull;</span> ', $meta_parts ) . '</td>';
 			}
 
 			$html .= '<td>' . esc_html( number_format_i18n( $entry['score'] ) ) . '</td>';

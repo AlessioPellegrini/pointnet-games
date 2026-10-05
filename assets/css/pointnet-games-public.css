@@ -246,6 +246,26 @@
 	color: #b8860b;
 }
 
+.pointnet-games-meta-cell {
+	font-size: 0.88em;
+	color: #4b5563;
+}
+
+.png-meta-item {
+	display: inline-block;
+	white-space: nowrap;
+}
+
+.png-meta-item strong {
+	color: #1f2937;
+	font-weight: 600;
+}
+
+.png-meta-sep {
+	color: #9ca3af;
+	margin: 0 4px;
+}
+
 /* -------------------- Games Grid -------------------- */
 
 .pointnet-games-grid {

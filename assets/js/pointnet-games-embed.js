@@ -165,7 +165,9 @@
 			}
 
 			if (message.type === 'pointnet-games:get-leaderboard') {
-				window.pointnetGamesAPI.getLeaderboard(message.data && message.data.limit || 10)
+				var limit = (message.data && message.data.limit) || 10;
+				var diff = (message.data && message.data.difficulty) || '';
+				window.pointnetGamesAPI.getLeaderboard(limit, null, diff)
 					.then(function (entries) {
 						iframe.contentWindow.postMessage({
 							type: 'pointnet-games:leaderboard',

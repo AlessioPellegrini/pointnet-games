@@ -263,7 +263,12 @@ class PointNet_Games_API {
 			);
 		}
 
-		$position = PointNet_Games_Leaderboard::get_player_position( $game_id, $user_id, $nickname );
+		$difficulty = '';
+		if ( ! empty( $params['meta']['difficulty'] ) && is_string( $params['meta']['difficulty'] ) ) {
+			$difficulty = sanitize_text_field( $params['meta']['difficulty'] );
+		}
+
+		$position = PointNet_Games_Leaderboard::get_player_position( $game_id, $user_id, $nickname, $difficulty );
 
 		return rest_ensure_response(
 			array(

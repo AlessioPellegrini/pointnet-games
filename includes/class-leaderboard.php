@@ -199,33 +199,41 @@ class PointNet_Games_Leaderboard {
 	/**
 	 * Get a player's best position for a given game.
 	 *
-	 * @param int    $game_id  Game post ID.
-	 * @param int    $user_id  WP user ID.
-	 * @param string $nickname Optional nickname (unused, kept for compatibility).
+	 * @param int    $game_id    Game post ID.
+	 * @param int    $user_id    WP user ID.
+	 * @param string $nickname   Optional nickname (unused, kept for compatibility).
+	 * @param string $difficulty Optional difficulty filter.
 	 *
 	 * @return int|null Position (1-based) or null if no score.
 	 */
-	public static function get_player_position( $game_id, $user_id = 0, $nickname = '' ) {
+	public static function get_player_position( $game_id, $user_id = 0, $nickname = '', $difficulty = '' ) {
 		global $wpdb;
 
-		$table   = pointnet_games_scores_table();
-		$game_id = absint( $game_id );
-		$user_id = absint( $user_id );
+		$table      = pointnet_games_scores_table();
+		$game_id    = absint( $game_id );
+		$user_id    = absint( $user_id );
+		$difficulty = sanitize_text_field( $difficulty );
 
 		if ( ! $user_id ) {
 			return null;
 		}
 
 		$settings           = get_option( 'pointnet_games_settings', array() );
-		$require_validation = (int) $settings['require_validation'] ?? 0;
+		$require_validation = (int) ( $settings['require_validation'] ?? 0 );
 
 		$best_score = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT MAX(score) FROM %i WHERE ( %d = 0 OR validated = 1 ) AND user_id = %d AND game_id = %d',
+				"SELECT MAX(score) FROM %i
+				 WHERE ( %d = 0 OR validated = 1 )
+				   AND user_id = %d
+				   AND game_id = %d
+				   AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(score_meta, '$.difficulty')) = %s )",
 				$table,
 				$require_validation,
 				$user_id,
-				$game_id
+				$game_id,
+				$difficulty,
+				$difficulty
 			)
 		);
 
@@ -235,10 +243,17 @@ class PointNet_Games_Leaderboard {
 
 		$position = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) + 1 FROM %i WHERE ( %d = 0 OR validated = 1 ) AND user_id > 0 AND game_id = %d AND score > %d',
+				"SELECT COUNT(DISTINCT user_id) + 1 FROM %i
+				 WHERE ( %d = 0 OR validated = 1 )
+				   AND user_id > 0
+				   AND game_id = %d
+				   AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(score_meta, '$.difficulty')) = %s )
+				   AND score > %d",
 				$table,
 				$require_validation,
 				$game_id,
+				$difficulty,
+				$difficulty,
 				(int) $best_score
 			)
 		);

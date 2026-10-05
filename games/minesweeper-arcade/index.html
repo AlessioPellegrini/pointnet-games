@@ -798,10 +798,10 @@
 		   15 ARCADE PROGRESSIVE LEVELS (Balanced Mobile-First)
 		   ============================================================ */
 		var CLASSIC_PRESETS = {
-			easy:    { rows: 9,  cols: 9,  mines: 10,  label: 'Facile',    key: 'easy',    par: 120 },
-			medium:  { rows: 16, cols: 16, mines: 40,  label: 'Medio',     key: 'medium',  par: 300 },
-			hard:    { rows: 16, cols: 30, mines: 99,  label: 'Difficile', key: 'hard',    par: 600 },
-			extreme: { rows: 18, cols: 32, mines: 150, label: 'Estremo',   key: 'extreme', par: 900 }
+			easy:    { rows: 9,  cols: 9,  mines: 10,  label: 'Facile',    key: 'easy',    par: 120, baseScore: 5000,  maxBonus: 5000 },
+			medium:  { rows: 16, cols: 16, mines: 40,  label: 'Medio',     key: 'medium',  par: 300, baseScore: 15000, maxBonus: 10000 },
+			hard:    { rows: 16, cols: 30, mines: 99,  label: 'Difficile', key: 'hard',    par: 600, baseScore: 35000, maxBonus: 15000 },
+			extreme: { rows: 18, cols: 32, mines: 150, label: 'Estremo',   key: 'extreme', par: 900, baseScore: 70000, maxBonus: 30000 }
 		};
 
 		var SCALATA_LEVELS = [
@@ -1905,14 +1905,16 @@
 
 			if (state.mode === 'classic') {
 				var preset = CLASSIC_PRESETS[state.classicDifficulty] || CLASSIC_PRESETS.easy;
-				var par = preset.par || 300;
-				var speedBonus = Math.max(0, (par - state.elapsed) * 25);
-				var finalScore = (state.safeCells * 50) + speedBonus;
+				var par = preset.par || 120;
+				var timeRatio = Math.max(0, 1 - Math.min(state.elapsed, par) / par);
+				var speedBonus = Math.round(timeRatio * preset.maxBonus);
+				var finalScore = preset.baseScore + speedBonus;
+				var timeFormatted = formatTime(state.elapsed);
 
 				modalEmoji.textContent = '🎉';
 				modalTitle.textContent = 'Tavola ' + preset.label + ' Completata!';
-				modalScore.textContent = 'Tempo: ' + state.elapsed + 's · Punti: ' + finalScore;
-				modalPosition.textContent = '';
+				modalScore.textContent = '⏱️ Tempo: ' + timeFormatted + ' · ⭐ Punti: ' + finalScore.toLocaleString();
+				modalPosition.textContent = 'Invio record in classifica...';
 				submitFinalScore(1);
 
 				nextBtn.textContent = '🔁 Gioca Ancora';
@@ -1927,7 +1929,7 @@
 				var pctPerLevel = 100 / SCALATA_LEVELS.length;
 				levelProgressEl.style.width = Math.min(100, levelNum * pctPerLevel) + '%';
 
-				var lvlScore = Math.max(10, Math.floor((state.safeCells * 10 - state.elapsed * 4) * (1 + levelNum * 0.15)));
+				var lvlScore = Math.max(50, Math.floor((state.safeCells * 15 + Math.max(0, 180 - state.elapsed) * 12) * (1 + levelNum * 0.12)));
 				totalScore += lvlScore;
 				scoreTotalEl.textContent = totalScore;
 
@@ -1935,8 +1937,8 @@
 					submitFinalScore(SCALATA_LEVELS.length);
 					modalEmoji.textContent = '👑';
 					modalTitle.textContent = 'Campione della Scalata!';
-					modalScore.textContent = 'Hai completato tutti i 18 livelli fino all\'Estremo! Punti: ' + totalScore;
-					modalPosition.textContent = '';
+					modalScore.textContent = 'Tutti i 18 livelli completati! ⏱️ ' + formatTime(state.totalElapsed || state.elapsed) + ' · ⭐ Punti: ' + totalScore.toLocaleString();
+					modalPosition.textContent = 'Invio record in classifica...';
 					nextBtn.textContent = '🔁 Nuova Scalata';
 					nextBtn.onclick = function () {
 						overlayEl.classList.remove('show');
@@ -1945,8 +1947,8 @@
 				} else {
 					modalEmoji.textContent = '🏆';
 					modalTitle.textContent = 'Livello ' + levelNum + ' Completato!';
-					modalScore.textContent = 'Livello: +' + lvlScore + ' · Totale: ' + totalScore;
-					modalPosition.textContent = '';
+					modalScore.textContent = 'Livello: +' + lvlScore.toLocaleString() + ' · Totale: ' + totalScore.toLocaleString();
+					modalPosition.textContent = '⏱️ Tempo: ' + formatTime(state.elapsed);
 					nextBtn.textContent = '▶ Prossimo Livello (Lv ' + (levelNum + 1) + ')';
 					nextBtn.onclick = function () {
 						overlayEl.classList.remove('show');
@@ -1971,7 +1973,9 @@
 
 			if (state.mode === 'classic') {
 				var preset = CLASSIC_PRESETS[state.classicDifficulty] || CLASSIC_PRESETS.easy;
-				modalScore.textContent = 'Caselle sicure trovate: ' + state.revealed + ' / ' + state.safeCells;
+				var pct = state.safeCells > 0 ? Math.round((state.revealed / state.safeCells) * 100) : 0;
+				modalScore.textContent = 'Tavola ' + preset.label + ' · Caselle: ' + state.revealed + ' / ' + state.safeCells + ' (' + pct + '%)';
+				modalPosition.textContent = '⏱️ Tempo: ' + formatTime(state.elapsed);
 				nextBtn.textContent = '🔄 Riprova Partita';
 				nextBtn.onclick = function () {
 					overlayEl.classList.remove('show');
@@ -1979,7 +1983,8 @@
 				};
 				replayBtn.style.display = 'none';
 			} else {
-				modalScore.textContent = 'Scalata interrotta al Livello ' + (state.levelIndex + 1) + ' · Punteggio: ' + totalScore;
+				modalScore.textContent = 'Scalata interrotta al Livello ' + (state.levelIndex + 1) + ' / ' + SCALATA_LEVELS.length + ' · ⭐ Punti: ' + totalScore.toLocaleString();
+				modalPosition.textContent = '⏱️ Tempo totale: ' + formatTime(state.totalElapsed || state.elapsed);
 				nextBtn.textContent = '🔄 Nuova Scalata';
 				nextBtn.onclick = function () {
 					overlayEl.classList.remove('show');
@@ -2001,6 +2006,13 @@
 			overlayEl.classList.add('show');
 		}
 
+		function formatTime(seconds) {
+			var s = Math.max(0, parseInt(seconds, 10) || 0);
+			var mins = Math.floor(s / 60);
+			var secs = s % 60;
+			return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+		}
+
 		function submitFinalScore(levelReached) {
 			if (typeof window.pointnetGamesAPI === 'undefined' || state.scoreSubmitted) return;
 			state.scoreSubmitted = true;
@@ -2011,25 +2023,34 @@
 			if (state.mode === 'classic') {
 				var preset = CLASSIC_PRESETS[state.classicDifficulty] || CLASSIC_PRESETS.easy;
 				var isWin = state.revealed >= state.safeCells;
+				var timeFormatted = formatTime(state.elapsed);
+
 				if (isWin) {
-					var par = preset.par || 300;
-					var speedBonus = Math.max(0, (par - state.elapsed) * 25);
-					scoreToSend = (state.safeCells * 50) + speedBonus;
+					var par = preset.par || 120;
+					var timeRatio = Math.max(0, 1 - Math.min(state.elapsed, par) / par);
+					var speedBonus = Math.round(timeRatio * preset.maxBonus);
+					scoreToSend = preset.baseScore + speedBonus;
 				} else {
-					scoreToSend = Math.max(10, state.revealed * 10);
+					var completionRatio = state.safeCells > 0 ? (state.revealed / state.safeCells) : 0;
+					scoreToSend = Math.max(10, Math.floor(completionRatio * (preset.baseScore * 0.1)));
 				}
+
 				meta = {
 					difficulty: preset.key,
-					label: preset.label,
+					tempo: timeFormatted,
+					esito: isWin ? 'Vittoria 🏆' : 'Esploso 💥 (' + Math.round((state.revealed / Math.max(1, state.safeCells)) * 100) + '%)',
 					time_seconds: state.elapsed,
 					won: isWin
 				};
 			} else {
 				if (totalScore < 10) return;
 				scoreToSend = totalScore;
+				var isCompleted = levelReached >= SCALATA_LEVELS.length;
 				meta = {
 					difficulty: 'arcade',
-					label: 'Scalata',
+					livello: levelReached + ' / ' + SCALATA_LEVELS.length,
+					tempo: formatTime(state.totalElapsed || state.elapsed),
+					esito: isCompleted ? 'Completata 👑' : 'Livello ' + levelReached,
 					level_reached: levelReached,
 					time_seconds: state.totalElapsed || state.elapsed,
 					level_time_seconds: state.elapsed
@@ -2041,7 +2062,10 @@
 				if (result && typeof result.then === 'function') {
 					result.then(function (response) {
 						if (response && response.position) {
-							modalPosition.textContent = '🏅 Posizione #' + response.position + ' in classifica!';
+							var tabLabel = state.mode === 'classic'
+								? (CLASSIC_PRESETS[state.classicDifficulty] ? CLASSIC_PRESETS[state.classicDifficulty].label : 'Classica')
+								: 'Scalata';
+							modalPosition.textContent = '🏅 Posizione #' + response.position + ' nella classifica ' + tabLabel + '!';
 						} else if (response && response.error === 'login_required') {
 							var loginUrl = (window.__wpGamesState && window.__wpGamesState.loginUrl) || '/wp-login.php';
 							modalPosition.innerHTML = '🔒 <a href="' + loginUrl + '" target="_top" style="color:#38bdf8;text-decoration:underline;">Accedi</a> per salvare il record';
