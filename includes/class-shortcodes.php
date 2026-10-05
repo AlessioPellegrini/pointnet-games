@@ -21,6 +21,7 @@ class PointNet_Games_Shortcodes {
 	public function __construct() {
 		add_shortcode( 'pointnet_game', array( $this, 'shortcode_game' ) );
 		add_shortcode( 'pointnet_game_leaderboard', array( $this, 'shortcode_leaderboard' ) );
+		add_shortcode( 'pointnet_games_leaderboard', array( $this, 'shortcode_leaderboard' ) );
 		add_shortcode( 'pointnet_games_list', array( $this, 'shortcode_games_list' ) );
 	}
 
@@ -69,12 +70,13 @@ class PointNet_Games_Shortcodes {
 	 *
 	 * @return string
 	 */
-	public function shortcode_leaderboard( $atts ) {
+	public function shortcode_leaderboard( $atts, $content = null, $tag = '' ) {
+		$default_global = ( 'pointnet_games_leaderboard' === $tag ) ? 1 : 0;
 		$atts = shortcode_atts(
 			array(
 				'game_id'    => 0,
 				'limit'      => 10,
-				'global'     => 0,
+				'global'     => $default_global,
 				'show_meta'  => 0,
 				'difficulty' => '',
 			),
