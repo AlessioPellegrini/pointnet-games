@@ -168,7 +168,7 @@ var bestScores = {};
 			if (typeof window.pointnetGamesAPI !== 'undefined') {
 				window.pointnetGamesAPI._setGameId(parseInt(gameId, 10) || 0);
 			} else {
-				window.parent.postMessage({ type: 'pointnet-games:init' }, '*');
+				window.parent.postMessage({ type: 'pointnet-games:init' }, window.location.origin);
 			}
 		}
 
@@ -188,7 +188,7 @@ var bestScores = {};
 		}
 		var currentLvl = app.levelIndex + 1;
 		if (loggedIn) {
-			statusEl.innerHTML = '👤 Connesso come: <b style="color:#38bdf8;">' + (nick || 'Giocatore') + '</b> · Livello <b>' + currentLvl + '</b>';
+			statusEl.innerHTML = '👤 Connesso come: <b style="color:#38bdf8;">' + escapeHTML(nick || 'Giocatore') + '</b> · Livello <b>' + parseInt(currentLvl, 10) + '</b>';
 		} else {
 			statusEl.innerHTML = '🔒 <a href="' + loginUrl + '" target="_top" style="color:#38bdf8; text-decoration: underline; font-weight: 600;">Accedi al sito</a> per sincronizzare i progressi tra PC e cellulare';
 		}

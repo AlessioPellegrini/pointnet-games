@@ -59,6 +59,143 @@
 		}
 	}
 
+	/* ============================================================
+	   SHIELD WARDS LOGIC (v1.7.0)
+	   ============================================================ */
+	function triggerShieldDeflect(tile) {
+		if (typeof playSfx === 'function') playSfx('shield_deflect');
+		var idx = app.tiles.indexOf(tile);
+		var el = app.tileEls[idx];
+		if (el) {
+			el.classList.remove('shield-deflect');
+			void el.offsetWidth;
+			el.classList.add('shield-deflect');
+			setTimeout(function () {
+				if (el) el.classList.remove('shield-deflect');
+			}, 450);
+		}
+		if (app.shield && app.shield.guardianKeys) {
+			app.shield.guardianKeys.forEach(function (k) {
+				for (var i = 0; i < app.tiles.length; i++) {
+					var t = app.tiles[i];
+					if (t.key === k && !t.removed && !t.staging) {
+						var gEl = app.tileEls[i];
+						if (gEl) {
+							gEl.classList.remove('guardian-alert');
+							void gEl.offsetWidth;
+							gEl.classList.add('guardian-alert');
+							setTimeout(function () {
+								if (gEl) gEl.classList.remove('guardian-alert');
+							}, 900);
+						}
+					}
+				}
+			});
+		}
+		if (typeof showToast === 'function') showToast('🛡️ Protetto da Scudo! Elimina i Guardiani 🛡️');
+	}
+
+	function breakShield() {
+		if (!app.shield || app.shield.broken) return;
+		app.shield.broken = true;
+		for (var i = 0; i < app.tiles.length; i++) {
+			if (app.tiles[i].shielded) {
+				app.tiles[i].shielded = false;
+			}
+		}
+		if (typeof playSfx === 'function') playSfx('shield_shatter');
+		app.score += 500;
+		scoreEl.textContent = app.score;
+		if (typeof showToast === 'function') showToast('💥 SIGILLO INFRANTO! +500 pt 💥');
+		if (typeof spawnShieldBreakParticles === 'function') spawnShieldBreakParticles(app.shield);
+		updateStates();
+		if (typeof updateDevLayoutInfo === 'function') updateDevLayoutInfo();
+	}
+
+	/* ============================================================
+	   CHAIN CURTAINS & LOCKS LOGIC (v1.8.0)
+	   ============================================================ */
+	function triggerChainDeflect(tile) {
+		if (typeof playSfx === 'function') playSfx('chain_deflect');
+		var idx = app.tiles.indexOf(tile);
+		var el = app.tileEls[idx];
+		if (el) {
+			el.classList.remove('chain-wobble');
+			void el.offsetWidth;
+			el.classList.add('chain-wobble');
+			setTimeout(function () {
+				if (el) el.classList.remove('chain-wobble');
+			}, 450);
+		}
+		var stNum = tile.chainStage || (app.chain && app.chain.chainedSet && app.chain.chainedSet[tile.key]);
+		if (app.chain && app.chain.stages && stNum) {
+			var st = app.chain.stages[stNum - 1];
+			if (st && st.keyTileKeys) {
+				st.keyTileKeys.forEach(function (k) {
+					for (var i = 0; i < app.tiles.length; i++) {
+						var t = app.tiles[i];
+						if (t.key === k && !t.removed && !t.staging) {
+							var kEl = app.tileEls[i];
+							if (kEl) {
+								kEl.classList.remove('key-alert');
+								void kEl.offsetWidth;
+								kEl.classList.add('key-alert');
+								setTimeout(function () {
+									if (kEl) kEl.classList.remove('key-alert');
+								}, 900);
+							}
+						}
+					}
+				});
+				if (typeof showToast === 'function') {
+					showToast('🗝️ Sigillato da Catene! Trova le Chiavi di ' + st.name + ' ' + st.badge);
+				}
+				return;
+			}
+		}
+		if (typeof showToast === 'function') showToast('🗝️ Sigillato da Catene! Trova le Chiavi 🗝️');
+	}
+
+	function checkChainUnlocks() {
+		if (!app.chain || !app.chain.stages) return null;
+		var unlockedStages = [];
+		for (var s = 0; s < app.chain.stages.length; s++) {
+			var stage = app.chain.stages[s];
+			if (!stage.unlocked && isChainStageUnlocked(s, app.chain, app.board)) {
+				stage.unlocked = true;
+				var stageBonus = 250;
+				var allCleared = app.chain.stages.every(function (st) { return st.unlocked; });
+				if (allCleared) stageBonus += 250;
+
+				for (var i = 0; i < app.tiles.length; i++) {
+					var t = app.tiles[i];
+					if (t.chainStage === stage.stage) {
+						t.unlockedStage = true;
+					}
+				}
+				if (typeof playSfx === 'function') playSfx('chain_unlock');
+				app.score += stageBonus;
+				scoreEl.textContent = app.score;
+
+				if (typeof showToast === 'function') {
+					if (allCleared) {
+						showToast('💥 TUTTI I SIGILLI APERTI! +' + stageBonus + ' pt 💥');
+					} else {
+						showToast('🗝️ CATENE DI ' + stage.name.toUpperCase() + ' SPEZZATE! +' + stageBonus + ' pt');
+					}
+				}
+				if (typeof spawnChainBreakParticles === 'function') spawnChainBreakParticles(stage);
+				unlockedStages.push({ stageIndex: s, stage: stage.stage, bonus: stageBonus });
+			}
+		}
+		if (unlockedStages.length) {
+			updateStates();
+			if (typeof updateDevLayoutInfo === 'function') updateDevLayoutInfo();
+			return unlockedStages;
+		}
+		return null;
+	}
+
 	function moveToStaging(tile, skipConveyor) {
 		if (app.staging.length >= MAX_STAGING) return;
 		if (tile.staging || tile.removed) return;
@@ -135,7 +272,21 @@
 						break;
 					}
 				}
-				app.history.push({ type: 'match', prev: prev, tile: tile, gained: gained });
+				var brokeNow = false;
+				if (app.shield && !app.shield.broken && isShieldBroken(app.board, app.shield)) {
+					breakShield();
+					brokeNow = true;
+				}
+				var chainUnlocked = checkChainUnlocks();
+				app.history.push({
+					type: 'match',
+					prev: prev,
+					tile: tile,
+					gained: gained,
+					shieldBroken: brokeNow,
+					shieldBonus: brokeNow ? 500 : 0,
+					chainUnlocked: chainUnlocked
+				});
 				if (comboEl) {
 					if (app.combo >= 2) {
 						comboEl.textContent = '🔥 x' + app.combo;
@@ -240,7 +391,21 @@
 			spawnMatchParticles(tileA, tileB);
 		}
 
-		app.history.push({ type: 'direct_match', a: tileA, b: tileB, gained: gained });
+		var brokeNow = false;
+		if (app.shield && !app.shield.broken && isShieldBroken(app.board, app.shield)) {
+			breakShield();
+			brokeNow = true;
+		}
+		var chainUnlocked = checkChainUnlocks();
+		app.history.push({
+			type: 'direct_match',
+			a: tileA,
+			b: tileB,
+			gained: gained,
+			shieldBroken: brokeNow,
+			shieldBonus: brokeNow ? 500 : 0,
+			chainUnlocked: chainUnlocked
+		});
 		if (comboEl) {
 			if (app.combo >= 2) {
 				comboEl.textContent = '🔥 x' + app.combo;
@@ -293,6 +458,14 @@
 		/* v0.9 blackout: obscured tiles are INERT — they reveal on their
 		   own once free (auto-reveal in ui.js), not on click. */
 		if (tile.obscured) return;
+		if (isTileShielded(tile, app.shield)) {
+			triggerShieldDeflect(tile);
+			return;
+		}
+		if (isTileChained(tile, app.chain)) {
+			triggerChainDeflect(tile);
+			return;
+		}
 		if (!isFree(app.board, tile)) {
 			if (app.mode === 'classic' && app.selectedTile === tile) {
 				app.selectedTile = null;
@@ -427,6 +600,41 @@
 		if (app.history.length === 0) return;
 		app.undoUsed++;
 		var entry = app.history.pop();
+
+		if (entry.shieldBroken) {
+			if (app.shield) {
+				app.shield.broken = false;
+				for (var s = 0; s < app.tiles.length; s++) {
+					if (app.shield.protectedSet && app.shield.protectedSet[app.tiles[s].key]) {
+						app.tiles[s].shielded = true;
+					}
+				}
+			}
+			if (entry.shieldBonus) {
+				app.score = Math.max(0, app.score - entry.shieldBonus);
+				scoreEl.textContent = app.score;
+			}
+			if (typeof updateDevLayoutInfo === 'function') updateDevLayoutInfo();
+		}
+
+		if (entry.chainUnlocked && entry.chainUnlocked.length) {
+			if (app.chain && app.chain.stages) {
+				entry.chainUnlocked.forEach(function (u) {
+					var st = app.chain.stages[u.stageIndex];
+					if (st) st.unlocked = false;
+					for (var s = 0; s < app.tiles.length; s++) {
+						if (app.tiles[s].chainStage === u.stage) {
+							app.tiles[s].unlockedStage = false;
+						}
+					}
+					if (u.bonus) {
+						app.score = Math.max(0, app.score - u.bonus);
+						scoreEl.textContent = app.score;
+					}
+				});
+			}
+			if (typeof updateDevLayoutInfo === 'function') updateDevLayoutInfo();
+		}
 
 		if (entry.type === 'direct_match') {
 			entry.a.removed = false;
@@ -596,6 +804,14 @@
 		}
 		/* v0.9 blackout: obscured tiles cannot be dragged. */
 		if (hit.tile.obscured) return;
+		if (isTileShielded(hit.tile, app.shield)) {
+			triggerShieldDeflect(hit.tile);
+			return;
+		}
+		if (isTileChained(hit.tile, app.chain)) {
+			triggerChainDeflect(hit.tile);
+			return;
+		}
 		if (!isFree(app.board, hit.tile)) return;
 
 		drag.active = true;

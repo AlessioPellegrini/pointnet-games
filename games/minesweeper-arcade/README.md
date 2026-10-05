@@ -1,52 +1,88 @@
-# 💣 Minesweeper Arcade
+# 💣 Minesweeper
 
-Arcade variant of the classic minesweeper with **progressive levels**: clear the board and advance to the next level. One mistake and you're back to Level 1!
+Ispirato al design e all'esperienza tattile di *Minesweeper: The Clean One*, con **doppia modalità di gioco**: la classica partita singola a selezione libera o l'emozionante modalità Scalata a 18 livelli progressivi fino al livello Estremo!
 
-## 🎮 How to Play
+## 🎮 Modalità di Gioco
 
-- **Goal**: reveal all safe cells without detonating mines, level after level.
-- **Left click / tap**: reveal a cell.
-- **Right click / long press (mobile)**: place/remove a flag.
-- **Shortcuts**: `M` = toggle audio.
+### 1. ⚡ Modalità Classica (*The Clean One*)
+Partita singola con i 4 preset di riferimento, ideale per cimentarsi su tavole specifiche o per stabilire il record di velocità:
+- **🟢 Facile**: 9 × 9 · 10 mine (~12.3% densità)
+- **🟡 Medio**: 16 × 16 · 40 mine (~15.6% densità)
+- **🔴 Difficile**: 30 × 16 · 99 mine (~20.6% densità)
+- **💀 Estremo**: 32 × 18 · 150 mine (~26.0% densità)
 
-## 🏆 Scoring and Progression
+### 2. 🏆 Modalità Scalata (18 Livelli a scalata progressiva)
+Scalata a livelli continui a vite singola: ogni tavola completata fa guadagnare punti e sblocca il livello successivo. Un errore su una mina fa esplodere la serie e invia il punteggio accumulato alla classifica!
 
-```
-Level score = max(10, (safe_cells × 10 − time_seconds × 5) × (1 + level × 0.2))
-Total score = sum of all completed levels
-```
+| Livello | Griglia | Celle | Mine | Densità | Benchmark |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **1** | 8 × 8 | 64 | 7 | 10.9% | Avvio rilassante |
+| **2** | 8 × 8 | 64 | 9 | 14.1% | |
+| **3** | 9 × 9 | 81 | 10 | 12.3% | Benchmark Facile |
+| **4** | 10 × 9 | 90 | 12 | 13.3% | |
+| **5** | 10 × 10 | 100 | 15 | 15.0% | |
+| **6** | 12 × 10 | 120 | 18 | 15.0% | |
+| **7** | 12 × 12 | 144 | 22 | 15.3% | |
+| **8** | 14 × 12 | 168 | 26 | 15.5% | |
+| **9** | 14 × 14 | 196 | 31 | 15.8% | |
+| **10** | 16 × 14 | 224 | 36 | 16.1% | |
+| **11** | 16 × 16 | 256 | 40 | 15.6% | Benchmark Medio |
+| **12** | 18 × 16 | 288 | 47 | 16.3% | |
+| **13** | 20 × 16 | 320 | 55 | 17.2% | |
+| **14** | 22 × 16 | 352 | 64 | 18.2% | |
+| **15** | 25 × 16 | 400 | 75 | 18.8% | |
+| **16** | 28 × 16 | 448 | 88 | 19.6% | |
+| **17** | 30 × 16 | 480 | 99 | 20.6% | Benchmark Difficile |
+| **18** | 32 × 18 | 576 | 150 | 26.0% | Benchmark Estremo (Max Level) |
 
-| Level | Grid | Cells | Mines | % |
-|---------|---------|-------|-------|---|
-| 1 | 7 × 7 | 49 | 5 | 10% |
-| 2 | 7 × 7 | 49 | 6 | 12% |
-| 3 | 7 × 7 | 49 | 7 | 14% |
-| 4 | 8 × 7 | 56 | 9 | 16% |
-| 5 | 8 × 7 | 56 | 11 | 20% |
-| 6 | 9 × 8 | 72 | 13 | 18% |
-| 7 | 9 × 8 | 72 | 15 | 21% |
-| 8 | 10 × 9 | 90 | 17 | 19% |
-| 9 | 10 × 9 | 90 | 20 | 22% |
-| 10 | 11 × 10 | 110 | 23 | 21% |
-| 11 | 11 × 10 | 110 | 26 | 24% |
-| 12 | 12 × 12 | 144 | 30 | 21% |
-| 13 | 12 × 12 | 144 | 35 | 24% |
-| 14 | 14 × 14 | 196 | 42 | 21% |
-| 15 | 14 × 14 | 196 | 50 | 26% |
+---
 
-- If you **explode**: the accumulated score is submitted to the leaderboard and you start over from Level 1
-- Complete all 15 levels: final score submitted as "Max Level"
-- **Mobile friendly**: all grids have at most 14 columns — they fit on any screen
-- **Gradual progression**: 1-3% increase per level, with slowly growing grids
+## 🔍 Controlli e Pan & Pinch-to-Zoom
 
-## 📦 PointNet Games Integration
+- **Tocca / Clic sinistro**: scopri la casella.
+- **Tocca numero rivelato (Chording)**: se le bandierine adiacenti corrispondono al numero, scopre all'istante tutte le caselle sicure limitrofe.
+- **Selettore Pill `⛏️ Dig / 🚩 Flag`**: tocco rapido per passare istantaneamente dalla modalità scavo a quella bandierina.
+- **Pressione prolungata / Clic destro**: posiziona o rimuove una bandierina (con micro-vibrazione aptica).
+- **Pan (Scorrimento)**: trascina la tavola con un dito su mobile o trascina con il mouse su desktop.
+- **Pinch-to-Zoom**: allarga o stringi 2 dita per zoomare su smartphone e tablet; usa la rotellina del mouse su desktop.
+- **Pulsanti HUD dedicati**:
+  - `⛶`: adatta automaticamente l'intera tavola allo schermo (*Fit to Screen*).
+  - `＋` / `−`: zoom in e zoom out rapido.
+  - `🔊`: attiva o silenzia gli effetti sonori tattili.
+  - `🏠`: torna al menu principale per cambiare modalità.
+- **Scorciatoie da tastiera**:
+  - `F` = toggle scavo/bandierina
+  - `M` = toggle audio
+  - `+` / `-` = zoom in/out
+  - `0` = adatta allo schermo
+  - `Esc` = esci da fullscreen o apri menu
 
-- `submitScore(score, meta)` — submits the total score with meta `{ difficulty: "arcade", label: "Arcade", level_reached, time_seconds }`
-- Leaderboard filtered by `difficulty="arcade"` ("🎮 Arcade" tab on the game page)
+---
+
+## 📦 Integrazione PointNet Games
+
+- Punteggi e metadati trasmessi con precisione in base alla modalità attiva:
+  - `arcade`: classifica della modalità **Scalata** (`label: "Scalata"`).
+  - `easy`, `medium`, `hard`, `extreme`: classifiche separate per ciascun preset della **Modalità Classica**.
+- La pagina del gioco su WordPress espone automaticamente i tab dedicati per ciascuna classifica grazie alla configurazione di `manifest.json`.
+
+---
 
 ## 📝 Changelog
 
-### 1.1.0 (current)
+### 1.3.0 (current)
+- **Doppia Modalità (Classica & Scalata)**: introdotta la modalità Classica con i 4 preset di *The Clean One* (Facile 9×9, Medio 16×16, Difficile 30×16, Estremo 32×18) affiancata alla modalità Scalata progressiva ampliata a 18 livelli fino all'Estremo 32×18 con 150 mine.
+- **Pan & Pinch-to-Zoom fluido**: motore viewport a trasformazione hardware con supporto per drag a 1 dito, pinch-to-zoom a 2 dita, rotellina del mouse su desktop, zoom buttons (`⛶`, `＋`, `−`) e soppressione automatica dei clic accidentali durante lo scorrimento.
+- **Rimozione denominazione "Arcade"**: rinominato il gioco in **Minesweeper** per rispecchiare la nuova natura a doppia modalità, preservando al contempo lo slug `minesweeper-arcade` per la piena compatibilità con database, post e URL WordPress esistenti.
+- **Classifiche dedicate per difficoltà**: aggiornato il manifest con tab di classifica per `arcade`, `easy`, `medium`, `hard`, ed `extreme`.
+- **Sound Design Organico**: campionatura acustica pura (goccia/legno, kalimba pentatonica per i numeri, snap per le bandierine, sub-bass thud) senza loop musicali continui.
+- **Smart Chording & Pill Toggle**: svelamento istantaneo attorno ai numeri completati e pill selector per il cambio rapido di modalità tocco.
+
+### 1.2.0
+- Riprogettazione iniziale ispirata a *The Clean One*, HUD landscape docking, fix conflitti touch Android e resume AudioContext.
+
+### 1.1.0
+- Splash screen iniziale e supporto CSS fullscreen.
 - Version badge (`v1.1.0` in superscript) added to the splash screen title
 - High-DPI board rendering: the board rasterizes at the current viewport resolution whenever the iframe grows to fullscreen (two-phase transform re-application), keeping cells and text crisp on WordPress embeds
 - Splash screen now shows the game version in superscript after the title, consistent with mahjong

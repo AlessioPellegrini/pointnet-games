@@ -1,0 +1,147 @@
+#!/usr/bin/env node
+/* ============================================================
+   TEST SHIELD WARDS (v1.7.0)
+   Esegue: node games/mahjong/tests/test-shields.js
+
+   Controlli:
+     1. Esattamente 33 livelli hanno isShield === true nella progressione di 330 livelli.
+     2. Tutti i livelli scudo generano un oggetto tiles.shield valido.
+     3. I guardiani non sono mai coperti (faceDown) né oscurati (blackout/obscured).
+     4. I protected tiles sono bloccati (non free) finché i guardiani sono attivi.
+     5. Quando i guardiani vengono rimossi, lo scudo risulta infranto (isShieldBroken).
+     6. Giocabilità all'avvio: ogni livello scudo ha almeno una coppia libera matchabile.
+   ============================================================ */
+const fs = require('fs');
+const vm = require('vm');
+const path = require('path');
+
+const dir = path.join(__dirname, '..');
+const ctx = { console, process, setTimeout, clearTimeout };
+vm.createContext(ctx);
+
+const load = [
+  fs.readFileSync(path.join(dir, 'layouts.js'), 'utf8'),
+  fs.readFileSync(path.join(dir, 'solvable-levels.js'), 'utf8'),
+  fs.readFileSync(path.join(dir, 'engine.js'), 'utf8'),
+  fs.readFileSync(path.join(dir, 'data.js'), 'utf8')
+].join('\n') + '\n' + [
+  '(function () {',
+  '  let failures = 0;',
+  '',
+  '  const progression = ensureProgression();',
+  '  const shieldLevels = [];',
+  '  for (let i = 0; i < progression.length; i++) {',
+  '    if (progression[i].isShield) shieldLevels.push(i);',
+  '  }',
+  '',
+  '  console.log("Totale livelli scudo trovati: " + shieldLevels.length + " (attesi 33)");',
+  '  if (shieldLevels.length !== 33) {',
+  '    failures++;',
+  '    console.log("FAIL: attesi 33 livelli scudo, trovati " + shieldLevels.length);',
+  '  }',
+  '',
+  '  shieldLevels.forEach(function (idx) {',
+  '    const def = getLevelDef(idx);',
+  '    const lvlNum = idx + 1;',
+  '    if (!def.isShield) {',
+  '      failures++;',
+  '      console.log("FAIL: L" + lvlNum + " getLevelDef.isShield non e true");',
+  '    }',
+  '',
+  '    const tiles = generateLevel(idx);',
+  '    const shield = tiles.shield;',
+  '    if (!shield) {',
+  '      failures++;',
+  '      console.log("FAIL: L" + lvlNum + " tiles.shield e mancante");',
+  '      return;',
+  '    }',
+  '',
+  '    if (!shield.protectedKeys || !shield.protectedKeys.length) {',
+  '      failures++;',
+  '      console.log("FAIL: L" + lvlNum + " protectedKeys e vuoto");',
+  '    }',
+  '    if (!shield.guardianKeys || !shield.guardianKeys.length) {',
+  '      failures++;',
+  '      console.log("FAIL: L" + lvlNum + " guardianKeys e vuoto");',
+  '    }',
+  '',
+  '    const board = buildBoard(tiles);',
+  '    board._shield = shield;',
+  '',
+  '    /* Verifica che nessun guardiano sia faceDown o obscured */',
+  '    tiles.forEach(function (t) {',
+  '      if (t.guardian) {',
+  '        if (t.faceDown) {',
+  '          failures++;',
+  '          console.log("FAIL: L" + lvlNum + " guardian tile e faceDown!");',
+  '        }',
+  '        if (t.obscured) {',
+  '          failures++;',
+  '          console.log("FAIL: L" + lvlNum + " guardian tile e obscured!");',
+  '        }',
+  '      }',
+  '    });',
+  '',
+  '    /* Verifica che i tile protetti non siano liberi prima di rompere lo scudo */',
+  '    tiles.forEach(function (t) {',
+  '      if (t.shielded) {',
+  '        if (isFree(board, t)) {',
+  '          failures++;',
+  '          console.log("FAIL: L" + lvlNum + " tile protetto " + t.key + " risulta isFree ma lo scudo e intatto!");',
+  '        }',
+  '      }',
+  '    });',
+  '',
+  '    /* Verifica che isShieldBroken sia false all avvio */',
+  '    if (isShieldBroken(board, shield)) {',
+  '      failures++;',
+  '      console.log("FAIL: L" + lvlNum + " isShieldBroken e true all avvio!");',
+  '    }',
+  '',
+  '    /* Simula rimozione di tutti i guardiani */',
+  '    shield.guardianKeys.forEach(function (k) {',
+  '      const g = board.get(k);',
+  '      if (g) g.removed = true;',
+  '    });',
+  '',
+  '    if (!isShieldBroken(board, shield)) {',
+  '      failures++;',
+  '      console.log("FAIL: L" + lvlNum + " isShieldBroken e false dopo aver rimosso tutti i guardiani!");',
+  '    }',
+  '',
+  '    /* Resetta i guardiani per test giocabilita all avvio */',
+  '    shield.guardianKeys.forEach(function (k) {',
+  '      const g = board.get(k);',
+  '      if (g) g.removed = false;',
+  '    });',
+  '',
+  '    /* Verifica giocabilita: almeno una mossa valida all avvio */',
+  '    const free = [];',
+  '    tiles.forEach(function (t) {',
+  '      if (t.removed || t.staging || t.faceDown || t.obscured) return;',
+  '      if (isFree(board, t)) free.push(t);',
+  '    });',
+  '    let hasPair = false;',
+  '    for (let i = 0; i < free.length; i++) {',
+  '      for (let j = i + 1; j < free.length; j++) {',
+  '        if (canMatch(free[i], free[j], def.mode)) { hasPair = true; break; }',
+  '      }',
+  '      if (hasPair) break;',
+  '    }',
+  '    const ok = hasPair || (def.mode === "arcade" && free.length >= 4);',
+  '    if (!ok) {',
+  '      failures++;',
+  '      console.log("FAIL: L" + lvlNum + " non ha coppie giocabili all avvio (free: " + free.length + ")");',
+  '    }',
+  '  });',
+  '',
+  '  if (failures === 0) {',
+  '    console.log("PASS — Tutti i 33 livelli scudo verificati con successo!");',
+  '    process.exit(0);',
+  '  }',
+  '  console.log(failures + " failures");',
+  '  process.exit(1);',
+  '})();'
+].join('\n');
+
+vm.runInContext(load, ctx);

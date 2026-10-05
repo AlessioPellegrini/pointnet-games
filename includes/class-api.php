@@ -184,11 +184,20 @@ class PointNet_Games_API {
 			);
 		}
 
+		$game = get_post( $game_id );
+		if ( ! $game || PointNet_Games_Post_Types::GAME_CPT !== $game->post_type || 'publish' !== $game->post_status ) {
+			return new WP_Error(
+				'pointnet_games_game_not_found',
+				__( 'Game not found.', 'pointnet-games' ),
+				array( 'status' => 404 )
+			);
+		}
+
 		$user_id = get_current_user_id();
 
-		// Check against max_score from manifest.
+		// Check against max_score from manifest (safe fallback if manifest missing or max_score = 0).
 		$manifest  = get_post_meta( $game_id, '_pointnet_games_manifest', true );
-		$max_score = ( is_array( $manifest ) && isset( $manifest['max_score'] ) ) ? absint( $manifest['max_score'] ) : 0;
+		$max_score = ( is_array( $manifest ) && ! empty( $manifest['max_score'] ) ) ? absint( $manifest['max_score'] ) : 1000000;
 		if ( $max_score > 0 && $score > $max_score ) {
 			return new WP_Error(
 				'pointnet_games_score_exceeds_limit',
@@ -273,10 +282,33 @@ class PointNet_Games_API {
 	 * @return WP_REST_Response
 	 */
 	public function create_session( $request ) {
-		$game_id  = (int) $request['id'];
-		$user_id  = get_current_user_id();
-		$token    = wp_generate_password( 32, false );
-		$expires  = time() + HOUR_IN_SECONDS;
+		$game_id = (int) $request['id'];
+		$game    = get_post( $game_id );
+
+		if ( ! $game || PointNet_Games_Post_Types::GAME_CPT !== $game->post_type || 'publish' !== $game->post_status ) {
+			return new WP_Error(
+				'pointnet_games_game_not_found',
+				__( 'Game not found.', 'pointnet-games' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$user_id = get_current_user_id();
+
+		// Throttle session creation: max 10 sessions per 5 minutes per user to prevent transient bloat.
+		$session_limit_key = 'png_s_rl_' . $user_id . '_' . $game_id;
+		$session_count     = (int) get_transient( $session_limit_key );
+		if ( $session_count >= 10 ) {
+			return new WP_Error(
+				'pointnet_games_session_rate_limited',
+				__( 'Too many active sessions generated. Please wait a few minutes.', 'pointnet-games' ),
+				array( 'status' => 429 )
+			);
+		}
+		set_transient( $session_limit_key, $session_count + 1, 5 * MINUTE_IN_SECONDS );
+
+		$token   = wp_generate_password( 32, false );
+		$expires = time() + HOUR_IN_SECONDS;
 
 		$session = array(
 			'token'      => $token,
@@ -354,6 +386,16 @@ class PointNet_Games_API {
 	 */
 	public function get_progress( $request ) {
 		$game_id = (int) $request['id'];
+		$game    = get_post( $game_id );
+
+		if ( ! $game || PointNet_Games_Post_Types::GAME_CPT !== $game->post_type || 'publish' !== $game->post_status ) {
+			return new WP_Error(
+				'pointnet_games_game_not_found',
+				__( 'Game not found.', 'pointnet-games' ),
+				array( 'status' => 404 )
+			);
+		}
+
 		$user_id = get_current_user_id();
 
 		if ( ! $user_id ) {
@@ -372,10 +414,10 @@ class PointNet_Games_API {
 			array(
 				'game_id'  => $game_id,
 				'progress' => array(
-					'level'      => isset( $game_data['level'] ) ? (int) $game_data['level'] : 0,
+					'level'             => isset( $game_data['level'] ) ? (int) $game_data['level'] : 0,
 					'scores'            => isset( $game_data['scores'] ) && is_array( $game_data['scores'] ) ? $game_data['scores'] : array(),
 					'cumulative_score'  => isset( $game_data['cumulative_score'] ) ? (int) $game_data['cumulative_score'] : 0,
-					'updated'    => isset( $game_data['updated'] ) ? (int) $game_data['updated'] : 0,
+					'updated'           => isset( $game_data['updated'] ) ? (int) $game_data['updated'] : 0,
 				),
 			)
 		);
@@ -392,6 +434,16 @@ class PointNet_Games_API {
 	 */
 	public function save_progress( $request ) {
 		$game_id = (int) $request['id'];
+		$game    = get_post( $game_id );
+
+		if ( ! $game || PointNet_Games_Post_Types::GAME_CPT !== $game->post_type || 'publish' !== $game->post_status ) {
+			return new WP_Error(
+				'pointnet_games_game_not_found',
+				__( 'Game not found.', 'pointnet-games' ),
+				array( 'status' => 404 )
+			);
+		}
+
 		$user_id = get_current_user_id();
 
 		if ( ! $user_id ) {
@@ -425,10 +477,14 @@ class PointNet_Games_API {
 		/* Clamp level: support up to 500 levels. */
 		$level = min( 500, max( 1, $level ) );
 
+		$manifest  = get_post_meta( $game_id, '_pointnet_games_manifest', true );
+		$max_score = ( is_array( $manifest ) && ! empty( $manifest['max_score'] ) ) ? absint( $manifest['max_score'] ) : 1000000;
+
 		$progress = get_user_meta( $user_id, '_pointnet_games_progress', true );
 		$progress = is_array( $progress ) ? $progress : array();
 		$current  = isset( $progress[ $game_id ] ) ? $progress[ $game_id ] : array();
 
+		$cumulative = 0;
 		if ( $is_reset ) {
 			$current['level']            = $level;
 			$current['scores']           = array();
@@ -443,11 +499,10 @@ class PointNet_Games_API {
 			foreach ( $scores as $lvl => $val ) {
 				$lvl = absint( $lvl );
 				$val = absint( $val );
-				if ( $lvl >= 1 && $lvl <= 500 && $val > 0 ) {
+				if ( $lvl >= 1 && $lvl <= 500 && $val > 0 && $val <= $max_score ) {
 					$existing[ $lvl ] = max( isset( $existing[ $lvl ] ) ? (int) $existing[ $lvl ] : 0, $val );
 				}
 			}
-			$cumulative = 0;
 			foreach ( $existing as $val ) {
 				$cumulative += absint( $val );
 			}

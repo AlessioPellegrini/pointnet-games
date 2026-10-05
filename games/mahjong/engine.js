@@ -11,6 +11,8 @@ function makeKey(z, x, y) { return z + ',' + x + ',' + y; }
 
 function buildBoard(tiles) {
 	var board = new Map();
+	board._shield = (tiles && tiles.shield) || null;
+	board._chain = (tiles && tiles.chain) || null;
 	for (var i = 0; i < tiles.length; i++) {
 		var t = tiles[i];
 		t.key = makeKey(t.z, t.x, t.y);
@@ -114,8 +116,83 @@ function hasFullCoverAbove(board, tile) {
 	       hasFullAt(board, aboveY, tile.x + 1, tile.y - 1);
 }
 
+/* ============================================================
+   SHIELD WARDS MECHANICS (v1.7.0)
+   ============================================================ */
+function isTileShielded(tile, shield) {
+	if (!tile || !shield || shield.broken) return false;
+	if (tile.shielded) return true;
+	return !!(shield.protectedSet && shield.protectedSet[tile.key]);
+}
+
+function isTileGuardian(tile, shield) {
+	if (!tile || !shield || shield.broken) return false;
+	if (tile.guardian) return true;
+	return !!(shield.guardianSet && shield.guardianSet[tile.key]);
+}
+
+function isShieldBroken(board, shield) {
+	if (!shield) return true;
+	if (shield.broken) return true;
+	if (!shield.guardianKeys || !shield.guardianKeys.length) return true;
+	for (var i = 0; i < shield.guardianKeys.length; i++) {
+		var k = shield.guardianKeys[i];
+		var t = null;
+		if (board && typeof board.get === 'function') {
+			t = board.get(k);
+		} else if (typeof app !== 'undefined' && app && app.tiles) {
+			for (var j = 0; j < app.tiles.length; j++) {
+				if (app.tiles[j].key === k) { t = app.tiles[j]; break; }
+			}
+		}
+		if (t && !t.removed) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/* ============================================================
+   CHAIN CURTAINS & LOCKS MECHANICS (v1.8.0)
+   ============================================================ */
+function isTileChained(tile, chain) {
+	if (!tile || !chain || !chain.stages) return false;
+	if (tile.unlockedStage) return false;
+	var stNum = tile.chainStage || (chain.chainedSet && chain.chainedSet[tile.key]);
+	if (!stNum) return false;
+	var stage = chain.stages[stNum - 1];
+	if (!stage || stage.unlocked) return false;
+	return true;
+}
+
+function isChainStageUnlocked(stageIdx, chain, board) {
+	if (!chain || !chain.stages) return true;
+	var st = chain.stages[stageIdx];
+	if (!st || st.unlocked) return true;
+	if (!st.keyTileKeys || !st.keyTileKeys.length) return true;
+	for (var i = 0; i < st.keyTileKeys.length; i++) {
+		var k = st.keyTileKeys[i];
+		var t = null;
+		if (board && typeof board.get === 'function') {
+			t = board.get(k);
+		} else if (typeof app !== 'undefined' && app && app.tiles) {
+			for (var j = 0; j < app.tiles.length; j++) {
+				if (app.tiles[j].key === k) { t = app.tiles[j]; break; }
+			}
+		}
+		if (t && !t.removed) {
+			return false;
+		}
+	}
+	return true;
+}
+
 function isFree(board, tile) {
 	if (tile.removed || tile.staging) return false;
+	var activeShield = (board && board._shield) || (typeof app !== 'undefined' && app && app.shield);
+	if (activeShield && isTileShielded(tile, activeShield)) return false;
+	var activeChain = (board && board._chain) || (typeof app !== 'undefined' && app && app.chain);
+	if (activeChain && isTileChained(tile, activeChain)) return false;
 	if (hasTile(board, tile.z + 1, tile.x, tile.y)) return false;
 	if (hasHalfCoverAbove(board, tile)) return false;
 	if (tile.isHalf && hasFullCoverAbove(board, tile)) return false;

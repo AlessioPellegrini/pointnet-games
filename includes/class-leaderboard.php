@@ -57,7 +57,7 @@ class PointNet_Games_Leaderboard {
 			'nickname'    => $nickname,
 			'score'       => $score,
 			'score_meta'  => wp_json_encode( $meta ),
-			'played_at'   => current_time( 'mysql' ),
+			'played_at'   => current_time( 'mysql', 1 ), // 1 = GMT/UTC
 			'ip_hash'     => self::get_ip_hash(),
 			'user_agent'  => self::get_user_agent(),
 			'validated'   => $require_validation ? 0 : 1,
@@ -321,7 +321,7 @@ class PointNet_Games_Leaderboard {
 
 		$table   = pointnet_games_scores_table();
 		$ip_hash = self::get_ip_hash();
-		$time    = gmdate( 'Y-m-d H:i:s', strtotime( '-1 minute' ) );
+		$time    = gmdate( 'Y-m-d H:i:s', time() - MINUTE_IN_SECONDS );
 
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare(

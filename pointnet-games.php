@@ -3,7 +3,7 @@
  * Plugin Name:       PointNet Games
  * Plugin URI:        https://wpgames.pointnet.it/
  * Description:       Arcade games platform for WordPress with scores for registered users, global leaderboards and a standardized API for game developers.
- * Version:           1.2.6
+ * Version:           1.3.0
  * Requires at least: 7.0
  * Requires PHP:      8.0
  * Author:            PointNet
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version.
-define( 'POINTNET_GAMES_VERSION', '1.2.6' );
+define( 'POINTNET_GAMES_VERSION', '1.3.0' );
 
 // Plugin paths.
 define( 'POINTNET_GAMES_PLUGIN_FILE', __FILE__ );
@@ -40,6 +40,7 @@ require_once POINTNET_GAMES_PLUGIN_DIR . 'includes/class-api.php';
 require_once POINTNET_GAMES_PLUGIN_DIR . 'includes/class-game-loader.php';
 require_once POINTNET_GAMES_PLUGIN_DIR . 'includes/class-shortcodes.php';
 require_once POINTNET_GAMES_PLUGIN_DIR . 'includes/class-admin.php';
+require_once POINTNET_GAMES_PLUGIN_DIR . 'includes/class-updater.php';
 
 // Register activation / deactivation hooks.
 register_activation_hook( __FILE__, array( 'PointNet_Games_Install', 'activate' ) );
@@ -60,6 +61,9 @@ function pointnet_games_init() {
 
 	// Frontend loader.
 	new PointNet_Games_Game_Loader();
+
+	// Native GitHub Release Updater.
+	PointNet_Games_Updater::init();
 
 	// Admin UI (only in admin context).
 	if ( is_admin() ) {

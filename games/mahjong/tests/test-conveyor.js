@@ -24,7 +24,7 @@ const load = [
   '  let failures = 0;',
   '',
   '  // 1. Verifica conveyorTrack sui layout dedicati',
-  '  const convLayouts = ["conveyor_ring", "conveyor_inset"];',
+  '  const convLayouts = ["conveyor_ring", "conveyor_inset", "conveyor_temple", "conveyor_fortress", "conveyor_diamond"];',
   '  convLayouts.forEach(function (name) {',
   '    Object.keys(LAYOUT_BUILDERS[name]).forEach(function (variant) {',
   '      const pts = LAYOUT_BUILDERS[name][variant]();',

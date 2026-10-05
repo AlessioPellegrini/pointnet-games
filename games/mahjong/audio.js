@@ -12,6 +12,7 @@ var AUDIO_PLAYLIST_ARCADE = [
 	{ src: 'assets/music/zen-arcade.mp3', title: 'Zen Arcade' },
 	{ src: 'assets/music/mahjong-zen-secondary-theme.mp3', title: 'Mahjong Zen (Secondary Theme)' },
 	{ src: 'assets/music/mahjong-zen-secondary-theme-safri-duo.mp3', title: 'Mahjong Zen (Tribute to Safri Duo)' },
+	{ src: 'assets/music/mahjong-synco-mashup.mp3', title: 'Mahjong Synco (Mashup)' },
 	{ src: 'assets/music/bamboo-shadows.mp3', title: 'Bamboo Shadows' },
 	{ src: 'assets/music/bamboo-shadows-remix.mp3', title: 'Bamboo Shadows (Remix)' }
 ];
@@ -341,6 +342,163 @@ function playSfx(type, param) {
 			gain.connect(ac.destination);
 			osc.start(t + startDelay);
 			osc.stop(t + startDelay + dur + 0.01);
+		});
+	}
+	else if (type === 'shield_deflect') {
+		/* ----------------------------------------------------------
+		   METALLIC ENERGY WARD DEFLECT (High-resonance Ping & Hum)
+		   Sharp harmonic chime with quick damping.
+		   ---------------------------------------------------------- */
+		var oscA = ac.createOscillator();
+		var oscB = ac.createOscillator();
+		var gDeflect = ac.createGain();
+
+		oscA.type = 'sine';
+		oscB.type = 'triangle';
+
+		oscA.frequency.setValueAtTime(987.77, t);
+		oscA.frequency.exponentialRampToValueAtTime(880.0, t + 0.08);
+
+		oscB.frequency.setValueAtTime(1760.0, t);
+		oscB.frequency.exponentialRampToValueAtTime(1318.5, t + 0.06);
+
+		gDeflect.gain.setValueAtTime(0.14, t);
+		gDeflect.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+
+		oscA.connect(gDeflect);
+		oscB.connect(gDeflect);
+		gDeflect.connect(ac.destination);
+
+		oscA.start(t);
+		oscB.start(t);
+		oscA.stop(t + 0.25);
+		oscB.stop(t + 0.25);
+	}
+	else if (type === 'shield_shatter') {
+		/* ----------------------------------------------------------
+		   CRYSTALLINE BARRIER SHATTER (Sparkling Chimes Cascade)
+		   Descending bright harmonic burst + low release boom.
+		   ---------------------------------------------------------- */
+		var notes = [1567.98, 1318.51, 1046.50, 783.99];
+		notes.forEach(function (f, idx) {
+			var osc = ac.createOscillator();
+			var gShatter = ac.createGain();
+			osc.type = 'sine';
+			var startDelay = idx * 0.045;
+			osc.frequency.setValueAtTime(f, t + startDelay);
+			osc.frequency.exponentialRampToValueAtTime(f * 0.85, t + startDelay + 0.18);
+
+			gShatter.gain.setValueAtTime(0.12, t + startDelay);
+			gShatter.gain.exponentialRampToValueAtTime(0.001, t + startDelay + 0.26);
+
+			osc.connect(gShatter);
+			gShatter.connect(ac.destination);
+			osc.start(t + startDelay);
+			osc.stop(t + startDelay + 0.27);
+		});
+
+		var sub = ac.createOscillator();
+		var subGain = ac.createGain();
+		sub.type = 'triangle';
+		sub.frequency.setValueAtTime(220, t);
+		sub.frequency.exponentialRampToValueAtTime(110, t + 0.35);
+		subGain.gain.setValueAtTime(0.10, t);
+		subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+		sub.connect(subGain);
+		subGain.connect(ac.destination);
+		sub.start(t);
+		sub.stop(t + 0.36);
+	}
+	else if (type === 'chain_deflect') {
+		/* ----------------------------------------------------------
+		   METALLIC CHAIN CLANK / DEFLECT (Heavy Iron Dull Knock)
+		   Low inharmonic clank + short metallic vibration.
+		   ---------------------------------------------------------- */
+		var cOsc1 = ac.createOscillator();
+		var cOsc2 = ac.createOscillator();
+		var cGain = ac.createGain();
+
+		cOsc1.type = 'triangle';
+		cOsc2.type = 'square';
+
+		cOsc1.frequency.setValueAtTime(260, t);
+		cOsc1.frequency.exponentialRampToValueAtTime(110, t + 0.12);
+
+		cOsc2.frequency.setValueAtTime(415, t);
+		cOsc2.frequency.exponentialRampToValueAtTime(180, t + 0.08);
+
+		cGain.gain.setValueAtTime(0.18, t);
+		cGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+
+		cOsc1.connect(cGain);
+		cOsc2.connect(cGain);
+		cGain.connect(ac.destination);
+
+		cOsc1.start(t);
+		cOsc2.start(t);
+		cOsc1.stop(t + 0.23);
+		cOsc2.stop(t + 0.23);
+	}
+	else if (type === 'chain_rattle') {
+		/* ----------------------------------------------------------
+		   CHAIN LINKS RATTLE (Jangling Iron Links)
+		   Rapid staggered high metallic clicks with bandpass filter.
+		   ---------------------------------------------------------- */
+		var rattlePitches = [720, 880, 620, 950, 780];
+		rattlePitches.forEach(function (freq, idx) {
+			var rOsc = ac.createOscillator();
+			var rGain = ac.createGain();
+			var rDelay = idx * 0.032;
+
+			rOsc.type = 'triangle';
+			rOsc.frequency.setValueAtTime(freq, t + rDelay);
+			rOsc.frequency.exponentialRampToValueAtTime(freq * 0.7, t + rDelay + 0.06);
+
+			rGain.gain.setValueAtTime(0.08, t + rDelay);
+			rGain.gain.exponentialRampToValueAtTime(0.001, t + rDelay + 0.07);
+
+			rOsc.connect(rGain);
+			rGain.connect(ac.destination);
+			rOsc.start(t + rDelay);
+			rOsc.stop(t + rDelay + 0.08);
+		});
+	}
+	else if (type === 'chain_unlock') {
+		/* ----------------------------------------------------------
+		   PADLOCK SPRING SNAP & HEAVY CHAIN RELEASE
+		   Crisp lock tumblers snap (2 clicks) + sliding heavy chains.
+		   ---------------------------------------------------------- */
+		[0, 0.045].forEach(function (dt) {
+			var clickOsc = ac.createOscillator();
+			var clickGain = ac.createGain();
+			clickOsc.type = 'square';
+			clickOsc.frequency.setValueAtTime(1800, t + dt);
+			clickOsc.frequency.exponentialRampToValueAtTime(400, t + dt + 0.025);
+			clickGain.gain.setValueAtTime(0.16, t + dt);
+			clickGain.gain.exponentialRampToValueAtTime(0.001, t + dt + 0.03);
+			clickOsc.connect(clickGain);
+			clickGain.connect(ac.destination);
+			clickOsc.start(t + dt);
+			clickOsc.stop(t + dt + 0.035);
+		});
+
+		var slideNotes = [980, 784, 659, 523, 392];
+		slideNotes.forEach(function (f, idx) {
+			var sOsc = ac.createOscillator();
+			var sGain = ac.createGain();
+			var sDelay = 0.06 + idx * 0.035;
+
+			sOsc.type = 'triangle';
+			sOsc.frequency.setValueAtTime(f, t + sDelay);
+			sOsc.frequency.exponentialRampToValueAtTime(f * 0.8, t + sDelay + 0.12);
+
+			sGain.gain.setValueAtTime(0.12, t + sDelay);
+			sGain.gain.exponentialRampToValueAtTime(0.001, t + sDelay + 0.14);
+
+			sOsc.connect(sGain);
+			sGain.connect(ac.destination);
+			sOsc.start(t + sDelay);
+			sOsc.stop(t + sDelay + 0.15);
 		});
 	}
 }

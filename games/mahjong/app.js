@@ -63,6 +63,8 @@
 		_boardSize: null,
 		_scale: 1,
 		_tilt: 8,
+		shield: null,
+		chain: null,
 		autoMatching: false,
 		devMode: false
 	};
@@ -133,6 +135,8 @@
 			devInfoEl.textContent = 'Layout: ' + LAST_LEVEL_DEF.layout + '/' + LAST_LEVEL_DEF.variant +
 				' (' + app.tiles.length + ' tessere) · Strati: ' + (maxZ + 1) +
 				' · Conveyor: ' + (app.conveyorTrack ? 'ON' : 'OFF') +
+				' · Shield: ' + (app.shield ? (app.shield.broken ? 'BROKEN' : 'ON') : 'OFF') +
+				' · Chain: ' + (app.chain ? (app.chain.stages ? app.chain.stages.filter(function (s) { return s.unlocked; }).length + '/' + app.chain.stages.length : 'ON') : 'OFF') +
 				' · Blackout: ' + (LAST_LEVEL_DEF.blackout ? 'ON' : 'OFF');
 		}
 	}
@@ -177,6 +181,10 @@
 		app.board = buildBoard(app.tiles);
 		app.conveyorTrack = (app.tiles && app.tiles.conveyorTrack) ? app.tiles.conveyorTrack : null;
 		app.conveyorUnlocked = false;
+		app.shield = (app.tiles && app.tiles.shield) ? JSON.parse(JSON.stringify(app.tiles.shield)) : null;
+		if (app.board && app.shield) app.board._shield = app.shield;
+		app.chain = (app.tiles && app.tiles.chain) ? JSON.parse(JSON.stringify(app.tiles.chain)) : null;
+		if (app.board && app.chain) app.board._chain = app.chain;
 		pairsLeftAtStart = pairsLeft();
 		app.mode = (LAST_LEVEL_DEF && LAST_LEVEL_DEF.mode) ? LAST_LEVEL_DEF.mode : 'arcade';
 		app.multiplier = (LAST_LEVEL_DEF && LAST_LEVEL_DEF.multiplier) ? LAST_LEVEL_DEF.multiplier : 1.0;
@@ -186,15 +194,22 @@
 
 		if (app.mode === 'classic') {
 			document.body.classList.add('mode-classic');
-			document.body.classList.remove('mode-conveyor');
+			document.body.classList.remove('mode-conveyor', 'mode-shield', 'mode-chain');
 			levelLabelEl.innerHTML = (app.levelIndex + 1) + ' <span class="badge-classic">CLASSIC</span>';
 		} else if (app.conveyorTrack) {
-			document.body.classList.remove('mode-classic');
+			document.body.classList.remove('mode-classic', 'mode-shield', 'mode-chain');
 			document.body.classList.add('mode-conveyor');
 			levelLabelEl.innerHTML = (app.levelIndex + 1) + ' <span class="badge-conveyor">🔄 CONVEYOR</span>';
+		} else if (app.shield) {
+			document.body.classList.remove('mode-classic', 'mode-conveyor', 'mode-chain');
+			document.body.classList.add('mode-shield');
+			levelLabelEl.innerHTML = (app.levelIndex + 1) + ' <span class="badge-shield">🛡️ SHIELD</span>';
+		} else if (app.chain) {
+			document.body.classList.remove('mode-classic', 'mode-conveyor', 'mode-shield');
+			document.body.classList.add('mode-chain');
+			levelLabelEl.innerHTML = (app.levelIndex + 1) + ' <span class="badge-chain">🗝️ CATENE</span>';
 		} else {
-			document.body.classList.remove('mode-classic');
-			document.body.classList.remove('mode-conveyor');
+			document.body.classList.remove('mode-classic', 'mode-conveyor', 'mode-shield', 'mode-chain');
 			levelLabelEl.textContent = app.levelIndex + 1;
 		}
 		if (typeof setMusicMode === 'function') setMusicMode(app.mode);
@@ -225,7 +240,7 @@
 	function requestGameFullscreen() {
 		var inIframe = window.parent !== window;
 		if (inIframe) {
-			window.parent.postMessage({ type: 'pointnet-games:fullscreen-request' }, '*');
+			window.parent.postMessage({ type: 'pointnet-games:fullscreen-request' }, window.location.origin);
 		} else {
 			document.body.classList.add('pointnet-games-fs');
 			if (fsCloseBtn) fsCloseBtn.style.display = 'inline-flex';
@@ -235,7 +250,7 @@
 	function exitGameFullscreen() {
 		var inIframe = window.parent !== window;
 		if (inIframe) {
-			window.parent.postMessage({ type: 'pointnet-games:fullscreen-exit' }, '*');
+			window.parent.postMessage({ type: 'pointnet-games:fullscreen-exit' }, window.location.origin);
 		} else {
 			document.body.classList.remove('pointnet-games-fs');
 			if (fsCloseBtn) fsCloseBtn.style.display = 'none';

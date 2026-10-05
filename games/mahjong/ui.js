@@ -16,6 +16,36 @@
 		var overlay = document.createElement('div');
 		overlay.className = 'tile-overlay';
 
+		/* Key Tiles (v1.8.0): Ornate antique key illustration & metallic badge */
+		if (t.isKey) {
+			el.classList.add('key-tile', 'key-stage-' + t.keyStage);
+			var keyStageNames = ['', 'Bronzo', 'Argento', 'Oro'];
+			var keyBadgeIcons = ['', '🗝️🥉', '🗝️🥈', '🗝️🥇'];
+			var keyFace = document.createElement('div');
+			keyFace.className = 'key-face key-face-' + t.keyStage;
+			keyFace.innerHTML =
+				'<svg viewBox="0 0 36 56" class="key-svg-art">' +
+				'<defs>' +
+				'<linearGradient id="kg' + t.keyStage + '" x1="0%" y1="0%" x2="100%" y2="100%">' +
+				(t.keyStage === 1
+					? '<stop offset="0%" stop-color="#fef3c7"/><stop offset="50%" stop-color="#d97706"/><stop offset="100%" stop-color="#78350f"/>'
+					: (t.keyStage === 2
+						? '<stop offset="0%" stop-color="#ffffff"/><stop offset="50%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#475569"/>'
+						: '<stop offset="0%" stop-color="#fffbeb"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#b45309"/>')) +
+				'</linearGradient>' +
+				'</defs>' +
+				'<path fill="url(#kg' + t.keyStage + ')" stroke="rgba(0,0,0,0.4)" stroke-width="1" d="M18,6 C13,6 9,10 9,15 C9,18.8 11.5,22 15,23.4 L15,44 L19,44 L19,39 L22,39 L22,35 L19,35 L19,30 L22,30 L22,26 L19,26 L19,23.4 C22.5,22 25,18.8 25,15 C25,10 21,6 18,6 Z M18,11 C20.2,11 22,12.8 22,15 C22,17.2 20.2,19 18,19 C15.8,19 14,17.2 14,15 C14,12.8 15.8,11 18,11 Z"/>' +
+				'</svg>' +
+				'<span class="key-sublabel">' + (keyStageNames[t.keyStage] || 'CHIAVE') + '</span>';
+			el.appendChild(overlay);
+			el.appendChild(keyFace);
+			var kBadge = document.createElement('span');
+			kBadge.className = 'key-badge';
+			kBadge.textContent = keyBadgeIcons[t.keyStage] || '🗝️';
+			el.appendChild(kBadge);
+			return el;
+		}
+
 		/* SVG tiles (riichi-mahjong-tiles): the face is an <img> filling
 		   the whole tile. No text symbol, no plane/num badges needed —
 		   the SVG already shows the suit, number and frame. */
@@ -30,6 +60,14 @@
 			if (t.svg.indexOf('/black/') !== -1) el.classList.add('svg-black');
 			el.appendChild(overlay);
 			el.appendChild(svg);
+			var gBadge = document.createElement('span');
+			gBadge.className = 'guardian-badge';
+			gBadge.textContent = '🛡️';
+			el.appendChild(gBadge);
+			var lBadge = document.createElement('span');
+			lBadge.className = 'lock-badge';
+			lBadge.textContent = '🔒';
+			el.appendChild(lBadge);
 			return el;
 		}
 
@@ -45,10 +83,20 @@
 		num.className = 'num-badge';
 		num.textContent = t.label;
 
+		var gBadge2 = document.createElement('span');
+		gBadge2.className = 'guardian-badge';
+		gBadge2.textContent = '🛡️';
+
+		var lBadge2 = document.createElement('span');
+		lBadge2.className = 'lock-badge';
+		lBadge2.textContent = '🔒';
+
 		el.appendChild(overlay);
 		el.appendChild(sym);
 		el.appendChild(plane);
 		el.appendChild(num);
+		el.appendChild(gBadge2);
+		el.appendChild(lBadge2);
 		return el;
 	}
 
@@ -84,7 +132,7 @@
 		fitBoard();
 	}
 
-	/* Renders subtle visual track markers on z0 beneath the tiles */
+	/* Renders high-visibility animated track rails and slot markers beneath conveyor tiles */
 	function renderConveyorTrackOverlay() {
 		var old = boardEl.querySelector('.conveyor-track-layer');
 		if (old) old.remove();
@@ -92,16 +140,37 @@
 
 		var layer = document.createElement('div');
 		layer.className = 'conveyor-track-layer';
+
+		var svgNS = 'http://www.w3.org/2000/svg';
+		var svg = document.createElementNS(svgNS, 'svg');
+		svg.setAttribute('class', 'conveyor-track-svg');
+		if (app._boardSize) {
+			svg.setAttribute('width', app._boardSize.w);
+			svg.setAttribute('height', app._boardSize.h);
+		}
+
+		var pathPts = [];
 		for (var i = 0; i < app.conveyorTrack.length; i++) {
 			var pt = app.conveyorTrack[i];
 			var pos = layoutPos({ z: 0, x: pt.x, y: pt.y }, app._metrics);
+			pathPts.push((pos.x + 24) + ',' + (pos.y + 32));
+
 			var slot = document.createElement('div');
 			slot.className = 'conveyor-slot-indicator';
-			slot.style.setProperty('--tx', pos.x + 'px');
-			slot.style.setProperty('--ty', pos.y + 'px');
+			slot.style.setProperty('--tx', (pos.x - 1) + 'px');
+			slot.style.setProperty('--ty', (pos.y - 1) + 'px');
 			layer.appendChild(slot);
 		}
-		boardEl.appendChild(layer);
+
+		if (pathPts.length > 2) {
+			var path = document.createElementNS(svgNS, 'path');
+			path.setAttribute('d', 'M ' + pathPts.join(' L ') + ' Z');
+			path.setAttribute('class', 'conveyor-track-path');
+			svg.appendChild(path);
+			layer.insertBefore(svg, layer.firstChild);
+		}
+
+		boardEl.insertBefore(layer, boardEl.firstChild);
 	}
 
 	function updateStates() {
@@ -119,9 +188,17 @@
 			var t = app.tiles[i];
 			var el = app.tileEls[i];
 			if (!el) continue;
+			var chained = !t.removed && !t.staging && isTileChained(t, app.chain);
 			el.classList.toggle('removed', t.removed);
 			el.classList.toggle('in-staging', t.staging && !t.removed);
 			el.classList.toggle('blocked', !t.removed && !t.staging && !isFree(app.board, t));
+			el.classList.toggle('shielded', !t.removed && !t.staging && !!t.shielded);
+			el.classList.toggle('guardian', !t.removed && !t.staging && !!t.guardian);
+			el.classList.toggle('chained', chained);
+			el.classList.toggle('chain-stage-1', chained && t.chainStage === 1);
+			el.classList.toggle('chain-stage-2', chained && t.chainStage === 2);
+			el.classList.toggle('chain-stage-3', chained && t.chainStage === 3);
+			el.classList.toggle('key-tile', !t.removed && !t.staging && !!t.isKey);
 			el.classList.toggle('face-down', t.faceDown && !t.staging && !t.removed);
 			el.classList.toggle('obscured', !t.removed && !t.staging && !!t.obscured);
 			el.classList.toggle('hinted', !!t.hinted);
@@ -245,6 +322,50 @@
 			var rectB = elB.getBoundingClientRect();
 			spawnBurstAt(rectB.left + rectB.width / 2, rectB.top + rectB.height / 2, 8);
 		}
+	}
+
+	function spawnShieldBreakParticles(shield) {
+		if (!shield || !shield.protectedKeys) return;
+		var colors = ['#00f5ff', '#38bdf8', '#60a5fa', '#facc15', '#ffffff'];
+		shield.protectedKeys.forEach(function (k) {
+			for (var i = 0; i < app.tiles.length; i++) {
+				if (app.tiles[i].key === k) {
+					var el = app.tileEls[i];
+					if (el) {
+						var rect = el.getBoundingClientRect();
+						spawnBurstAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 14, colors);
+					}
+					break;
+				}
+			}
+		});
+	}
+
+	function spawnChainBreakParticles(stage) {
+		if (!stage || !stage.chainedKeys) return;
+		var colors = (stage.stage === 1)
+			? ['#d97706', '#f59e0b', '#fbbf24', '#78350f', '#fef3c7']
+			: ((stage.stage === 2)
+				? ['#94a3b8', '#cbd5e1', '#e2e8f0', '#475569', '#ffffff']
+				: ['#fbbf24', '#f59e0b', '#fef08a', '#b45309', '#ffffff']);
+
+		stage.chainedKeys.forEach(function (k) {
+			for (var i = 0; i < app.tiles.length; i++) {
+				if (app.tiles[i].key === k) {
+					var el = app.tileEls[i];
+					if (el) {
+						el.classList.remove('chained', 'chain-stage-1', 'chain-stage-2', 'chain-stage-3');
+						el.classList.add('chain-shatter');
+						setTimeout(function (targetEl) {
+							if (targetEl) targetEl.classList.remove('chain-shatter');
+						}, 650, el);
+						var rect = el.getBoundingClientRect();
+						spawnBurstAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 16, colors);
+					}
+					break;
+				}
+			}
+		});
 	}
 
 	/* CLASSIC MATCH ANIMATION (v1.4.7):

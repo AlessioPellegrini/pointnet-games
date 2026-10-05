@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.2.6
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,12 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.0 =
+* GitHub Release Auto-Updater: integrated native GitHub releases updater (matching PointNet MailGuard architecture) for direct 1-click plugin updates and dashboard notifications within WordPress admin.
+* Minesweeper v1.3.0: Dual modes (Classic mode with Easy, Medium, Hard, and Extreme 32x18 presets from The Clean One, and 18-level progressive Scalata mode), hardware-accelerated Pan & Pinch-to-zoom engine for mobile and desktop, multi-difficulty leaderboards (arcade, easy, medium, hard, extreme), organic acoustic sound design, smart chording, and dual-mode pill toggle.
+* Mahjong Arcade v1.7.0: Shield Wards mechanic on levels ending in 7, scalable conveyor variants, and Synco Mashup audio track.
+* Security & Reliability: throttled session generation, post existence guards on REST routes, GMT/UTC timestamp standardization, and score boundary limits.
 
 = 1.2.6 =
 * Security hardening: strict unified `permission_callback` verifying authentication and REST nonce on all protected endpoints.

@@ -2,192 +2,247 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>Minesweeper Arcade</title>
 	<style>
 		:root {
-			--bg: #0f172a;
-			--bg-panel: #1e293b;
-			--bg-cell: #334155;
-			--bg-revealed: #475569;
-			--border: #0b1220;
-			--text: #e2e8f0;
-			--text-dim: #94a3b8;
+			--bg-app: #0e131f;
+			--bg-surface: #182032;
+			--bg-cell-covered: #253349;
+			--bg-cell-hover: #31425e;
+			--bg-cell-revealed: #121927;
+			--bg-board: #0a0e17;
+			--text-main: #f8fafc;
+			--text-muted: #94a3b8;
 			--accent: #38bdf8;
-			--accent-2: #f472b6;
+			--accent-glow: rgba(56, 189, 248, 0.35);
 			--danger: #ef4444;
-			--success: #22c55e;
-			--gold: #fbbf24;
-			--num-1: #60a5fa;
-			--num-2: #4ade80;
+			--success: #10b981;
+			--gold: #f59e0b;
+			/* Modern Clean pastel numbers */
+			--num-1: #38bdf8;
+			--num-2: #34d399;
 			--num-3: #f87171;
-			--num-4: #c084fc;
+			--num-4: #a78bfa;
 			--num-5: #fb923c;
 			--num-6: #22d3ee;
-			--num-7: #e879f9;
+			--num-7: #f472b6;
 			--num-8: #94a3b8;
 		}
 
 		* { box-sizing: border-box; margin: 0; padding: 0; }
 
-		body {
-			background: var(--bg);
-			color: var(--text);
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-			padding: 20px;
-			background-image:
-				radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
-				radial-gradient(circle at 80% 80%, rgba(244, 114, 182, 0.08) 0%, transparent 50%);
-		}
-
-		.game-container {
-			background: var(--bg-panel);
-			border-radius: 16px;
-			padding: 24px;
-			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+		html, body {
 			width: 100%;
-			max-width: 100%;
-			margin: 0 auto;
-			box-sizing: border-box;
+			height: 100%;
+			background: var(--bg-app);
+			color: var(--text-main);
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 			user-select: none;
 			-webkit-user-select: none;
+			touch-action: manipulation;
+			overflow: hidden;
 		}
 
-		.game-header { text-align: center; margin-bottom: 14px; }
-
-		.game-title {
-			font-size: 1.6rem;
-			font-weight: 800;
-			background: linear-gradient(135deg, var(--accent), var(--accent-2));
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			background-clip: text;
-			letter-spacing: -0.5px;
-		}
-
-		.game-subtitle { color: var(--text-dim); font-size: 0.85rem; margin-top: 4px; }
-
-		/* Level progress */
-		.level-bar {
+		body {
 			display: flex;
-			justify-content: space-between;
 			align-items: center;
-			gap: 8px;
-			flex-wrap: wrap;
-			margin-bottom: 10px;
+			justify-content: center;
+			background-image:
+				radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.06) 0%, transparent 50%),
+				radial-gradient(circle at 50% 90%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
 		}
 
-		.level-chip {
-			background: var(--accent);
-			color: #0f172a;
-			padding: 4px 14px;
-			border-radius: 999px;
-			font-size: 0.85rem;
+		/* Main App Container: Clean full-viewport minimal canvas */
+		.app-container {
+			width: 100%;
+			max-width: 900px;
+			height: 100vh;
+			max-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			padding: 12px 14px;
+			box-sizing: border-box;
+			overflow: hidden;
+		}
+
+		/* Clean Minimalist Header (HUD) */
+		.hud-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			background: rgba(24, 32, 50, 0.7);
+			border: 1px solid rgba(255, 255, 255, 0.06);
+			border-radius: 14px;
+			padding: 8px 16px;
+			backdrop-filter: blur(8px);
+			-webkit-backdrop-filter: blur(8px);
+			flex-shrink: 0;
+			box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+		}
+
+		.hud-item {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 0.95rem;
 			font-weight: 800;
+			letter-spacing: 0.2px;
 		}
 
-		.level-progress {
-			flex: 1;
-			height: 8px;
-			background: var(--bg);
+		.hud-item.mines { color: var(--gold); }
+		.hud-item.timer { color: var(--text-main); font-variant-numeric: tabular-nums; }
+		.hud-item.score { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+		.hud-level-pill {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 3px;
+		}
+
+		.level-badge {
+			font-size: 0.75rem;
+			font-weight: 900;
+			letter-spacing: 0.8px;
+			color: var(--accent);
+			text-transform: uppercase;
+		}
+
+		.level-progress-bar {
+			width: 60px;
+			height: 4px;
+			background: rgba(10, 14, 23, 0.8);
 			border-radius: 999px;
 			overflow: hidden;
-			min-width: 120px;
 		}
 
 		.level-progress-fill {
 			height: 100%;
-			width: 0%;
-			background: linear-gradient(90deg, var(--success), var(--accent));
+			width: 6.6%;
+			background: linear-gradient(90deg, var(--accent), #34d399);
 			border-radius: 999px;
-			transition: width 0.4s ease;
+			transition: width 0.3s ease;
 		}
 
-		/* Status bar */
-		.status-bar {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			background: var(--bg);
-			border-radius: 10px;
-			padding: 8px 14px;
-			margin-bottom: 12px;
-			font-family: 'Consolas', 'Courier New', monospace;
-		}
-
-		.status-item {
+		/* Board Arena: Pan & Pinch-to-Zoom Viewport Container */
+		.board-arena {
+			flex: 1;
 			display: flex;
 			align-items: center;
-			gap: 6px;
-			font-size: 1rem;
-			font-weight: 700;
-		}
-
-		.status-item .icon { font-size: 1.1rem; }
-		.status-value { color: var(--accent); min-width: 30px; text-align: center; }
-		.status-value.time-value { color: var(--text); }
-		.status-value.score-value { color: var(--gold); }
-
-		/* Board */
-		.board-wrapper {
-			text-align: center;
-			overflow-x: auto;
-			overflow-y: hidden;
-			-webkit-overflow-scrolling: touch;
-			padding-bottom: 4px;
+			justify-content: center;
+			overflow: hidden;
+			position: relative;
+			padding: 0;
 			width: 100%;
-			box-sizing: border-box;
+			min-height: 0;
+			touch-action: none;
+			user-select: none;
+			-webkit-user-select: none;
+		}
+
+		.board-viewport {
+			width: 100%;
+			height: 100%;
+			position: relative;
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			touch-action: none;
+		}
+
+		.board-layer {
+			position: absolute;
+			transform-origin: 0 0;
+			will-change: transform;
+			left: 0;
+			top: 0;
+		}
+
+		.board-layer.smooth-animate {
+			transition: transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
 		}
 
 		.board {
 			display: inline-grid;
-			gap: 2px;
-			background: var(--border);
-			border-radius: 8px;
-			padding: 4px;
-			transition: transform 0.3s ease;
+			gap: 3px;
+			background: var(--bg-board);
+			border-radius: 14px;
+			padding: 6px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 2px 6px rgba(0, 0, 0, 0.6);
+			transition: transform 0.25s ease;
 		}
 
 		.board.flipping { transform: rotateX(90deg); }
 
+		/* "The Clean One" Signature Squircle Tile */
 		.cell {
 			width: 32px;
 			height: 32px;
 			touch-action: manipulation;
-			background: var(--bg-cell);
+			background: var(--bg-cell-covered);
 			border: none;
-			border-radius: 4px;
+			border-radius: 8px; /* Clean squircle */
 			cursor: pointer;
-			font-size: 0.9rem;
-			font-weight: 700;
+			font-size: 1.05rem;
+			font-weight: 900;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			transition: background 0.1s ease, transform 0.05s ease, box-shadow 0.15s ease;
-			color: var(--text);
+			transition: background 0.12s ease, transform 0.08s ease, box-shadow 0.12s ease;
+			color: var(--text-main);
 			font-family: inherit;
 			position: relative;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+			box-shadow: 0 3px 5px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.09);
 		}
 
 		.cell:hover:not(.revealed):not(.flagged):not(.game-over) {
-			background: #425a78;
-			transform: scale(1.02);
+			background: var(--bg-cell-hover);
+			transform: translateY(-1px);
+			box-shadow: 0 5px 10px rgba(0, 0, 0, 0.35);
 		}
 
-		.cell:active:not(.revealed) { transform: scale(0.95); }
+		.cell:active:not(.revealed) {
+			transform: scale(0.94);
+		}
 
+		/* Clean revealed state: flat, sunken, clean */
 		.cell.revealed {
-			background: var(--bg-revealed);
-			box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+			background: var(--bg-cell-revealed);
+			box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 			cursor: default;
-			animation: reveal-pop 0.15s ease;
+			animation: cell-ripple-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 		}
 
-		.cell.flagged { background: var(--bg-cell); animation: flag-pop 0.2s ease; }
-		.cell.mine-hit { background: var(--danger); animation: explode 0.4s ease; }
-		.cell.mine-shown { background: var(--bg-revealed); }
-		.cell.wrong-flag { background: #f87171; color: #fff; }
+		.cell.revealed.has-number {
+			cursor: pointer;
+		}
+
+		.cell.revealed.has-number:hover {
+			background: #192437;
+		}
+
+		.cell.cell-hint {
+			background: #334e68 !important;
+			transform: scale(0.91);
+			transition: transform 0.1s ease;
+		}
+
+		.cell.flagged {
+			background: var(--bg-cell-covered);
+			animation: flag-pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		.cell.mine-hit {
+			background: var(--danger) !important;
+			box-shadow: 0 0 20px rgba(239, 68, 68, 0.9);
+			animation: explode 0.35s ease;
+		}
+
+		.cell.mine-shown { background: var(--bg-cell-revealed); }
+		.cell.wrong-flag { background: #f87171 !important; color: #fff; }
 
 		.num-1 { color: var(--num-1); }
 		.num-2 { color: var(--num-2); }
@@ -198,94 +253,122 @@
 		.num-7 { color: var(--num-7); }
 		.num-8 { color: var(--num-8); }
 
-		@keyframes reveal-pop {
-			0% { transform: scale(0.8); }
-			60% { transform: scale(1.05); }
-			100% { transform: scale(1); }
+		@keyframes cell-ripple-in {
+			0% { transform: scale(0.75); opacity: 0.6; }
+			100% { transform: scale(1); opacity: 1; }
 		}
 
 		@keyframes flag-pop {
-			0% { transform: scale(0.5) rotate(-20deg); }
+			0% { transform: scale(0.4) rotate(-15deg); }
+			65% { transform: scale(1.15) rotate(4deg); }
 			100% { transform: scale(1) rotate(0deg); }
 		}
 
 		@keyframes explode {
-			0% { background: #fff; transform: scale(1.4); }
-			30% { background: var(--danger); transform: scale(0.9); }
-			60% { transform: scale(1.15); }
+			0% { background: #fff; transform: scale(1.35); }
+			40% { background: var(--danger); transform: scale(0.9); }
 			100% { background: var(--danger); transform: scale(1); }
 		}
 
+		/* Floating Bottom Controller Bar */
+		.bottom-bar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			flex-shrink: 0;
+			padding-top: 4px;
+		}
+
+		/* Sliding Segmented Pill (Dig vs Flag) */
+		.mode-pill-selector {
+			background: var(--bg-surface);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			border-radius: 999px;
+			padding: 4px;
+			display: inline-flex;
+			gap: 4px;
+			box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+		}
+
+		.pill-btn {
+			background: transparent;
+			border: none;
+			color: var(--text-muted);
+			font-family: inherit;
+			font-size: 0.88rem;
+			font-weight: 800;
+			padding: 8px 18px;
+			border-radius: 999px;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		.pill-btn.active {
+			background: var(--accent);
+			color: #0b1120;
+			box-shadow: 0 3px 12px var(--accent-glow);
+		}
+
+		.pill-btn.flag-btn.active {
+			background: var(--gold);
+			color: #0b1120;
+			box-shadow: 0 3px 12px rgba(245, 158, 11, 0.4);
+		}
+
+		.action-buttons-row {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+		}
+
+		.icon-action-btn {
+			width: 38px;
+			height: 38px;
+			border-radius: 50%;
+			background: var(--bg-surface);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			color: var(--text-main);
+			font-size: 1rem;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			transition: all 0.18s ease;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+			user-select: none;
+		}
+
+		.icon-action-btn:hover {
+			background: var(--bg-cell-hover);
+			transform: translateY(-1px);
+			border-color: var(--accent);
+		}
+
+		/* Particles */
 		.particle {
 			position: absolute;
 			pointer-events: none;
 			border-radius: 50%;
-			animation: particle-fly 0.7s ease-out forwards;
+			animation: particle-fly 0.65s ease-out forwards;
 			z-index: 10;
 		}
 
 		@keyframes particle-fly {
-			to { transform: translate(var(--dx), var(--dy)) scale(0.3); opacity: 0; }
+			to { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
 		}
 
-		.overlay {
-			position: fixed;
-			top: 0; left: 0; right: 0; bottom: 0;
-			display: none;
-			align-items: center;
-			justify-content: center;
-			background: rgba(0, 0, 0, 0.7);
-			backdrop-filter: blur(4px);
-			z-index: 100;
-			animation: fade-in 0.3s ease;
-		}
-
-		.overlay.show { display: flex; }
-
-		.modal {
-			background: var(--bg-panel);
-			border-radius: 16px;
-			padding: 32px;
-			text-align: center;
-			max-width: 380px;
-			width: 90%;
-			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-			animation: modal-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-		}
-
-		.modal-emoji { font-size: 3.5rem; margin-bottom: 12px; animation: bounce 0.6s ease; }
-		.modal-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
-		.modal-score { color: var(--text-dim); font-size: 1rem; margin-bottom: 8px; }
-		.modal-position { color: var(--gold); font-weight: 700; font-size: 1.05rem; margin-bottom: 20px; min-height: 24px; }
-		.modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-
-		.btn {
-			padding: 10px 22px;
-			border-radius: 999px;
-			border: none;
-			font-size: 0.95rem;
-			font-weight: 700;
-			cursor: pointer;
-			transition: all 0.2s ease;
-			font-family: inherit;
-		}
-
-		.btn-primary { background: var(--accent); color: #0f172a; }
-		.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(56, 189, 248, 0.35); }
-		.btn-secondary { background: var(--bg-cell); color: var(--text); }
-		.btn-secondary:hover { background: #3b4c66; }
-
-		@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-		@keyframes modal-in { from { transform: scale(0.7) translateY(30px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-		@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-
+		/* Confetti */
 		.confetti {
 			position: fixed;
-			width: 10px;
-			height: 10px;
+			width: 8px;
+			height: 8px;
 			pointer-events: none;
 			z-index: 200;
-			animation: confetti-fall 3s ease-out forwards;
+			animation: confetti-fall 2.8s ease-out forwards;
 		}
 
 		@keyframes confetti-fall {
@@ -293,72 +376,102 @@
 			100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
 		}
 
-		.action-bar {
-			display: flex;
-			justify-content: center;
-			gap: 10px;
-			margin-top: 14px;
-		}
-
-		.sound-toggle {
-			background: var(--bg-cell);
-			color: var(--text);
-			cursor: pointer;
-			font-size: 0.95rem;
-			font-weight: 700;
-			display: flex;
+		/* Modals */
+		.overlay {
+			position: fixed;
+			inset: 0;
+			display: none;
 			align-items: center;
 			justify-content: center;
-			padding: 10px 18px;
-			transition: all 0.2s ease;
-			font-family: inherit;
-			border: none;
-			border-radius: 999px;
-			flex-shrink: 0;
+			background: rgba(10, 14, 23, 0.8);
+			backdrop-filter: blur(6px);
+			-webkit-backdrop-filter: blur(6px);
+			z-index: 100;
+			animation: fade-in 0.25s ease;
 		}
 
-		.sound-toggle:hover { background: #3b4c66; }
+		.overlay.show { display: flex; }
 
+		.modal {
+			background: #162032;
+			border-radius: 20px;
+			padding: 30px 24px;
+			text-align: center;
+			max-width: 380px;
+			width: 90%;
+			box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+			animation: modal-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		.modal-emoji { font-size: 3.5rem; margin-bottom: 8px; animation: bounce 0.6s ease; }
+		.modal-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 8px; }
+		.modal-score { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 8px; }
+		.modal-position { color: var(--gold); font-weight: 700; font-size: 1rem; margin-bottom: 20px; min-height: 24px; line-height: 1.4; }
+		.modal-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+		.btn {
+			padding: 10px 22px;
+			border-radius: 999px;
+			border: none;
+			font-size: 0.92rem;
+			font-weight: 800;
+			cursor: pointer;
+			transition: all 0.18s ease;
+			font-family: inherit;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+		}
+
+		.btn-primary { background: linear-gradient(135deg, var(--accent), #0284c7); color: #0b1120; }
+		.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 18px var(--accent-glow); }
+		.btn-secondary { background: var(--bg-surface); color: var(--text-main); }
+		.btn-secondary:hover { background: var(--bg-cell-hover); }
+
+		@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+		@keyframes modal-in { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+		@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+		/* Splash screen */
 		#splash {
 			position: fixed;
-			top: 0; left: 0; right: 0; bottom: 0;
+			inset: 0;
 			z-index: 900;
 			background:
-				radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.15) 0%, transparent 60%),
-				radial-gradient(circle at 50% 90%, rgba(244, 114, 182, 0.10) 0%, transparent 60%),
-				var(--bg);
+				radial-gradient(circle at 50% 25%, rgba(56, 189, 248, 0.16) 0%, transparent 60%),
+				radial-gradient(circle at 50% 85%, rgba(245, 158, 11, 0.10) 0%, transparent 60%),
+				var(--bg-app);
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			transition: opacity 0.35s ease;
-			overflow: hidden;
+			transition: opacity 0.3s ease, visibility 0.3s ease;
 		}
 
-		#splash.hidden { opacity: 0; pointer-events: none; }
+		#splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
 		.splash-inner {
 			text-align: center;
-			padding: 32px;
-			max-width: 360px;
-			width: 90%;
-			max-height: 100vh;
+			padding: 20px 16px;
+			max-width: 440px;
+			width: 92%;
+			max-height: 94vh;
+			overflow-y: auto;
+			scrollbar-width: thin;
 			box-sizing: border-box;
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			justify-content: center;
 		}
 
-		.splash-emoji { font-size: 4.5rem; margin-bottom: 12px; animation: bounce 1.2s ease infinite; line-height: 1; }
-
+		.splash-emoji { font-size: 3.5rem; margin-bottom: 4px; animation: bounce 1.4s ease infinite; line-height: 1; }
 		.splash-title {
-			font-size: 2.2rem;
-			font-weight: 800;
-			background: linear-gradient(135deg, var(--accent), var(--accent-2));
+			font-size: 2.1rem;
+			font-weight: 900;
+			background: linear-gradient(135deg, #f8fafc, #94a3b8);
 			-webkit-background-clip: text;
 			-webkit-text-fill-color: transparent;
 			background-clip: text;
-			margin-bottom: 10px;
+			margin-bottom: 6px;
 			line-height: 1.2;
 		}
 
@@ -367,100 +480,209 @@
 			font-weight: 700;
 			vertical-align: super;
 			margin-left: 4px;
-			opacity: 0.7;
-			background: linear-gradient(135deg, var(--accent), var(--accent-2));
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			background-clip: text;
-			letter-spacing: 0.3px;
+			color: var(--accent);
+			-webkit-text-fill-color: var(--accent);
 		}
 
-		.splash-subtitle { color: var(--text-dim); font-size: 1rem; margin-bottom: 20px; line-height: 1.4; }
-		.splash-play { font-size: 1.3rem; padding: 14px 40px; box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4); animation: pulse-glow 2s ease-in-out infinite; flex-shrink: 0; }
-		.splash-hint { margin-top: 10px; color: var(--text-dim); font-size: 0.8rem; }
-		.splash-author { margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(148, 163, 184, 0.2); color: var(--text-dim); font-size: 0.8rem; letter-spacing: 0.3px; width: 100%; }
+		.splash-player-status {
+			margin-bottom: 12px;
+			font-size: 0.82rem;
+			color: var(--text-muted);
+			background: rgba(24, 32, 50, 0.8);
+			padding: 5px 14px;
+			border-radius: 999px;
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+		}
+
+		.splash-mode-section {
+			width: 100%;
+			background: rgba(22, 32, 50, 0.7);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			border-radius: 16px;
+			padding: 12px 14px;
+			margin-bottom: 10px;
+			text-align: center;
+			box-sizing: border-box;
+		}
+
+		.splash-section-title {
+			font-size: 0.85rem;
+			font-weight: 800;
+			color: var(--accent);
+			text-transform: uppercase;
+			letter-spacing: 0.6px;
+			margin-bottom: 8px;
+		}
+
+		.splash-section-desc {
+			color: var(--text-muted);
+			font-size: 0.8rem;
+			margin-bottom: 10px;
+			line-height: 1.35;
+		}
+
+		.classic-presets-grid {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 8px;
+			width: 100%;
+		}
+
+		.btn-preset {
+			background: var(--bg-surface);
+			color: var(--text-main);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			border-radius: 12px;
+			padding: 8px 6px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 3px;
+			cursor: pointer;
+			transition: all 0.18s ease;
+			font-family: inherit;
+		}
+
+		.btn-preset:hover {
+			background: var(--bg-cell-hover);
+			border-color: var(--accent);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+		}
+
+		.preset-name {
+			font-weight: 800;
+			font-size: 0.85rem;
+		}
+
+		.preset-details {
+			font-size: 0.72rem;
+			color: var(--text-muted);
+		}
+
+		.splash-play { font-size: 1.05rem; padding: 10px 32px; box-shadow: 0 8px 24px var(--accent-glow); animation: pulse-glow 2s ease-in-out infinite; }
+		.splash-hint { margin-top: 8px; color: var(--text-muted); font-size: 0.74rem; line-height: 1.3; }
+		.splash-author { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(148, 163, 184, 0.15); color: var(--text-muted); font-size: 0.72rem; width: 100%; }
 
 		@keyframes pulse-glow {
-			0%, 100% { box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4); }
-			50% { box-shadow: 0 8px 36px rgba(56, 189, 248, 0.7); }
+			0%, 100% { box-shadow: 0 8px 24px var(--accent-glow); }
+			50% { box-shadow: 0 8px 38px rgba(56, 189, 248, 0.7); }
 		}
 
+		/* Fullscreen exit button */
 		.fs-close {
 			position: fixed;
-			top: 16px;
-			right: 16px;
+			top: 12px;
+			right: 12px;
 			z-index: 1000;
-			width: 40px;
-			height: 40px;
+			width: 36px;
+			height: 36px;
 			border: none;
 			border-radius: 10px;
-			background: rgba(15, 23, 42, 0.7);
-			color: #fff;
-			font-size: 1.2rem;
+			background: rgba(14, 19, 31, 0.8);
+			color: #fca5a5;
+			font-size: 1.1rem;
 			cursor: pointer;
 			display: none;
 			align-items: center;
 			justify-content: center;
-			transition: background 0.2s ease;
 			backdrop-filter: blur(4px);
 		}
 
-		.fs-close:hover { background: rgba(239, 68, 68, 0.85); }
+		.fs-close:hover { background: rgba(239, 68, 68, 0.85); color: #fff; }
 		body.pointnet-games-fs .fs-close { display: flex; }
 
-		@media (max-width: 600px) {
-			body { padding: 2px; }
-			.game-container { padding: 4px; border-radius: 8px; }
-			.game-header { margin-bottom: 6px; }
-			.game-title { font-size: 1.1rem; }
-			.game-subtitle { font-size: 0.7rem; margin-top: 2px; }
-			.level-bar { margin-bottom: 6px; gap: 4px; }
-			.level-chip { font-size: 0.7rem; padding: 2px 8px; }
-			.level-progress { min-width: 60px; height: 6px; }
-			.status-bar { padding: 4px 8px; margin-bottom: 6px; border-radius: 8px; }
-			.status-item { font-size: 0.85rem; gap: 4px; }
-			.status-item .icon { font-size: 0.95rem; }
-			.status-value { min-width: 22px; }
-			.board { gap: 1px; padding: 2px; border-radius: 6px; }
-			.action-bar { margin-top: 6px; }
-			.btn { padding: 7px 14px; font-size: 0.85rem; }
+		/* ============================================================
+		   LANDSCAPE MODE — DOCKING HUD TO SIDE (Clean One Mobile Style)
+		   ============================================================ */
+		@media (orientation: landscape) and (max-height: 600px) {
+			.app-container {
+				max-width: 100%;
+				height: 100vh;
+				flex-direction: row;
+				padding: 8px 14px;
+				gap: 16px;
+			}
+			.hud-sidebar {
+				width: 170px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				flex-shrink: 0;
+				height: 100%;
+			}
+			.hud-header {
+				flex-direction: column;
+				align-items: stretch;
+				padding: 10px 12px;
+				gap: 8px;
+			}
+			.hud-item {
+				justify-content: space-between;
+				font-size: 0.88rem;
+			}
+			.hud-level-pill {
+				flex-direction: row;
+				justify-content: space-between;
+				padding-top: 4px;
+				border-top: 1px solid rgba(255, 255, 255, 0.06);
+			}
+			.board-arena {
+				flex: 1;
+				height: 100%;
+				padding: 0;
+			}
+			.board { gap: 2px; padding: 4px; border-radius: 10px; }
+			.bottom-bar {
+				flex-direction: column;
+				align-items: stretch;
+				gap: 8px;
+				padding-top: 0;
+			}
+			.mode-pill-selector {
+				width: 100%;
+				display: flex;
+			}
+			.pill-btn {
+				flex: 1;
+				justify-content: center;
+				padding: 6px 8px;
+				font-size: 0.8rem;
+			}
+			.action-buttons-row {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 5px;
+				justify-content: center;
+			}
+			.icon-action-btn {
+				width: 32px;
+				height: 32px;
+				font-size: 0.88rem;
+			}
 
-			/* Compact splash — no scrolling needed */
-			.splash-inner { padding: 16px; }
-			.splash-emoji { font-size: 3rem; margin-bottom: 6px; }
-			.splash-title { font-size: 1.5rem !important; margin-bottom: 6px; }
-			.splash-subtitle { font-size: 0.85rem; margin-bottom: 12px; }
-			.splash-play { font-size: 1rem; padding: 10px 28px; }
-			.splash-hint { margin-top: 6px; font-size: 0.7rem; }
-			.splash-author { margin-top: 10px; padding-top: 8px; font-size: 0.7rem; }
-		}
-
-		/* Landscape: compact layout so the board fills the screen height */
-		@media (orientation: landscape) and (max-height: 650px) {
-			body { padding: 2px; }
-			.game-container { padding: 4px; border-radius: 8px; }
-			.game-header { margin-bottom: 4px; }
-			.game-title { font-size: 1rem; }
-			.game-subtitle { display: none; }
-			.level-bar { margin-bottom: 4px; gap: 4px; }
-			.level-chip { font-size: 0.7rem; padding: 2px 8px; }
-			.level-progress { min-width: 50px; height: 5px; }
-			.status-bar { padding: 3px 8px; margin-bottom: 4px; border-radius: 6px; }
-			.status-item { font-size: 0.8rem; gap: 4px; }
-			.status-item .icon { font-size: 0.85rem; }
-			.status-value { min-width: 20px; }
-			.board { gap: 1px; padding: 2px; border-radius: 6px; }
-			.action-bar { margin-top: 4px; }
-			.btn { padding: 5px 12px; font-size: 0.8rem; }
-
-			/* Ultra-compact splash for landscape — everything on one screen */
-			.splash-inner { padding: 8px; flex-direction: row; flex-wrap: wrap; gap: 4px 12px; max-width: 100%; }
+			.splash-inner {
+				max-width: 560px;
+				flex-direction: column;
+				gap: 6px;
+				padding: 10px;
+			}
 			.splash-emoji { font-size: 2rem; margin-bottom: 0; }
-			.splash-title { font-size: 1.3rem !important; margin-bottom: 0; }
-			.splash-subtitle { font-size: 0.75rem; margin-bottom: 0; }
-			.splash-play { font-size: 0.9rem; padding: 8px 20px; }
+			.splash-title { font-size: 1.4rem !important; margin-bottom: 0; }
+			.splash-player-status { margin-bottom: 4px; font-size: 0.72rem; padding: 3px 10px; }
+			.splash-mode-section { padding: 8px 10px; margin-bottom: 6px; }
+			.splash-section-title { font-size: 0.78rem; margin-bottom: 4px; }
+			.splash-section-desc { font-size: 0.72rem; margin-bottom: 6px; }
+			.classic-presets-grid { gap: 6px; }
+			.btn-preset { padding: 6px 4px; }
+			.preset-name { font-size: 0.78rem; }
+			.preset-details { font-size: 0.68rem; }
+			.splash-play { font-size: 0.88rem; padding: 6px 20px; }
 			.splash-hint { display: none; }
-			.splash-author { margin-top: 0; padding-top: 0; border-top: none; font-size: 0.65rem; }
+			.splash-author { display: none; }
 		}
 	</style>
 </head>
@@ -469,62 +691,101 @@
 	<div id="splash">
 		<div class="splash-inner">
 			<div class="splash-emoji">💣</div>
-			<h1 class="splash-title">Minesweeper Arcade<sup class="splash-version">v1.1.0</sup></h1>
-			<p class="splash-subtitle">Beat progressive levels: clear the board, advance to the next level. One mistake and you're back to Level 1!</p>
-			<button id="splash-play" class="btn btn-primary splash-play">🎮 PLAY</button>
-			<p class="splash-hint">Desktop: click = reveal · right-click = flag</p>
-			<p class="splash-hint">Mobile: tap = reveal · long press = flag</p>
-			<p class="splash-author">by Alessio Pellegrini · PointNet</p>
+			<h1 class="splash-title">Minesweeper<sup class="splash-version">v1.3.0</sup></h1>
+			<div id="splash-player-status" class="splash-player-status">Verifica account in corso...</div>
+
+			<div class="splash-mode-section">
+				<div class="splash-section-title">⚡ Modalità Classica</div>
+				<div class="classic-presets-grid">
+					<button class="btn btn-preset" data-preset="easy">
+						<span class="preset-name">🟢 Facile</span>
+						<span class="preset-details">9 × 9 · 10 💣</span>
+					</button>
+					<button class="btn btn-preset" data-preset="medium">
+						<span class="preset-name">🟡 Medio</span>
+						<span class="preset-details">16 × 16 · 40 💣</span>
+					</button>
+					<button class="btn btn-preset" data-preset="hard">
+						<span class="preset-name">🔴 Difficile</span>
+						<span class="preset-details">30 × 16 · 99 💣</span>
+					</button>
+					<button class="btn btn-preset" data-preset="extreme">
+						<span class="preset-name">💀 Estremo</span>
+						<span class="preset-details">32 × 18 · 150 💣</span>
+					</button>
+				</div>
+			</div>
+
+			<div class="splash-mode-section">
+				<div class="splash-section-title">🏆 Modalità Scalata</div>
+				<p class="splash-section-desc">18 livelli progressivi a vite singola fino all'Estremo 32×18.</p>
+				<button id="splash-play-scalata" class="btn btn-primary splash-play">▶ Avvia Scalata</button>
+			</div>
+
+			<p class="splash-hint">Trascina per scorrere · Pizzica o usa la rotellina per zoomare · Tocca un numero per il chording automatico</p>
+			<p class="splash-author">by Alessio Pellegrini · PointNet Games</p>
 		</div>
 	</div>
 
 	<button id="fs-close" class="fs-close" title="Exit fullscreen">✕</button>
 
-	<div class="game-container" id="game" data-game-id="" data-game-slug="minesweeper-arcade">
-		<div class="game-header">
-			<h1 class="game-title">💣 Minesweeper Arcade</h1>
-			<p class="game-subtitle">Progressive levels · Mobile friendly</p>
-		</div>
+	<div class="app-container" id="game" data-game-id="" data-game-slug="minesweeper-arcade">
+		<div class="hud-sidebar">
+			<header class="hud-header">
+				<div class="hud-item mines" title="Mines remaining">
+					<span>🚩</span>
+					<span id="mine-count">5</span>
+				</div>
+				<div class="hud-level-pill">
+					<span class="level-badge" id="level-label">LVL 1</span>
+					<div class="level-progress-bar">
+						<div class="level-progress-fill" id="level-progress"></div>
+					</div>
+				</div>
+				<div class="hud-item timer" title="Time">
+					<span>⏱️</span>
+					<span id="timer">0</span>
+				</div>
+				<div class="hud-item score" title="Total Score">
+					<span>🏆</span>
+					<span id="score-total">0</span>
+				</div>
+			</header>
 
-		<div class="level-bar">
-			<span class="level-chip" id="level-label">Level 1</span>
-			<div class="level-progress"><div class="level-progress-fill" id="level-progress"></div></div>
-		</div>
-
-		<div class="status-bar">
-			<div class="status-item">
-				<span class="icon">💣</span>
-				<span class="status-value" id="mine-count">5</span>
+			<div class="bottom-bar">
+				<div class="mode-pill-selector">
+					<button class="pill-btn active" id="btn-mode-dig" title="Tap to reveal cells">⛏️ Dig</button>
+					<button class="pill-btn flag-btn" id="btn-mode-flag" title="Tap to place flags">🚩 Flag</button>
+				</div>
+				<div class="action-buttons-row">
+					<button class="icon-action-btn" id="btn-zoom-fit" title="Adatta a tutto schermo">⛶</button>
+					<button class="icon-action-btn" id="btn-zoom-in" title="Ingrandisci (Zoom In)">＋</button>
+					<button class="icon-action-btn" id="btn-zoom-out" title="Rimpicciolisci (Zoom Out)">−</button>
+					<button class="icon-action-btn" id="sound-toggle" title="Attiva/Disattiva Suono">🔊</button>
+					<button class="icon-action-btn" id="btn-menu" title="Menu Principale">🏠</button>
+				</div>
 			</div>
-			<div class="status-item">
-				<span class="icon">⏱️</span>
-				<span class="status-value time-value" id="timer">0</span>
-			</div>
-			<div class="status-item">
-				<span class="icon">🏆</span>
-				<span class="status-value score-value" id="score-total">0</span>
-			</div>
 		</div>
 
-		<div class="board-wrapper">
-			<div class="board" id="board"></div>
-		</div>
-
-		<div class="action-bar">
-			<button class="sound-toggle" id="sound-toggle" title="Toggle audio">🔊</button>
-		</div>
+		<main class="board-arena" id="board-arena">
+			<div class="board-viewport" id="board-viewport">
+				<div class="board-layer" id="board-layer">
+					<div class="board" id="board"></div>
+				</div>
+			</div>
+		</main>
 	</div>
 
 	<div class="overlay" id="overlay">
 		<div class="modal">
 			<div class="modal-emoji" id="modal-emoji">🏆</div>
-			<h2 class="modal-title" id="modal-title">Level Complete!</h2>
+			<h2 class="modal-title" id="modal-title">Level Cleared!</h2>
 			<p class="modal-score" id="modal-score"></p>
 			<p class="modal-position" id="modal-position"></p>
 			<div class="modal-actions">
 				<button class="btn btn-primary" id="modal-next">▶ Next Level</button>
-				<button class="btn btn-secondary" id="modal-replay" style="display:none">🔁 Replay Same Level</button>
-				<button class="btn btn-secondary" id="modal-close">Cancel</button>
+				<button class="btn btn-secondary" id="modal-replay" style="display:none">🔁 Replay Level</button>
+				<button class="btn btn-secondary" id="modal-close">Close</button>
 			</div>
 		</div>
 	</div>
@@ -534,32 +795,46 @@
 		'use strict';
 
 		/* ============================================================
-		   LEVEL CONFIGURATION
+		   15 ARCADE PROGRESSIVE LEVELS (Balanced Mobile-First)
 		   ============================================================ */
-		var LEVELS = [
-			{ rows: 7,  cols: 7,  mines: 5,  label: '1' },
-			{ rows: 7,  cols: 7,  mines: 6,  label: '2' },
-			{ rows: 7,  cols: 7,  mines: 7,  label: '3' },
-			{ rows: 8,  cols: 7,  mines: 9,  label: '4' },
-			{ rows: 8,  cols: 7,  mines: 11, label: '5' },
-			{ rows: 9,  cols: 8,  mines: 13, label: '6' },
-			{ rows: 9,  cols: 8,  mines: 15, label: '7' },
-			{ rows: 10, cols: 9,  mines: 17, label: '8' },
-			{ rows: 10, cols: 9,  mines: 20, label: '9' },
-			{ rows: 11, cols: 10, mines: 23, label: '10' },
-			{ rows: 11, cols: 10, mines: 26, label: '11' },
-			{ rows: 12, cols: 12, mines: 30, label: '12' },
-			{ rows: 12, cols: 12, mines: 35, label: '13' },
-			{ rows: 14, cols: 14, mines: 42, label: '14' },
-			{ rows: 14, cols: 14, mines: 50, label: '15' }
+		var CLASSIC_PRESETS = {
+			easy:    { rows: 9,  cols: 9,  mines: 10,  label: 'Facile',    key: 'easy',    par: 120 },
+			medium:  { rows: 16, cols: 16, mines: 40,  label: 'Medio',     key: 'medium',  par: 300 },
+			hard:    { rows: 16, cols: 30, mines: 99,  label: 'Difficile', key: 'hard',    par: 600 },
+			extreme: { rows: 18, cols: 32, mines: 150, label: 'Estremo',   key: 'extreme', par: 900 }
+		};
+
+		var SCALATA_LEVELS = [
+			{ rows: 8,  cols: 8,  mines: 7,   label: '1' },
+			{ rows: 8,  cols: 8,  mines: 9,   label: '2' },
+			{ rows: 9,  cols: 9,  mines: 10,  label: '3' },
+			{ rows: 10, cols: 9,  mines: 12,  label: '4' },
+			{ rows: 10, cols: 10, mines: 15,  label: '5' },
+			{ rows: 12, cols: 10, mines: 18,  label: '6' },
+			{ rows: 12, cols: 12, mines: 22,  label: '7' },
+			{ rows: 14, cols: 12, mines: 26,  label: '8' },
+			{ rows: 14, cols: 14, mines: 31,  label: '9' },
+			{ rows: 16, cols: 14, mines: 36,  label: '10' },
+			{ rows: 16, cols: 16, mines: 40,  label: '11' },
+			{ rows: 18, cols: 16, mines: 47,  label: '12' },
+			{ rows: 20, cols: 16, mines: 55,  label: '13' },
+			{ rows: 22, cols: 16, mines: 64,  label: '14' },
+			{ rows: 25, cols: 16, mines: 75,  label: '15' },
+			{ rows: 28, cols: 16, mines: 88,  label: '16' },
+			{ rows: 30, cols: 16, mines: 99,  label: '17' },
+			{ rows: 32, cols: 18, mines: 150, label: '18' }
 		];
 
 		/* ============================================================
 		   GAME STATE
 		   ============================================================ */
 		var state = {
+			mode: 'classic', // 'classic' or 'arcade' (Scalata)
+			classicDifficulty: 'easy',
 			levelIndex: 0,
 			board: [],
+			actualRows: 9,
+			actualCols: 9,
 			revealed: 0,
 			safeCells: 0,
 			flags: 0,
@@ -568,7 +843,9 @@
 			scoreSubmitted: false,
 			timerInterval: null,
 			elapsed: 0,
+			totalElapsed: 0,
 			firstClick: true,
+			inputMode: 'dig', // 'dig' or 'flag'
 			snapshot: null,
 			preExplosion: null,
 			isReplay: false
@@ -582,124 +859,239 @@
 		/* ============================================================
 		   DOM REFERENCES
 		   ============================================================ */
+		var boardArenaEl = document.getElementById('board-arena');
+		var boardViewportEl = document.getElementById('board-viewport');
+		var boardLayerEl = document.getElementById('board-layer');
 		var boardEl = document.getElementById('board');
-		var boardWrapperEl = document.querySelector('.board-wrapper');
 		var mineCountEl = document.getElementById('mine-count');
 		var timerEl = document.getElementById('timer');
 		var scoreTotalEl = document.getElementById('score-total');
 		var levelLabelEl = document.getElementById('level-label');
 		var levelProgressEl = document.getElementById('level-progress');
+		var btnModeDig = document.getElementById('btn-mode-dig');
+		var btnModeFlag = document.getElementById('btn-mode-flag');
+		var btnZoomFit = document.getElementById('btn-zoom-fit');
+		var btnZoomIn = document.getElementById('btn-zoom-in');
+		var btnZoomOut = document.getElementById('btn-zoom-out');
+		var soundToggle = document.getElementById('sound-toggle');
+		var btnMenu = document.getElementById('btn-menu');
 		var overlayEl = document.getElementById('overlay');
 		var modalEmoji = document.getElementById('modal-emoji');
 		var modalTitle = document.getElementById('modal-title');
 		var modalScore = document.getElementById('modal-score');
 		var modalPosition = document.getElementById('modal-position');
-		var soundToggle = document.getElementById('sound-toggle');
+		var splashEl = document.getElementById('splash');
+		var splashScalataBtn = document.getElementById('splash-play-scalata');
+		var splashPlayerStatus = document.getElementById('splash-player-status');
+		var fsCloseBtn = document.getElementById('fs-close');
 
 		var totalScore = 0;
+		soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
 
 		/* ============================================================
-		   PROCEDURAL AUDIO
+		   AUDIO & HAPTICS (Web Audio API)
 		   ============================================================ */
+		function haptic(ms) {
+			if (navigator.vibrate) {
+				try { navigator.vibrate(ms || 15); } catch (e) {}
+			}
+		}
+
 		var AudioFX = (function () {
 			var ctx = null;
-			var musicTimer = null;
-			var musicPlaying = false;
 
 			function getCtx() {
 				if (!ctx) {
 					var AC = window.AudioContext || window.webkitAudioContext;
 					if (AC) ctx = new AC();
 				}
+				if (ctx && ctx.state === 'suspended') {
+					ctx.resume().catch(function () {});
+				}
 				return ctx;
 			}
 
-			function playTone(freq, duration, type, volume, slideTo) {
+			// Clean, organic pop (wood/water drop feel)
+			function playOrganicPop(freqStart, freqEnd, duration, volume) {
 				if (!soundEnabled) return;
 				var ac = getCtx();
 				if (!ac) return;
+				var t = ac.currentTime;
 				var osc = ac.createOscillator();
 				var gain = ac.createGain();
-				osc.type = type || 'sine';
-				osc.frequency.setValueAtTime(freq, ac.currentTime);
-				if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, ac.currentTime + duration);
-				gain.gain.setValueAtTime(volume || 0.2, ac.currentTime);
-				gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
-				osc.connect(gain);
+				var filter = ac.createBiquadFilter();
+
+				filter.type = 'lowpass';
+				filter.frequency.setValueAtTime(800, t);
+
+				osc.type = 'sine';
+				osc.frequency.setValueAtTime(freqStart || 380, t);
+				osc.frequency.exponentialRampToValueAtTime(freqEnd || 140, t + (duration || 0.06));
+
+				gain.gain.setValueAtTime(volume || 0.18, t);
+				gain.gain.exponentialRampToValueAtTime(0.001, t + (duration || 0.06));
+
+				osc.connect(filter);
+				filter.connect(gain);
 				gain.connect(ac.destination);
-				osc.start(ac.currentTime);
-				osc.stop(ac.currentTime + duration);
+
+				osc.start(t);
+				osc.stop(t + (duration || 0.06));
 			}
 
-			function playNoise(duration, volume, filterFreq) {
+			// Gentle kalimba / wooden marimba chime for numbers & chord
+			function playKalimba(freq, volume, duration) {
 				if (!soundEnabled) return;
 				var ac = getCtx();
 				if (!ac) return;
-				var bufferSize = ac.sampleRate * duration;
+				var t = ac.currentTime;
+				var dur = duration || 0.22;
+				var vol = volume || 0.16;
+
+				// Fundamental sine
+				var osc1 = ac.createOscillator();
+				var gain1 = ac.createGain();
+				osc1.type = 'sine';
+				osc1.frequency.setValueAtTime(freq, t);
+
+				gain1.gain.setValueAtTime(vol, t);
+				gain1.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+				osc1.connect(gain1);
+				gain1.connect(ac.destination);
+
+				// Subtle wooden harmonic overtone (decays fast)
+				var osc2 = ac.createOscillator();
+				var gain2 = ac.createGain();
+				osc2.type = 'sine';
+				osc2.frequency.setValueAtTime(freq * 2.756, t);
+
+				gain2.gain.setValueAtTime(vol * 0.25, t);
+				gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+
+				osc2.connect(gain2);
+				gain2.connect(ac.destination);
+
+				osc1.start(t);
+				osc2.start(t);
+				osc1.stop(t + dur);
+				osc2.stop(t + 0.07);
+			}
+
+			// Tactile snap/click for flag toggle
+			function playSnap(isFlag) {
+				if (!soundEnabled) return;
+				var ac = getCtx();
+				if (!ac) return;
+				var t = ac.currentTime;
+				var bufferSize = Math.floor(ac.sampleRate * 0.03);
 				var buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
 				var data = buffer.getChannelData(0);
-				for (var i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+				for (var i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+
 				var noise = ac.createBufferSource();
 				noise.buffer = buffer;
+
 				var filter = ac.createBiquadFilter();
-				filter.type = 'lowpass';
-				filter.frequency.value = filterFreq || 1000;
+				filter.type = 'bandpass';
+				filter.frequency.setValueAtTime(isFlag ? 2200 : 1600, t);
+				filter.Q.value = 3;
+
 				var gain = ac.createGain();
-				gain.gain.setValueAtTime(volume || 0.3, ac.currentTime);
-				gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
+				gain.gain.setValueAtTime(0.12, t);
+				gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+
 				noise.connect(filter);
 				filter.connect(gain);
 				gain.connect(ac.destination);
-				noise.start(ac.currentTime);
+				noise.start(t);
+
+				// Subtle low click
+				playOrganicPop(isFlag ? 500 : 400, isFlag ? 250 : 200, 0.04, 0.08);
 			}
 
+			// Pentatonic scale frequencies for numbers 1 to 8
+			var KALIMBA_PENTATONIC = [440, 493.88, 554.37, 659.25, 739.99, 880, 987.77, 1108.73];
+
 			return {
-				click: function () { playTone(600, 0.08, 'sine', 0.15); },
-				reveal: function () { playTone(400, 0.12, 'triangle', 0.2); },
-				revealNumber: function (count) { playTone(300 + count * 50, 0.15, 'triangle', 0.18); },
-				flag: function () { playTone(900, 0.08, 'square', 0.12); playTone(1200, 0.05, 'square', 0.08); },
-				unflag: function () { playTone(1200, 0.06, 'square', 0.1); playTone(800, 0.08, 'square', 0.08); },
-				explosion: function () { playNoise(0.5, 0.4, 400); playTone(80, 0.5, 'sawtooth', 0.3, 30); },
-				levelUp: function () {
-					var notes = [523, 659, 784, 1047];
-					notes.forEach(function (freq, i) {
-						setTimeout(function () { playTone(freq, 0.25, 'triangle', 0.25); }, i * 120);
-					});
+				initOnGesture: function () { getCtx(); },
+				click: function () { playOrganicPop(420, 180, 0.05, 0.12); },
+				reveal: function () { playOrganicPop(340, 140, 0.06, 0.14); },
+				revealNumber: function (count) {
+					var idx = Math.max(0, Math.min(count - 1, KALIMBA_PENTATONIC.length - 1));
+					playKalimba(KALIMBA_PENTATONIC[idx], 0.15, 0.24);
 				},
-				win: function () {
-					var notes = [523, 659, 784, 1047, 1319, 1568];
-					notes.forEach(function (freq, i) {
-						setTimeout(function () { playTone(freq, 0.28, 'triangle', 0.25); }, i * 110);
+				flag: function () { playSnap(true); },
+				unflag: function () { playSnap(false); },
+				chord: function () {
+					playKalimba(659.25, 0.14, 0.18);
+					setTimeout(function () { playKalimba(880, 0.16, 0.22); }, 45);
+				},
+				explosion: function () {
+					if (!soundEnabled) return;
+					var ac = getCtx();
+					if (!ac) return;
+					var t = ac.currentTime;
+					// Deep sub-bass thud
+					var osc = ac.createOscillator();
+					var gain = ac.createGain();
+					var filter = ac.createBiquadFilter();
+					filter.type = 'lowpass';
+					filter.frequency.setValueAtTime(160, t);
+
+					osc.type = 'sine';
+					osc.frequency.setValueAtTime(110, t);
+					osc.frequency.exponentialRampToValueAtTime(28, t + 0.35);
+
+					gain.gain.setValueAtTime(0.35, t);
+					gain.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+
+					osc.connect(filter);
+					filter.connect(gain);
+					gain.connect(ac.destination);
+
+					osc.start(t);
+					osc.stop(t + 0.38);
+
+					// Soft muffled impact noise
+					var dur = 0.25;
+					var bSize = Math.floor(ac.sampleRate * dur);
+					var buf = ac.createBuffer(1, bSize, ac.sampleRate);
+					var d = buf.getChannelData(0);
+					for (var i = 0; i < bSize; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bSize * 0.4));
+					var nSrc = ac.createBufferSource();
+					nSrc.buffer = buf;
+					var nFilt = ac.createBiquadFilter();
+					nFilt.type = 'lowpass';
+					nFilt.frequency.setValueAtTime(220, t);
+					var nGain = ac.createGain();
+					nGain.gain.setValueAtTime(0.2, t);
+					nGain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+					nSrc.connect(nFilt);
+					nFilt.connect(nGain);
+					nGain.connect(ac.destination);
+					nSrc.start(t);
+				},
+				levelUp: function () {
+					var arpeggio = [440, 554.37, 659.25, 880, 1108.73];
+					arpeggio.forEach(function (f, i) {
+						setTimeout(function () { playKalimba(f, 0.16, 0.3); }, i * 90);
 					});
 				},
 				lose: function () {
-					var notes = [500, 400, 300, 200];
-					notes.forEach(function (freq, i) {
-						setTimeout(function () { playTone(freq, 0.2, 'sawtooth', 0.15); }, i * 180);
+					var sadNotes = [659.25, 554.37, 493.88, 369.99];
+					sadNotes.forEach(function (f, i) {
+						setTimeout(function () { playKalimba(f, 0.12, 0.28); }, i * 130);
 					});
 				},
-				startMusic: function () {
-					if (musicPlaying || !soundEnabled) return;
-					musicPlaying = true;
-					var bassNotes = [110, 130.81, 146.83, 110, 98, 110, 130.81, 146.83];
-					var melodyNotes = [440, 523.25, 659.25, 783.99, 440, 523.25, 783.99, 659.25];
-					var idx = 0;
-					musicTimer = setInterval(function () {
-						if (!soundEnabled) return;
-						playTone(bassNotes[idx % bassNotes.length], 0.4, 'sine', 0.08);
-						playTone(melodyNotes[idx % melodyNotes.length], 0.18, 'triangle', 0.06, melodyNotes[idx % melodyNotes.length] * 1.5);
-						idx++;
-					}, 480);
-				},
-				stopMusic: function () {
-					musicPlaying = false;
-					if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
-				}
+				startMusic: function () {},
+				stopMusic: function () {}
 			};
 		})();
 
 		/* ============================================================
-		   UTILITIES
+		   UTILITIES & EFFECTS
 		   ============================================================ */
 		function shuffle(array) {
 			for (var i = array.length - 1; i > 0; i--) {
@@ -732,38 +1124,338 @@
 				particle.style.left = x + 'px';
 				particle.style.top = y + 'px';
 				var angle = Math.random() * Math.PI * 2;
-				var dist = 30 + Math.random() * 60;
+				var dist = 24 + Math.random() * 45;
 				particle.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
 				particle.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
 				document.body.appendChild(particle);
-				setTimeout(function (p) { p.remove(); }, 700, particle);
+				setTimeout(function (p) { p.remove(); }, 650, particle);
 			}
 		}
 
 		function launchConfetti() {
-			var colors = ['#38bdf8', '#f472b6', '#fbbf24', '#4ade80', '#a78bfa', '#fb923c'];
-			for (var i = 0; i < 100; i++) {
+			var colors = ['#38bdf8', '#f472b6', '#fbbf24', '#34d399', '#a78bfa', '#fb923c'];
+			for (var i = 0; i < 80; i++) {
 				setTimeout(function () {
 					var conf = document.createElement('div');
 					conf.className = 'confetti';
 					conf.style.left = Math.random() * 100 + 'vw';
 					conf.style.background = colors[Math.floor(Math.random() * colors.length)];
-					conf.style.animationDelay = (Math.random() * 0.5) + 's';
+					conf.style.animationDelay = (Math.random() * 0.4) + 's';
 					conf.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
 					document.body.appendChild(conf);
-					setTimeout(function (c) { c.remove(); }, 3500, conf);
-				}, Math.random() * 500);
+					setTimeout(function (c) { c.remove(); }, 3000, conf);
+				}, Math.random() * 400);
 			}
 		}
 
 		/* ============================================================
-		   GAME LOGIC
+		   VIEWPORT MANAGER (Smooth Pan & Pinch-to-Zoom Engine)
 		   ============================================================ */
-		function getLevel() {
-			return LEVELS[Math.min(state.levelIndex, LEVELS.length - 1)];
+		var ViewportManager = (function () {
+			var viewportEl = null;
+			var layerEl = null;
+			var boardEl = null;
+
+			var scale = 1;
+			var panX = 0;
+			var panY = 0;
+
+			var minScale = 0.25;
+			var maxScale = 3.0;
+
+			var isTouching = false;
+			var isDragging = false;
+			var isPinching = false;
+			var hasMoved = false;
+
+			var touchStartX = 0;
+			var touchStartY = 0;
+			var startPanX = 0;
+			var startPanY = 0;
+
+			var initialPinchDist = 0;
+			var initialScale = 1;
+			var pinchMidX = 0;
+			var pinchMidY = 0;
+
+			var preventClickUntil = 0;
+
+			function init(vp, layer, board) {
+				viewportEl = vp;
+				layerEl = layer;
+				boardEl = board;
+				bindEvents();
+			}
+
+			function applyTransform(smooth) {
+				if (!layerEl) return;
+				if (smooth) {
+					layerEl.classList.add('smooth-animate');
+				} else {
+					layerEl.classList.remove('smooth-animate');
+				}
+				layerEl.style.transform = 'translate3d(' + Math.round(panX) + 'px, ' + Math.round(panY) + 'px, 0) scale(' + scale + ')';
+			}
+
+			function clampPan() {
+				if (!viewportEl || !boardEl) return;
+				var vpW = viewportEl.clientWidth;
+				var vpH = viewportEl.clientHeight;
+				var bW = boardEl.offsetWidth * scale;
+				var bH = boardEl.offsetHeight * scale;
+
+				if (bW <= vpW) {
+					panX = (vpW - bW) / 2;
+				} else {
+					var minX = vpW - bW - 40;
+					var maxX = 40;
+					panX = Math.max(minX, Math.min(maxX, panX));
+				}
+
+				if (bH <= vpH) {
+					panY = (vpH - bH) / 2;
+				} else {
+					var minY = vpH - bH - 40;
+					var maxY = 40;
+					panY = Math.max(minY, Math.min(maxY, panY));
+				}
+			}
+
+			function fitToScreen(smooth) {
+				if (!viewportEl || !boardEl) return;
+				var vpW = viewportEl.clientWidth;
+				var vpH = viewportEl.clientHeight;
+				if (vpW < 50 || vpH < 50) return;
+
+				var bW = boardEl.offsetWidth;
+				var bH = boardEl.offsetHeight;
+				if (bW === 0 || bH === 0) return;
+
+				var pad = 14;
+				var scaleX = (vpW - pad * 2) / bW;
+				var scaleY = (vpH - pad * 2) / bH;
+				var fitScale = Math.min(scaleX, scaleY);
+
+				minScale = Math.max(0.2, fitScale * 0.7);
+				maxScale = Math.max(2.8, fitScale * 3.5);
+
+				scale = Math.min(1.15, fitScale);
+				panX = (vpW - bW * scale) / 2;
+				panY = (vpH - bH * scale) / 2;
+
+				clampPan();
+				applyTransform(smooth);
+			}
+
+			function zoomAt(focusX, focusY, factor, smooth) {
+				var oldScale = scale;
+				var newScale = Math.max(minScale, Math.min(maxScale, scale * factor));
+				if (Math.abs(newScale - oldScale) < 0.001) return;
+
+				var actualFactor = newScale / oldScale;
+				panX = focusX - (focusX - panX) * actualFactor;
+				panY = focusY - (focusY - panY) * actualFactor;
+				scale = newScale;
+
+				clampPan();
+				applyTransform(smooth);
+			}
+
+			function zoomStep(inOrOut) {
+				if (!viewportEl) return;
+				var midX = viewportEl.clientWidth / 2;
+				var midY = viewportEl.clientHeight / 2;
+				var factor = inOrOut > 0 ? 1.25 : 0.8;
+				zoomAt(midX, midY, factor, true);
+			}
+
+			function getTouchDist(t1, t2) {
+				return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+			}
+
+			function bindEvents() {
+				if (!viewportEl) return;
+
+				// Mouse Wheel Zoom
+				viewportEl.addEventListener('wheel', function (e) {
+					e.preventDefault();
+					var rect = viewportEl.getBoundingClientRect();
+					var focusX = e.clientX - rect.left;
+					var focusY = e.clientY - rect.top;
+					var factor = e.deltaY < 0 ? 1.15 : 0.87;
+					zoomAt(focusX, focusY, factor, false);
+				}, { passive: false });
+
+				// Touch Drag & Pinch
+				viewportEl.addEventListener('touchstart', function (e) {
+					if (e.touches.length === 1) {
+						isTouching = true;
+						isDragging = true;
+						isPinching = false;
+						hasMoved = false;
+						touchStartX = e.touches[0].clientX;
+						touchStartY = e.touches[0].clientY;
+						startPanX = panX;
+						startPanY = panY;
+					} else if (e.touches.length >= 2) {
+						isTouching = true;
+						isDragging = false;
+						isPinching = true;
+						hasMoved = true;
+						initialPinchDist = getTouchDist(e.touches[0], e.touches[1]);
+						initialScale = scale;
+						var rect = viewportEl.getBoundingClientRect();
+						pinchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+						pinchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+					}
+				}, { passive: true });
+
+				viewportEl.addEventListener('touchmove', function (e) {
+					if (!isTouching) return;
+
+					if (isPinching && e.touches.length >= 2) {
+						var currentDist = getTouchDist(e.touches[0], e.touches[1]);
+						if (initialPinchDist > 0) {
+							var factor = currentDist / initialPinchDist;
+							var newScale = Math.max(minScale, Math.min(maxScale, initialScale * factor));
+							var actualFactor = newScale / scale;
+							panX = pinchMidX - (pinchMidX - panX) * actualFactor;
+							panY = pinchMidY - (pinchMidY - panY) * actualFactor;
+							scale = newScale;
+							clampPan();
+							applyTransform(false);
+						}
+					} else if (isDragging && e.touches.length === 1) {
+						var dx = e.touches[0].clientX - touchStartX;
+						var dy = e.touches[0].clientY - touchStartY;
+						if (!hasMoved && Math.hypot(dx, dy) > 8) {
+							hasMoved = true;
+						}
+						if (hasMoved) {
+							panX = startPanX + dx;
+							panY = startPanY + dy;
+							clampPan();
+							applyTransform(false);
+						}
+					}
+				}, { passive: true });
+
+				function onTouchEnd() {
+					if (hasMoved) {
+						preventClickUntil = Date.now() + 250;
+					}
+					isTouching = false;
+					isDragging = false;
+					isPinching = false;
+					clampPan();
+					applyTransform(true);
+				}
+
+				viewportEl.addEventListener('touchend', onTouchEnd, { passive: true });
+				viewportEl.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+				// Mouse Drag Pan (Desktop)
+				var isMouseDragging = false;
+				var mouseStartX = 0, mouseStartY = 0;
+				var mouseStartPanX = 0, mouseStartPanY = 0;
+				var mouseHasMoved = false;
+
+				viewportEl.addEventListener('mousedown', function (e) {
+					var isCell = e.target.classList.contains('cell') || e.target.closest('.cell');
+					if (e.button === 1 || (!isCell && e.button === 0)) {
+						isMouseDragging = true;
+						mouseHasMoved = false;
+						mouseStartX = e.clientX;
+						mouseStartY = e.clientY;
+						mouseStartPanX = panX;
+						mouseStartPanY = panY;
+						e.preventDefault();
+					}
+				});
+
+				window.addEventListener('mousemove', function (e) {
+					if (!isMouseDragging) return;
+					var dx = e.clientX - mouseStartX;
+					var dy = e.clientY - mouseStartY;
+					if (!mouseHasMoved && Math.hypot(dx, dy) > 5) {
+						mouseHasMoved = true;
+					}
+					if (mouseHasMoved) {
+						panX = mouseStartPanX + dx;
+						panY = mouseStartPanY + dy;
+						clampPan();
+						applyTransform(false);
+					}
+				});
+
+				window.addEventListener('mouseup', function () {
+					if (isMouseDragging) {
+						if (mouseHasMoved) preventClickUntil = Date.now() + 200;
+						isMouseDragging = false;
+						clampPan();
+						applyTransform(true);
+					}
+				});
+
+				// Double-tap on arena toggles Fit vs Zoom
+				var lastTap = 0;
+				viewportEl.addEventListener('touchend', function (e) {
+					var isCell = e.target.classList.contains('cell') || e.target.closest('.cell');
+					if (isCell) return;
+					var now = Date.now();
+					if (now - lastTap < 320) {
+						if (scale < 1.05) {
+							zoomStep(1);
+						} else {
+							fitToScreen(true);
+						}
+						lastTap = 0;
+					} else {
+						lastTap = now;
+					}
+				});
+			}
+
+			return {
+				init: init,
+				fitToScreen: fitToScreen,
+				zoomStep: zoomStep,
+				shouldPreventClick: function () {
+					return Date.now() < preventClickUntil;
+				},
+				getScale: function () { return scale; }
+			};
+		})();
+
+		/* ============================================================
+		   GRID & ADAPTIVE SIZING
+		   ============================================================ */
+		function getGridDimensions() {
+			if (state.mode === 'classic') {
+				var preset = CLASSIC_PRESETS[state.classicDifficulty] || CLASSIC_PRESETS.easy;
+				var isPortrait = window.innerHeight > window.innerWidth;
+				if (isPortrait && preset.cols > preset.rows) {
+					return { rows: preset.cols, cols: preset.rows, mines: preset.mines };
+				}
+				return { rows: preset.rows, cols: preset.cols, mines: preset.mines };
+			}
+
+			// Scalata mode
+			var level = SCALATA_LEVELS[Math.min(state.levelIndex, SCALATA_LEVELS.length - 1)];
+			var isLandscape = window.matchMedia('(orientation: landscape)').matches && window.innerHeight < 600;
+			if (isLandscape && level.rows > level.cols) {
+				return { rows: level.cols, cols: level.rows, mines: level.mines };
+			}
+			var isPort = window.innerHeight > window.innerWidth;
+			if (isPort && level.cols > level.rows) {
+				return { rows: level.cols, cols: level.rows, mines: level.mines };
+			}
+			return { rows: level.rows, cols: level.cols, mines: level.mines };
 		}
 
 		function initBoard(rows, cols) {
+			state.actualRows = rows;
+			state.actualCols = cols;
 			state.board = [];
 			for (var r = 0; r < rows; r++) {
 				state.board[r] = [];
@@ -774,6 +1466,7 @@
 		}
 
 		function placeMines(rows, cols, mines, safeR, safeC) {
+			// Guess-Free Opening: starting cell and its 8 neighbors are guaranteed safe
 			var safe = {};
 			safe[safeR + ',' + safeC] = true;
 			getNeighbors(safeR, safeC, rows, cols).forEach(function (n) {
@@ -805,43 +1498,26 @@
 			}
 		}
 
-		function getCellSize(level) {
-			// Read the actual available width from the board wrapper,
-			// falling back to the window width minus body/container padding.
-			var available = boardWrapperEl ? boardWrapperEl.clientWidth : window.innerWidth - 8;
-
-			// Read actual padding/gap from the computed board style
-			// (media queries change these between mobile and desktop).
-			var boardStyle = window.getComputedStyle(boardEl);
-			var padLeft = parseFloat(boardStyle.paddingLeft) || 0;
-			var padRight = parseFloat(boardStyle.paddingRight) || 0;
-			var gap = parseFloat(boardStyle.columnGap) || 2;
-
-			var totalGaps = (level.cols - 1) * gap;
-			var maxBoardWidth = Math.max(50, available - padLeft - padRight - totalGaps);
-
-			// Orientation-aware size limits:
-			// portrait → up to 52px, landscape → up to 64px.
-			var isLandscape = window.matchMedia('(orientation: landscape)').matches;
-			var maxCell = isLandscape ? 64 : 52;
-
-			var cellSize = Math.floor(maxBoardWidth / level.cols);
-			cellSize = Math.max(26, Math.min(maxCell, cellSize));
-
-			return cellSize;
+		function getCellSize() {
+			var dims = getGridDimensions();
+			var maxDim = Math.max(dims.rows, dims.cols);
+			if (maxDim <= 9) return 40;
+			if (maxDim <= 16) return 34;
+			return 30;
 		}
 
+		/* ============================================================
+		   RENDERING
+		   ============================================================ */
 		function renderBoard() {
-			var level = getLevel();
+			var dims = getGridDimensions();
+			var cellSize = getCellSize();
+
 			boardEl.innerHTML = '';
+			boardEl.style.gridTemplateColumns = 'repeat(' + dims.cols + ', ' + cellSize + 'px)';
 
-			// Dynamic cell size: fills available width, orientation-aware.
-			var cellSize = getCellSize(level);
-
-			boardEl.style.gridTemplateColumns = 'repeat(' + level.cols + ', ' + cellSize + 'px)';
-
-			for (var r = 0; r < level.rows; r++) {
-				for (var c = 0; c < level.cols; c++) {
+			for (var r = 0; r < dims.rows; r++) {
+				for (var c = 0; c < dims.cols; c++) {
 					var cellEl = document.createElement('button');
 					cellEl.className = 'cell';
 					cellEl.style.width = cellSize + 'px';
@@ -849,46 +1525,75 @@
 					cellEl.dataset.r = r;
 					cellEl.dataset.c = c;
 
-					cellEl.addEventListener('click', function () {
-						var r = parseInt(this.dataset.r, 10);
-						var c = parseInt(this.dataset.c, 10);
-						handleReveal(r, c);
-					});
-
-					cellEl.addEventListener('contextmenu', function (e) {
-						e.preventDefault();
-						var r = parseInt(this.dataset.r, 10);
-						var c = parseInt(this.dataset.c, 10);
-						handleFlag(r, c);
-					});
-
+					// Touch Handling with Long-press & Prevention of Android Double-toggle
 					cellEl.addEventListener('touchstart', function (e) {
 						var el = this;
 						var r = parseInt(el.dataset.r, 10);
 						var c = parseInt(el.dataset.c, 10);
+						el._longPressFired = false;
+						clearTimeout(el._longPressTimer);
+
 						el._longPressTimer = setTimeout(function () {
 							el._longPressFired = true;
+							el._lastLongPressTime = Date.now();
 							handleFlag(r, c);
-							navigator.vibrate && navigator.vibrate(30);
-						}, 500);
-					});
+							haptic(20);
+						}, 350);
+					}, { passive: true });
 
 					cellEl.addEventListener('touchend', function () {
 						var el = this;
 						clearTimeout(el._longPressTimer);
-						el.addEventListener('click', function preventAfterLongPress(ev) {
-							if (el._longPressFired) {
-								ev.preventDefault();
-								ev.stopImmediatePropagation();
-								el._longPressFired = false;
-							}
-							el.removeEventListener('click', preventAfterLongPress);
-						});
+						if (el._longPressFired) {
+							el._preventClickUntil = Date.now() + 350;
+						}
 					});
 
 					cellEl.addEventListener('touchmove', function () {
 						clearTimeout(this._longPressTimer);
 						this._longPressFired = false;
+					}, { passive: true });
+
+					cellEl.addEventListener('contextmenu', function (e) {
+						e.preventDefault();
+						var el = this;
+						if (el._longPressFired || (el._lastLongPressTime && Date.now() - el._lastLongPressTime < 450)) {
+							return;
+						}
+						var r = parseInt(el.dataset.r, 10);
+						var c = parseInt(el.dataset.c, 10);
+						handleFlag(r, c);
+					});
+
+					cellEl.addEventListener('click', function (e) {
+						var el = this;
+						if (el._preventClickUntil && Date.now() < el._preventClickUntil) {
+							e.preventDefault();
+							e.stopImmediatePropagation();
+							el._preventClickUntil = 0;
+							return;
+						}
+						if (ViewportManager.shouldPreventClick()) {
+							return;
+						}
+
+						var r = parseInt(el.dataset.r, 10);
+						var c = parseInt(el.dataset.c, 10);
+						var cell = state.board[r] && state.board[r][c];
+						if (!cell) return;
+
+						// Chording: tapping a revealed number
+						if (cell.revealed) {
+							handleChord(r, c);
+							return;
+						}
+
+						// Dual-mode: Dig vs Flag
+						if (state.inputMode === 'flag') {
+							handleFlag(r, c);
+						} else {
+							handleReveal(r, c);
+						}
 					});
 
 					boardEl.appendChild(cellEl);
@@ -896,15 +1601,17 @@
 			}
 
 			updateBoardDisplay();
+			ViewportManager.fitToScreen(false);
 		}
 
 		function updateBoardDisplay() {
-			var level = getLevel();
+			var dims = getGridDimensions();
 			var cells = boardEl.querySelectorAll('.cell');
 
 			cells.forEach(function (cellEl) {
 				var r = parseInt(cellEl.dataset.r, 10);
 				var c = parseInt(cellEl.dataset.c, 10);
+				if (!state.board[r] || !state.board[r][c]) return;
 				var cell = state.board[r][c];
 
 				cellEl.className = 'cell';
@@ -920,14 +1627,89 @@
 						cellEl.textContent = '💣';
 					} else if (cell.count > 0) {
 						cellEl.textContent = cell.count;
-						cellEl.classList.add('num-' + cell.count);
+						cellEl.classList.add('num-' + cell.count, 'has-number');
 					}
 				}
 			});
 
-			mineCountEl.textContent = Math.max(0, level.mines - state.flags);
+			mineCountEl.textContent = Math.max(0, dims.mines - state.flags);
 		}
 
+		/* ============================================================
+		   SMART CHORDING (The Clean One core mechanic)
+		   ============================================================ */
+		function handleChord(r, c) {
+			if (state.gameOver) return;
+			var cell = state.board[r][c];
+			if (!cell.revealed || cell.count === 0) return;
+
+			var dims = getGridDimensions();
+			var neighbors = getNeighbors(r, c, dims.rows, dims.cols);
+
+			var flaggedCount = 0;
+			neighbors.forEach(function (n) {
+				if (state.board[n.r][n.c].flagged) flaggedCount++;
+			});
+
+			// If flags match clue count: reveal unflagged neighbors
+			if (flaggedCount === cell.count) {
+				var fatalMine = null;
+				var safeToReveal = [];
+
+				neighbors.forEach(function (n) {
+					var nCell = state.board[n.r][n.c];
+					if (!nCell.revealed && !nCell.flagged) {
+						if (nCell.mine) {
+							if (!fatalMine) fatalMine = n;
+						} else {
+							safeToReveal.push(n);
+						}
+					}
+				});
+
+				if (fatalMine) {
+					var preMove = {
+						board: JSON.stringify(state.board),
+						revealed: state.revealed,
+						flags: state.flags,
+						elapsed: state.elapsed
+					};
+					haptic(120);
+					revealMine(fatalMine.r, fatalMine.c, preMove);
+					return;
+				}
+
+				if (safeToReveal.length > 0) {
+					AudioFX.chord();
+					haptic(25);
+					safeToReveal.forEach(function (n) {
+						if (!state.board[n.r][n.c].revealed) {
+							floodReveal(n.r, n.c);
+						}
+					});
+
+					if (state.revealed >= state.safeCells) {
+						levelComplete();
+					}
+				}
+			} else {
+				// Visual feedback: briefly highlight remaining unflagged neighbors
+				neighbors.forEach(function (n) {
+					var nCell = state.board[n.r][n.c];
+					if (!nCell.revealed && !nCell.flagged) {
+						var el = boardEl.querySelector('[data-r="' + n.r + '"][data-c="' + n.c + '"]');
+						if (el) {
+							el.classList.add('cell-hint');
+							setTimeout(function () { el.classList.remove('cell-hint'); }, 180);
+						}
+					}
+				});
+			}
+		}
+
+		/* ============================================================
+		   REVEAL & DISTANCE-BASED RIPPLE
+		   ============================================================ */
 		function handleReveal(r, c) {
 			if (state.gameOver) return;
 
@@ -935,20 +1717,17 @@
 			if (cell.revealed || cell.flagged) return;
 
 			AudioFX.click();
+			haptic(12);
 
 			if (state.firstClick) {
 				state.firstClick = false;
-				var level = getLevel();
-				placeMines(level.rows, level.cols, level.mines, r, c);
-				state.safeCells = level.rows * level.cols - level.mines;
-				// Save the board so "Replay Same Level" can restore
-				// the exact same mine layout after a game over.
+				var dims = getGridDimensions();
+				placeMines(dims.rows, dims.cols, dims.mines, r, c);
+				state.safeCells = dims.rows * dims.cols - dims.mines;
 				state.snapshot = JSON.stringify(state.board);
 				startTimer();
 			}
 
-			// Save the pre-move state so "Replay Same Level" can restore
-			// the board exactly as it was just before the fatal move.
 			var preMove = {
 				board: JSON.stringify(state.board),
 				revealed: state.revealed,
@@ -957,6 +1736,7 @@
 			};
 
 			if (cell.mine) {
+				haptic(120);
 				revealMine(r, c, preMove);
 				return;
 			}
@@ -968,10 +1748,10 @@
 			}
 		}
 
-		function floodReveal(r, c) {
-			var level = getLevel();
-			var queue = [{ r: r, c: c }];
-			var revealedCount = 0;
+		function floodReveal(originR, originC) {
+			var dims = getGridDimensions();
+			var queue = [{ r: originR, c: originC }];
+			var newRevealed = [];
 
 			while (queue.length) {
 				var pos = queue.shift();
@@ -979,29 +1759,31 @@
 				if (cell.revealed || cell.flagged || cell.mine) continue;
 
 				cell.revealed = true;
-				revealedCount++;
+				newRevealed.push(pos);
 
 				if (cell.count === 0) {
-					getNeighbors(pos.r, pos.c, level.rows, level.cols).forEach(function (n) {
+					getNeighbors(pos.r, pos.c, dims.rows, dims.cols).forEach(function (n) {
 						var nCell = state.board[n.r][n.c];
 						if (!nCell.revealed && !nCell.flagged && !nCell.mine) queue.push(n);
 					});
 				}
 			}
 
-			state.revealed += revealedCount;
-			if (revealedCount > 1) {
+			state.revealed += newRevealed.length;
+			if (newRevealed.length > 1) {
 				AudioFX.reveal();
-			} else {
-				AudioFX.revealNumber(state.board[r][c].count);
+			} else if (newRevealed.length === 1) {
+				AudioFX.revealNumber(state.board[originR][originC].count);
 			}
 
-			var cells = boardEl.querySelectorAll('.cell.revealed');
-			cells.forEach(function (cellEl, idx) {
-				if (idx > state.revealed - revealedCount) {
+			// Signature Outward Ripple Animation (The Clean One aesthetic)
+			newRevealed.forEach(function (pos) {
+				var cellEl = boardEl.querySelector('[data-r="' + pos.r + '"][data-c="' + pos.c + '"]');
+				if (cellEl) {
+					var dist = Math.hypot(pos.r - originR, pos.c - originC);
 					cellEl.style.animation = 'none';
 					void cellEl.offsetHeight;
-					cellEl.style.animation = 'reveal-pop 0.15s ease ' + (idx % 5) * 0.03 + 's';
+					cellEl.style.animation = 'cell-ripple-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both ' + (dist * 0.035) + 's';
 				}
 			});
 
@@ -1017,14 +1799,16 @@
 				cell.flagged = false;
 				state.flags--;
 				AudioFX.unflag();
+				haptic(12);
 			} else {
 				cell.flagged = true;
 				state.flags++;
 				AudioFX.flag();
+				haptic(18);
 				var cellEl = boardEl.querySelector('[data-r="' + r + '"][data-c="' + c + '"]');
 				if (cellEl) {
 					var rect = cellEl.getBoundingClientRect();
-					particleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, ['#fbbf24', '#f472b6'], 8);
+					particleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, ['#fbbf24', '#f59e0b', '#38bdf8'], 7);
 				}
 			}
 
@@ -1038,15 +1822,12 @@
 			AudioFX.explosion();
 			AudioFX.lose();
 
-			// Store the pre-move snapshot for practice replay.
-			if (preMove) {
-				state.preExplosion = preMove;
-			}
+			if (preMove) state.preExplosion = preMove;
 
-			var level = getLevel();
+			var dims = getGridDimensions();
 
-			for (var row = 0; row < level.rows; row++) {
-				for (var col = 0; col < level.cols; col++) {
+			for (var row = 0; row < dims.rows; row++) {
+				for (var col = 0; col < dims.cols; col++) {
 					var cell = state.board[row][col];
 					if (cell.mine) cell.revealed = true;
 				}
@@ -1055,8 +1836,8 @@
 			updateBoardDisplay();
 
 			var bombPositions = [];
-			for (var row2 = 0; row2 < level.rows; row2++) {
-				for (var col2 = 0; col2 < level.cols; col2++) {
+			for (var row2 = 0; row2 < dims.rows; row2++) {
+				for (var col2 = 0; col2 < dims.cols; col2++) {
 					if (state.board[row2][col2].mine) bombPositions.push({ r: row2, c: col2 });
 				}
 			}
@@ -1073,8 +1854,8 @@
 				particleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, ['#ef4444', '#fb923c', '#fbbf24'], 24);
 			}
 
-			for (var r2 = 0; r2 < level.rows; r2++) {
-				for (var c2 = 0; c2 < level.cols; c2++) {
+			for (var r2 = 0; r2 < dims.rows; r2++) {
+				for (var c2 = 0; c2 < dims.cols; c2++) {
 					if (state.board[r2][c2].flagged && !state.board[r2][c2].mine) {
 						var wrongEl = boardEl.querySelector('[data-r="' + r2 + '"][data-c="' + c2 + '"]');
 						if (wrongEl) { wrongEl.classList.add('wrong-flag'); wrongEl.textContent = '❌'; }
@@ -1084,31 +1865,24 @@
 
 			boardEl.classList.add('game-over');
 
-			// Game over: submit accumulated score, restart from level 1.
 			setTimeout(function () {
 				showGameOver();
 			}, 700);
 		}
 
+		/* ============================================================
+		   LEVEL COMPLETION & VICTORY
+		   ============================================================ */
 		function levelComplete() {
 			state.gameOver = true;
 			stopTimer();
 			AudioFX.levelUp();
 
-			var level = getLevel();
-			var levelNum = Math.min(state.levelIndex + 1, LEVELS.length);
+			var dims = getGridDimensions();
 
-			// Level score: safe cells * 10, less time penalty, scaled by level multiplier.
-			var safeCells = state.safeCells;
-			var levelScore = Math.max(10, (safeCells * 10 - state.elapsed * 5) * (1 + state.levelIndex * 0.2));
-			levelScore = Math.round(levelScore);
-
-			totalScore += levelScore;
-			scoreTotalEl.textContent = totalScore;
-
-			// Flag remaining mines visually.
-			for (var r = 0; r < level.rows; r++) {
-				for (var c = 0; c < level.cols; c++) {
+			// Auto flag remaining mines visually
+			for (var r = 0; r < dims.rows; r++) {
+				for (var c = 0; c < dims.cols; c++) {
 					if (state.board[r][c].mine && !state.board[r][c].flagged) {
 						state.board[r][c].flagged = true;
 						state.flags++;
@@ -1118,61 +1892,67 @@
 			updateBoardDisplay();
 			launchConfetti();
 
-			// Level progress bar (percentage scales with total level count).
-			var pctPerLevel = 100 / LEVELS.length;
-			levelProgressEl.style.width = Math.min(100, (state.levelIndex + 1) * pctPerLevel) + '%';
-
-			var isLastLevel = state.levelIndex >= LEVELS.length - 1;
-			showLevelComplete(levelScore, levelNum, isLastLevel);
-		}
-
-		function showLevelComplete(levelScore, levelNum, isLastLevel) {
-			// Practice/replay mode: completing the level in a replay does not
-			// award points and does not unlock the next level — the arcade
-			// progression is only approved from a regular game run.
-			if (state.isReplay) {
-				modalEmoji.textContent = '🏆';
-				modalTitle.textContent = 'Practice Complete!';
-				modalScore.textContent = 'No points awarded (practice mode).';
-				modalPosition.textContent = '';
-				document.getElementById('modal-replay').style.display = 'none';
-
-				var replayNextBtn = document.getElementById('modal-next');
-				replayNextBtn.textContent = '🔄 Back to Game';
-				replayNextBtn.onclick = function () {
-					overlayEl.classList.remove('show');
-					totalScore = 0;
-					scoreTotalEl.textContent = '0';
-					startAtLevel(0);
-				};
-
-				overlayEl.classList.add('show');
-				return;
-			}
-
-			modalEmoji.textContent = '🏆';
-			modalTitle.textContent = isLastLevel ? '🎉 Max Level!' : 'Level ' + levelNum + ' Complete!';
-			modalScore.textContent = 'Level: +' + levelScore + ' · Total: ' + totalScore;
-			modalPosition.textContent = '';
-			document.getElementById('modal-replay').style.display = 'none';
-
 			var nextBtn = document.getElementById('modal-next');
-			if (isLastLevel) {
-				nextBtn.textContent = '🔁 Restart';
+			var replayBtn = document.getElementById('modal-replay');
+			var closeBtn = document.getElementById('modal-close');
+			replayBtn.style.display = 'none';
+
+			closeBtn.textContent = '🏠 Menu';
+			closeBtn.onclick = function () {
+				overlayEl.classList.remove('show');
+				openMenu();
+			};
+
+			if (state.mode === 'classic') {
+				var preset = CLASSIC_PRESETS[state.classicDifficulty] || CLASSIC_PRESETS.easy;
+				var par = preset.par || 300;
+				var speedBonus = Math.max(0, (par - state.elapsed) * 25);
+				var finalScore = (state.safeCells * 50) + speedBonus;
+
+				modalEmoji.textContent = '🎉';
+				modalTitle.textContent = 'Tavola ' + preset.label + ' Completata!';
+				modalScore.textContent = 'Tempo: ' + state.elapsed + 's · Punti: ' + finalScore;
+				modalPosition.textContent = '';
+				submitFinalScore(1);
+
+				nextBtn.textContent = '🔁 Gioca Ancora';
 				nextBtn.onclick = function () {
-					// Full run completed: submit final score and reset.
-					submitFinalScore(levelNum);
 					overlayEl.classList.remove('show');
-					totalScore = 0;
-					scoreTotalEl.textContent = '0';
-					startAtLevel(0);
+					startClassic(state.classicDifficulty);
 				};
 			} else {
-				nextBtn.textContent = '▶ Next Level';
-				nextBtn.onclick = function () {
-					overlayEl.classList.remove('show');
-					startAtLevel(state.levelIndex + 1);
-				};
+				// Scalata mode
+				var levelNum = state.levelIndex + 1;
+				var isLastLevel = state.levelIndex >= SCALATA_LEVELS.length - 1;
+				var pctPerLevel = 100 / SCALATA_LEVELS.length;
+				levelProgressEl.style.width = Math.min(100, levelNum * pctPerLevel) + '%';
+
+				var lvlScore = Math.max(10, Math.floor((state.safeCells * 10 - state.elapsed * 4) * (1 + levelNum * 0.15)));
+				totalScore += lvlScore;
+				scoreTotalEl.textContent = totalScore;
+
+				if (isLastLevel) {
+					submitFinalScore(SCALATA_LEVELS.length);
+					modalEmoji.textContent = '👑';
+					modalTitle.textContent = 'Campione della Scalata!';
+					modalScore.textContent = 'Hai completato tutti i 18 livelli fino all\'Estremo! Punti: ' + totalScore;
+					modalPosition.textContent = '';
+					nextBtn.textContent = '🔁 Nuova Scalata';
+					nextBtn.onclick = function () {
+						overlayEl.classList.remove('show');
+						startNewRun();
+					};
+				} else {
+					modalEmoji.textContent = '🏆';
+					modalTitle.textContent = 'Livello ' + levelNum + ' Completato!';
+					modalScore.textContent = 'Livello: +' + lvlScore + ' · Totale: ' + totalScore;
+					modalPosition.textContent = '';
+					nextBtn.textContent = '▶ Prossimo Livello (Lv ' + (levelNum + 1) + ')';
+					nextBtn.onclick = function () {
+						overlayEl.classList.remove('show');
+						startAtLevel(state.levelIndex + 1);
+					};
+				}
 			}
 
 			overlayEl.classList.add('show');
@@ -1181,30 +1961,42 @@
 		function showGameOver() {
 			modalEmoji.textContent = '💥';
 			modalTitle.textContent = 'BOOM!';
-			modalScore.textContent = 'Total score: ' + totalScore;
 			modalPosition.textContent = '';
 
-			submitFinalScore(Math.min(state.levelIndex + 1, LEVELS.length));
+			submitFinalScore(Math.min(state.levelIndex + 1, SCALATA_LEVELS.length));
 
 			var nextBtn = document.getElementById('modal-next');
-			nextBtn.textContent = '🔄 Restart Game';
-			nextBtn.onclick = function () {
-				overlayEl.classList.remove('show');
-				totalScore = 0;
-				scoreTotalEl.textContent = '0';
-				startAtLevel(0);
-			};
-
-			// Practice replay: same board and mine layout, no score and no leaderboard.
 			var replayBtn = document.getElementById('modal-replay');
-			replayBtn.style.display = '';
-			replayBtn.onclick = function () {
-				overlayEl.classList.remove('show');
-				replaySameBoard();
-			};
-
 			var closeBtn = document.getElementById('modal-close');
-			closeBtn.style.display = '';
+
+			if (state.mode === 'classic') {
+				var preset = CLASSIC_PRESETS[state.classicDifficulty] || CLASSIC_PRESETS.easy;
+				modalScore.textContent = 'Caselle sicure trovate: ' + state.revealed + ' / ' + state.safeCells;
+				nextBtn.textContent = '🔄 Riprova Partita';
+				nextBtn.onclick = function () {
+					overlayEl.classList.remove('show');
+					startClassic(state.classicDifficulty);
+				};
+				replayBtn.style.display = 'none';
+			} else {
+				modalScore.textContent = 'Scalata interrotta al Livello ' + (state.levelIndex + 1) + ' · Punteggio: ' + totalScore;
+				nextBtn.textContent = '🔄 Nuova Scalata';
+				nextBtn.onclick = function () {
+					overlayEl.classList.remove('show');
+					startNewRun();
+				};
+				replayBtn.style.display = '';
+				replayBtn.onclick = function () {
+					overlayEl.classList.remove('show');
+					replaySameBoard();
+				};
+			}
+
+			closeBtn.textContent = '🏠 Menu';
+			closeBtn.onclick = function () {
+				overlayEl.classList.remove('show');
+				openMenu();
+			};
 
 			overlayEl.classList.add('show');
 		}
@@ -1213,30 +2005,50 @@
 			if (typeof window.pointnetGamesAPI === 'undefined' || state.scoreSubmitted) return;
 			state.scoreSubmitted = true;
 
-			// Don't submit 0 or tiny scores — only meaningful attempts.
-			if (totalScore < 50) return;
+			var scoreToSend = 0;
+			var meta = {};
 
-			var meta = {
-				difficulty: 'arcade',
-				label: 'Arcade',
-				level_reached: levelReached,
-				time_seconds: state.elapsed
-			};
+			if (state.mode === 'classic') {
+				var preset = CLASSIC_PRESETS[state.classicDifficulty] || CLASSIC_PRESETS.easy;
+				var isWin = state.revealed >= state.safeCells;
+				if (isWin) {
+					var par = preset.par || 300;
+					var speedBonus = Math.max(0, (par - state.elapsed) * 25);
+					scoreToSend = (state.safeCells * 50) + speedBonus;
+				} else {
+					scoreToSend = Math.max(10, state.revealed * 10);
+				}
+				meta = {
+					difficulty: preset.key,
+					label: preset.label,
+					time_seconds: state.elapsed,
+					won: isWin
+				};
+			} else {
+				if (totalScore < 10) return;
+				scoreToSend = totalScore;
+				meta = {
+					difficulty: 'arcade',
+					label: 'Scalata',
+					level_reached: levelReached,
+					time_seconds: state.totalElapsed || state.elapsed,
+					level_time_seconds: state.elapsed
+				};
+			}
 
 			try {
-				var result = window.pointnetGamesAPI.submitScore(totalScore, meta);
+				var result = window.pointnetGamesAPI.submitScore(scoreToSend, meta);
 				if (result && typeof result.then === 'function') {
 					result.then(function (response) {
 						if (response && response.position) {
-							modalPosition.textContent = '🏅 Position ' + response.position + ' on the leaderboard!';
+							modalPosition.textContent = '🏅 Posizione #' + response.position + ' in classifica!';
 						} else if (response && response.error === 'login_required') {
-							modalPosition.innerHTML = '🔒 <a href="/wp-login.php" target="_top" style="color:#38bdf8;text-decoration:underline;">Accedi o registrati</a> per salvare il record in classifica!';
+							var loginUrl = (window.__wpGamesState && window.__wpGamesState.loginUrl) || '/wp-login.php';
+							modalPosition.innerHTML = '🔒 <a href="' + loginUrl + '" target="_top" style="color:#38bdf8;text-decoration:underline;">Accedi</a> per salvare il record';
 						}
 					}).catch(function () {});
 				}
-			} catch (err) {
-				// Ignore — score display already shown.
-			}
+			} catch (err) {}
 		}
 
 		/* ============================================================
@@ -1250,10 +2062,9 @@
 
 			state.timerInterval = setInterval(function () {
 				state.elapsed++;
+				state.totalElapsed++;
 				timerEl.textContent = state.elapsed;
 			}, 1000);
-
-			AudioFX.startMusic();
 		}
 
 		function stopTimer() {
@@ -1261,13 +2072,53 @@
 				clearInterval(state.timerInterval);
 				state.timerInterval = null;
 			}
-			AudioFX.stopMusic();
 		}
 
 		/* ============================================================
-		   CONTROLS
+		   GAME FLOW & BOARD REPLAY
 		   ============================================================ */
+		function startClassic(key) {
+			state.mode = 'classic';
+			state.classicDifficulty = key || 'easy';
+			state.levelIndex = 0;
+			state.revealed = 0;
+			state.flags = 0;
+			state.firstClick = true;
+			state.gameOver = false;
+			state.scoreSubmitted = false;
+			state.started = false;
+			state.snapshot = null;
+			state.preExplosion = null;
+			state.isReplay = false;
+			stopTimer();
+			state.elapsed = 0;
+			timerEl.textContent = '0';
+			totalScore = 0;
+
+			var preset = CLASSIC_PRESETS[state.classicDifficulty] || CLASSIC_PRESETS.easy;
+			levelLabelEl.textContent = preset.label.toUpperCase();
+			levelProgressEl.style.width = '0%';
+			scoreTotalEl.parentElement.style.visibility = 'hidden';
+
+			var dims = getGridDimensions();
+			state.safeCells = dims.rows * dims.cols - dims.mines;
+			initBoard(dims.rows, dims.cols);
+			renderBoard();
+			mineCountEl.textContent = dims.mines;
+
+			boardEl.classList.add('flipping');
+			setTimeout(function () {
+				boardEl.classList.remove('flipping');
+			}, 240);
+
+			overlayEl.classList.remove('show');
+			splashEl.classList.add('hidden');
+			requestGameFullscreen();
+			setTimeout(function () { ViewportManager.fitToScreen(true); }, 60);
+		}
+
 		function startAtLevel(index) {
+			state.mode = 'arcade';
 			state.levelIndex = index;
 			state.revealed = 0;
 			state.flags = 0;
@@ -1282,42 +2133,42 @@
 			state.elapsed = 0;
 			timerEl.textContent = '0';
 
-			var level = getLevel();
+			scoreTotalEl.parentElement.style.visibility = 'visible';
+			scoreTotalEl.textContent = totalScore;
 
-			levelLabelEl.textContent = 'Level ' + level.label;
-			var pctPerLevel = 100 / LEVELS.length;
+			var level = SCALATA_LEVELS[Math.min(state.levelIndex, SCALATA_LEVELS.length - 1)];
+			levelLabelEl.textContent = 'LVL ' + (state.levelIndex + 1) + '/' + SCALATA_LEVELS.length;
+			var pctPerLevel = 100 / SCALATA_LEVELS.length;
 			levelProgressEl.style.width = Math.min(100, (state.levelIndex + 1) * pctPerLevel) + '%';
 
-			initBoard(level.rows, level.cols);
+			var dims = getGridDimensions();
+			state.safeCells = dims.rows * dims.cols - dims.mines;
+			initBoard(dims.rows, dims.cols);
 			renderBoard();
-			mineCountEl.textContent = level.mines;
+			mineCountEl.textContent = dims.mines;
 
 			boardEl.classList.add('flipping');
 			setTimeout(function () {
 				boardEl.classList.remove('flipping');
-			}, 300);
+			}, 240);
 
 			overlayEl.classList.remove('show');
-
-			// Restore fullscreen after a restart when the game was already
-			// started (splash hidden), so restarts and level-ups
-			// return to the immersive mode instead of staying inline.
-			if (splashEl.classList.contains('hidden')) {
-				requestGameFullscreen();
-			}
+			splashEl.classList.add('hidden');
+			requestGameFullscreen();
+			setTimeout(function () { ViewportManager.fitToScreen(true); }, 60);
 		}
 
 		function startNewRun() {
 			totalScore = 0;
+			state.totalElapsed = 0;
 			scoreTotalEl.textContent = '0';
 			startAtLevel(0);
 		}
 
 		function replaySameBoard() {
-			var level = getLevel();
+			var dims = getGridDimensions();
 			var saved = state.preExplosion;
 
-			// Safety fallback: no saved state (e.g. fresh run) → normal restart.
 			if (!saved) {
 				startAtLevel(state.levelIndex);
 				return;
@@ -1326,44 +2177,64 @@
 			totalScore = 0;
 			scoreTotalEl.textContent = '0';
 
-			state.firstClick = false; // Mines are already placed from the saved board.
+			state.firstClick = false;
 			state.gameOver = false;
 			state.scoreSubmitted = false;
 			state.started = true;
 			state.isReplay = true;
 
-			// Restore the exact pre-move state: same mines, same counts,
-			// same revealed cells, same flags, same elapsed time.
 			state.board = JSON.parse(saved.board);
 			state.revealed = saved.revealed;
 			state.flags = saved.flags;
 			state.elapsed = saved.elapsed;
-			state.safeCells = level.rows * level.cols - level.mines;
+			state.safeCells = dims.rows * dims.cols - dims.mines;
 
-			// Resume the timer from the saved elapsed value.
 			stopTimer();
 			startTimer();
 			state.elapsed = saved.elapsed;
 			timerEl.textContent = state.elapsed;
 
 			renderBoard();
-			mineCountEl.textContent = Math.max(0, level.mines - state.flags);
+			mineCountEl.textContent = Math.max(0, dims.mines - state.flags);
 
 			boardEl.classList.add('flipping');
 			setTimeout(function () {
 				boardEl.classList.remove('flipping');
-			}, 300);
+			}, 240);
 
 			overlayEl.classList.remove('show');
 
 			if (splashEl.classList.contains('hidden')) {
 				requestGameFullscreen();
 			}
+			setTimeout(function () { ViewportManager.fitToScreen(true); }, 60);
+		}
+
+		function openMenu() {
+			stopTimer();
+			state.gameOver = true;
+			overlayEl.classList.remove('show');
+			splashEl.classList.remove('hidden');
 		}
 
 		/* ============================================================
-		   EVENT LISTENERS
+		   CONTROLS & LISTENERS
 		   ============================================================ */
+		function setInputMode(mode) {
+			state.inputMode = mode;
+			if (mode === 'flag') {
+				btnModeFlag.classList.add('active');
+				btnModeDig.classList.remove('active');
+			} else {
+				btnModeDig.classList.add('active');
+				btnModeFlag.classList.remove('active');
+			}
+			haptic(15);
+		}
+
+		btnModeDig.addEventListener('click', function () { setInputMode('dig'); });
+		btnModeFlag.addEventListener('click', function () { setInputMode('flag'); });
+
 		document.getElementById('modal-close').addEventListener('click', function () {
 			overlayEl.classList.remove('show');
 		});
@@ -1374,27 +2245,92 @@
 			try {
 				localStorage.setItem('wp_mines_arcade_sound', soundEnabled ? '1' : '0');
 			} catch (e) {}
+
+			if (soundEnabled) {
+				AudioFX.initOnGesture();
+				AudioFX.click();
+			}
 		});
+
+		if (btnZoomFit) {
+			btnZoomFit.addEventListener('click', function () {
+				ViewportManager.fitToScreen(true);
+			});
+		}
+
+		if (btnZoomIn) {
+			btnZoomIn.addEventListener('click', function () {
+				ViewportManager.zoomStep(1);
+			});
+		}
+
+		if (btnZoomOut) {
+			btnZoomOut.addEventListener('click', function () {
+				ViewportManager.zoomStep(-1);
+			});
+		}
+
+		if (btnMenu) {
+			btnMenu.addEventListener('click', function () {
+				openMenu();
+			});
+		}
+
+		// Preset buttons (Classic mode)
+		var presetBtns = document.querySelectorAll('.btn-preset');
+		presetBtns.forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				var presetKey = this.dataset.preset;
+				AudioFX.initOnGesture();
+				AudioFX.click();
+				startClassic(presetKey);
+			});
+		});
+
+		if (splashScalataBtn) {
+			splashScalataBtn.addEventListener('click', function () {
+				AudioFX.initOnGesture();
+				AudioFX.click();
+				startNewRun();
+			});
+		}
 
 		document.addEventListener('keydown', function (e) {
 			if (e.key === 'm' || e.key === 'M') {
-				soundEnabled = !soundEnabled;
-				soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+				soundToggle.click();
+			}
+			if (e.key === 'f' || e.key === 'F') {
+				setInputMode(state.inputMode === 'dig' ? 'flag' : 'dig');
+			}
+			if (e.key === '+' || e.key === '=') {
+				ViewportManager.zoomStep(1);
+			}
+			if (e.key === '-' || e.key === '_') {
+				ViewportManager.zoomStep(-1);
+			}
+			if (e.key === '0') {
+				ViewportManager.fitToScreen(true);
+			}
+			if (e.key === 'Escape') {
+				if (!splashEl.classList.contains('hidden')) {
+					exitGameFullscreen();
+				} else {
+					openMenu();
+				}
 			}
 		});
 
 		/* ============================================================
-		   FULLSCREEN / SPLASH
+		   FULLSCREEN & SPLASH
 		   ============================================================ */
-		var splashEl = document.getElementById('splash');
-		var splashPlayBtn = document.getElementById('splash-play');
-		var fsCloseBtn = document.getElementById('fs-close');
-
 		function requestGameFullscreen() {
 			var inIframe = window.parent !== window;
 			if (inIframe) {
-				window.parent.postMessage({ type: 'pointnet-games:fullscreen-request' }, '*');
+				window.parent.postMessage({ type: 'pointnet-games:fullscreen-request' }, window.location.origin);
 			} else {
+				if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+					document.documentElement.requestFullscreen().catch(function () {});
+				}
 				document.body.classList.add('pointnet-games-fs');
 				fsCloseBtn.style.display = 'flex';
 			}
@@ -1403,48 +2339,62 @@
 		function exitGameFullscreen() {
 			var inIframe = window.parent !== window;
 			if (inIframe) {
-				window.parent.postMessage({ type: 'pointnet-games:fullscreen-exit' }, '*');
+				window.parent.postMessage({ type: 'pointnet-games:fullscreen-exit' }, window.location.origin);
 			} else {
+				if (document.fullscreenElement && document.exitFullscreen) {
+					document.exitFullscreen().catch(function () {});
+				}
 				document.body.classList.remove('pointnet-games-fs');
 				fsCloseBtn.style.display = 'none';
 			}
 		}
 
-		splashPlayBtn.addEventListener('click', function () {
-			splashEl.classList.add('hidden');
-			startNewRun();
-			requestGameFullscreen();
-		});
-
-		// External start message from the parent page "PLAY" button.
 		window.addEventListener('message', function (event) {
-			if (event.origin !== window.location.origin || event.source !== window.parent) {
-				return;
-			}
+			if (event.origin !== window.location.origin || event.source !== window.parent) return;
 			var msg = event.data;
-			if (!msg || typeof msg !== 'object' || msg.type !== 'pointnet-games:start') {
-				return;
+			if (!msg || typeof msg !== 'object') return;
+			if (msg.type === 'pointnet-games:start') {
+				AudioFX.initOnGesture();
+				startNewRun();
 			}
-			splashEl.classList.add('hidden');
-			startNewRun();
-			requestGameFullscreen();
 		});
 
-		fsCloseBtn.addEventListener('click', function () {
-			exitGameFullscreen();
-		});
+		fsCloseBtn.addEventListener('click', exitGameFullscreen);
 
 		/* ============================================================
-		   WP GAMES INTEGRATION
+		   POINTNET GAMES BRIDGE & SHIM
 		   ============================================================ */
+		function updateSplashPlayerStatus() {
+			if (!splashPlayerStatus) return;
+			var loggedIn = false;
+			var nick = '';
+			var loginUrl = '/wp-login.php';
+
+			if (typeof window.pointnetGamesAPI !== 'undefined' && typeof window.pointnetGamesAPI.isUserLoggedIn === 'function') {
+				loggedIn = window.pointnetGamesAPI.isUserLoggedIn();
+				nick = window.pointnetGamesAPI.getNickname();
+			} else if (window.__wpGamesState) {
+				loggedIn = !!window.__wpGamesState.loggedIn;
+				nick = window.__wpGamesState.nickname || '';
+				if (window.__wpGamesState.loginUrl) loginUrl = window.__wpGamesState.loginUrl;
+			}
+
+			if (loggedIn) {
+				splashPlayerStatus.innerHTML = '👤 Connesso: <b style="color:#38bdf8;">' + (nick || 'Giocatore') + '</b>';
+			} else {
+				splashPlayerStatus.innerHTML = '🔒 <a href="' + loginUrl + '" target="_top" style="color:#38bdf8;text-decoration:underline;">Accedi o registrati</a> per salvare il record';
+			}
+		}
+
 		function initWPGamesBridge() {
 			var params = new URLSearchParams(window.location.search);
+			var gameId = params.get('pointnet_game_id');
 
-			if (params.get('pointnet_game_id')) {
-				var gameId = params.get('pointnet_game_id');
-
+			if (gameId) {
 				if (typeof window.pointnetGamesAPI !== 'undefined') {
-					window.pointnetGamesAPI._setGameId(parseInt(gameId, 10) || 0);
+					if (typeof window.pointnetGamesAPI._setGameId === 'function') {
+						window.pointnetGamesAPI._setGameId(parseInt(gameId, 10) || 0);
+					}
 				} else {
 					window.parent.postMessage({ type: 'pointnet-games:init' }, window.location.origin);
 				}
@@ -1460,8 +2410,12 @@
 					window.__wpGamesState.gameId = msg.data.gameId;
 					window.__wpGamesState.nickname = msg.data.nickname;
 					window.__wpGamesState.loggedIn = msg.data.loggedIn;
+					if (msg.data.loginUrl) window.__wpGamesState.loginUrl = msg.data.loginUrl;
+					updateSplashPlayerStatus();
 				}
 			});
+
+			updateSplashPlayerStatus();
 		}
 
 		function wirePostMessageAPI() {
@@ -1469,6 +2423,10 @@
 
 			window.pointnetGamesAPI = {
 				_currentGameId: parseInt(new URLSearchParams(window.location.search).get('pointnet_game_id'), 10) || 0,
+
+				_setGameId: function (id) {
+					this._currentGameId = parseInt(id, 10) || 0;
+				},
 
 				submitScore: function (score, meta, callback) {
 					return new Promise(function (resolve, reject) {
@@ -1520,52 +2478,58 @@
 
 				isUserLoggedIn: function () {
 					return !!(window.__wpGamesState && window.__wpGamesState.loggedIn);
+				},
+
+				requestFullscreen: function () {
+					requestGameFullscreen();
+				},
+
+				exitFullscreen: function () {
+					exitGameFullscreen();
 				}
 			};
 		}
 
 		/* ============================================================
-		   RESIZE / ORIENTATION HANDLING
+		   RESIZE & ORIENTATION
 		   ============================================================ */
 		var resizeTimer = null;
 		window.addEventListener('resize', function () {
 			clearTimeout(resizeTimer);
 			resizeTimer = setTimeout(function () {
-				// Re-render only if the cell size would change.
-				var level = getLevel();
-				var newSize = getCellSize(level);
-				var currentCells = boardEl.querySelectorAll('.cell');
-				if (currentCells.length && currentCells[0].offsetWidth !== newSize) {
-					renderBoard();
-					updateBoardDisplay();
-				}
-			}, 150);
+				if (!splashEl.classList.contains('hidden')) return;
+				ViewportManager.fitToScreen(false);
+			}, 100);
 		});
 
 		if (window.matchMedia) {
 			var mql = window.matchMedia('(orientation: landscape)');
-			var handleOrientationChange = function () {
-				var level = getLevel();
-				var newSize = getCellSize(level);
-				var currentCells = boardEl.querySelectorAll('.cell');
-				if (currentCells.length && currentCells[0].offsetWidth !== newSize) {
-					renderBoard();
-					updateBoardDisplay();
-				}
+			var handleOrientation = function () {
+				if (!splashEl.classList.contains('hidden')) return;
+				var dims = getGridDimensions();
+				initBoard(dims.rows, dims.cols);
+				renderBoard();
+				setTimeout(function () {
+					ViewportManager.fitToScreen(true);
+				}, 100);
 			};
 			if (mql.addEventListener) {
-				mql.addEventListener('change', handleOrientationChange);
+				mql.addEventListener('change', handleOrientation);
 			} else if (mql.addListener) {
-				mql.addListener(handleOrientationChange);
+				mql.addListener(handleOrientation);
 			}
 		}
 
 		/* ============================================================
-		   INIT
+		   BOOTSTRAP
 		   ============================================================ */
-		startNewRun();
 		initWPGamesBridge();
 		wirePostMessageAPI();
+		ViewportManager.init(boardViewportEl, boardLayerEl, boardEl);
+		var initialDims = getGridDimensions();
+		state.safeCells = initialDims.rows * initialDims.cols - initialDims.mines;
+		initBoard(initialDims.rows, initialDims.cols);
+		renderBoard();
 	})();
 	</script>
 </body>

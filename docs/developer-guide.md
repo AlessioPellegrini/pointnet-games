@@ -507,6 +507,7 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
+- **v1.3.0** — Aggiornamento standard mobile: meccanica di Chording per Campo Minato, selettore rapido scava/bandiera per touch, docking HUD laterale in landscape e risoluzione conflitti touch su dispositivi Android/iOS.
 - **v1.2.5** — Rimozione supporto punteggi anonimi: registrazione e login obbligatori per inviare punteggi e competere nelle classifiche. Aggiornati requisiti minimi a WordPress 7.0+ e PHP 8.0+.
 - **v0.2.1** — Aggiunta sezione 6.2 sul modulo universale `PointNetMusicPlayer` (`assets/js/pointnet-music-player.js`) con seek bar, durate playlist, card volume e fallback automatico 404
 - **v0.1.4** — Sezione 5 "Buone Pratiche" ampliata: badge versione nella splash, raccomandazioni testate per rendering nitido nell'iframe (evitare `zoom` CSS, `transform-origin: top left`, transform 2D per-tile, rasterizzazione in due fasi, re-fit finché stabile, niente board all'init)

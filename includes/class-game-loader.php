@@ -158,7 +158,7 @@ class PointNet_Games_Game_Loader {
 
 		if ( 'iframe' === $game_type ) {
 			$html .= sprintf(
-				'<iframe src="%s" width="%d" height="%d" frameborder="0" allowfullscreen loading="lazy" title="%s" sandbox="allow-scripts allow-same-origin"></iframe>',
+				'<iframe src="%s" width="%d" height="%d" frameborder="0" allowfullscreen loading="lazy" title="%s" sandbox="allow-scripts allow-same-origin" referrerpolicy="strict-origin-when-cross-origin"></iframe>',
 				esc_url( $iframe_url ),
 				esc_attr( $game_width ),
 				esc_attr( $game_height ),

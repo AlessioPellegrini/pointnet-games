@@ -2344,6 +2344,46 @@ var LAYOUT_BUILDERS = {
 			var out = evenTrim(pts);
 			out.conveyorTrack = track;
 			return out;
+		},
+		'medium': function () {
+			var track = buildRectTrack(0, 12, 0, 8); // 28 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			for (var y0 = 2; y0 <= 5; y0++) {
+				for (var x0 = 2; x0 <= 10; x0 += 2) pts.push({ z: 0, x: x0, y: y0 });
+			}
+			for (var y1 = 2; y1 <= 4; y1++) {
+				for (var x1 = 3; x1 <= 9; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
+			}
+			for (var y2 = 2; y2 <= 3; y2++) {
+				for (var x2 = 4; x2 <= 8; x2 += 2) pts.push({ z: 2, x: x2, y: y2 });
+			}
+			pts.push({ z: 3, x: 6, y: 2 }, { z: 3, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'large': function () {
+			var track = buildRectTrack(0, 12, 0, 8); // 28 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			var corners = [{ x: 0, y: 0 }, { x: 12, y: 0 }, { x: 0, y: 8 }, { x: 12, y: 8 }];
+			corners.forEach(function (c) {
+				for (var z = 1; z <= 3; z++) pts.push({ z: z, x: c.x, y: c.y });
+			});
+			for (var y0 = 2; y0 <= 5; y0++) {
+				for (var x0 = 2; x0 <= 10; x0 += 2) pts.push({ z: 0, x: x0, y: y0 });
+			}
+			for (var y1 = 2; y1 <= 4; y1++) {
+				for (var x1 = 3; x1 <= 9; x1 += 2) pts.push({ z: 1, x: x1, y: y1, isHalf: true });
+			}
+			for (var y2 = 2; y2 <= 3; y2++) {
+				for (var x2 = 4; x2 <= 8; x2 += 2) pts.push({ z: 2, x: x2, y: y2 });
+			}
+			pts.push({ z: 3, x: 6, y: 2 }, { z: 3, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
 		}
 	},
 
@@ -2360,6 +2400,58 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 0, x: 4, y: 3 }, { z: 0, x: 6, y: 3 });
 			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
 			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'medium': function () {
+			var track = buildRectTrack(2, 8, 1, 5); // 14 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			var corners = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 0, y: 6 }, { x: 10, y: 6 }];
+			corners.forEach(function (c) {
+				for (var z = 0; z <= 3; z++) pts.push({ z: z, x: c.x, y: c.y });
+			});
+			var flanks = [{ x: 0, y: 3 }, { x: 10, y: 3 }];
+			flanks.forEach(function (f) {
+				for (var z = 0; z <= 3; z++) pts.push({ z: z, x: f.x, y: f.y });
+			});
+			for (var cy0 = 2; cy0 <= 4; cy0++) {
+				for (var cx0 = 4; cx0 <= 6; cx0 += 2) {
+					pts.push({ z: 0, x: cx0, y: cy0 });
+					pts.push({ z: 1, x: cx0, y: cy0 });
+				}
+			}
+			pts.push({ z: 2, x: 4, y: 2 }, { z: 2, x: 6, y: 2 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			pts.push({ z: 3, x: 4, y: 3 }, { z: 3, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'large': function () {
+			var track = buildRectTrack(2, 10, 1, 6); // 18 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			var corners = [{ x: 0, y: 0 }, { x: 12, y: 0 }, { x: 0, y: 7 }, { x: 12, y: 7 }];
+			corners.forEach(function (c) {
+				for (var z = 0; z <= 3; z++) pts.push({ z: z, x: c.x, y: c.y });
+			});
+			var flanks = [{ x: 0, y: 3 }, { x: 0, y: 4 }, { x: 12, y: 3 }, { x: 12, y: 4 }];
+			flanks.forEach(function (f) {
+				for (var z = 0; z <= 2; z++) pts.push({ z: z, x: f.x, y: f.y });
+			});
+			var gates = [{ x: 6, y: 0 }, { x: 6, y: 7 }];
+			gates.forEach(function (g) {
+				for (var z = 0; z <= 2; z++) pts.push({ z: z, x: g.x, y: g.y });
+			});
+			for (var cy0 = 2; cy0 <= 5; cy0++) {
+				for (var cx0 = 4; cx0 <= 8; cx0 += 2) {
+					pts.push({ z: 0, x: cx0, y: cy0 });
+					pts.push({ z: 1, x: cx0, y: cy0 });
+				}
+			}
+			pts.push({ z: 2, x: 6, y: 2 }, { z: 2, x: 6, y: 3 }, { z: 2, x: 6, y: 4 }, { z: 2, x: 6, y: 5 }, { z: 2, x: 4, y: 3 }, { z: 2, x: 8, y: 3 });
+			pts.push({ z: 3, x: 6, y: 3 }, { z: 3, x: 6, y: 4 });
 			var out = evenTrim(pts);
 			out.conveyorTrack = track;
 			return out;
@@ -2384,6 +2476,89 @@ var LAYOUT_BUILDERS = {
 			pts.push({ z: 1, x: 4, y: 2 }, { z: 1, x: 6, y: 2 }, { z: 1, x: 4, y: 4 }, { z: 1, x: 6, y: 4 });
 			pts.push({ z: 1, x: 4, y: 3 }, { z: 1, x: 6, y: 3 });
 			pts.push({ z: 2, x: 4, y: 3 }, { z: 2, x: 6, y: 3 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'medium': function () {
+			var track = [
+				{ x: 4, y: 0 }, { x: 6, y: 0 }, { x: 8, y: 0 },
+				{ x: 10, y: 1 }, { x: 12, y: 2 }, { x: 12, y: 4 }, { x: 12, y: 6 },
+				{ x: 10, y: 7 }, { x: 8, y: 8 }, { x: 6, y: 8 }, { x: 4, y: 8 },
+				{ x: 2, y: 7 }, { x: 0, y: 6 }, { x: 0, y: 4 }, { x: 0, y: 2 },
+				{ x: 2, y: 1 }
+			]; // 16 tiles
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			for (var y = 2; y <= 6; y++) {
+				for (var x = 2; x <= 10; x += 2) {
+					var dx = Math.abs(x - 6) / 2;
+					var dy = Math.abs(y - 4);
+					if (dx + dy <= 3) pts.push({ z: 0, x: x, y: y });
+				}
+			}
+			for (var y = 2; y <= 6; y++) {
+				for (var x = 2; x <= 10; x += 2) {
+					var dx = Math.abs(x - 6) / 2;
+					var dy = Math.abs(y - 4);
+					if (dx + dy <= 2) pts.push({ z: 1, x: x, y: y });
+				}
+			}
+			for (var y = 3; y <= 5; y++) {
+				for (var x = 4; x <= 8; x += 2) {
+					var dx = Math.abs(x - 6) / 2;
+					var dy = Math.abs(y - 4);
+					if (dx + dy <= 1) pts.push({ z: 2, x: x, y: y });
+				}
+			}
+			pts.push({ z: 3, x: 6, y: 4 });
+			var out = evenTrim(pts);
+			out.conveyorTrack = track;
+			return out;
+		},
+		'large': function () {
+			var track = [
+				{ x: 4, y: 0 }, { x: 6, y: 0 }, { x: 8, y: 0 },
+				{ x: 10, y: 1 }, { x: 12, y: 2 }, { x: 12, y: 4 }, { x: 12, y: 6 },
+				{ x: 10, y: 7 }, { x: 8, y: 8 }, { x: 6, y: 8 }, { x: 4, y: 8 },
+				{ x: 2, y: 7 }, { x: 0, y: 6 }, { x: 0, y: 4 }, { x: 0, y: 2 },
+				{ x: 2, y: 1 }
+			];
+			var pts = [];
+			for (var i = 0; i < track.length; i++) pts.push({ z: 0, x: track[i].x, y: track[i].y });
+			var outerCorners = [{ x: 0, y: 0 }, { x: 12, y: 0 }, { x: 0, y: 8 }, { x: 12, y: 8 }];
+			outerCorners.forEach(function (c) {
+				for (var z = 0; z <= 2; z++) pts.push({ z: z, x: c.x, y: c.y });
+			});
+			for (var y = 2; y <= 6; y++) {
+				for (var x = 2; x <= 10; x += 2) {
+					var dx = Math.abs(x - 6) / 2;
+					var dy = Math.abs(y - 4);
+					if (dx + dy <= 3) pts.push({ z: 0, x: x, y: y });
+				}
+			}
+			for (var y = 2; y <= 6; y++) {
+				for (var x = 2; x <= 10; x += 2) {
+					var dx = Math.abs(x - 6) / 2;
+					var dy = Math.abs(y - 4);
+					if (dx + dy <= 3) pts.push({ z: 1, x: x, y: y });
+				}
+			}
+			for (var y = 2; y <= 6; y++) {
+				for (var x = 2; x <= 10; x += 2) {
+					var dx = Math.abs(x - 6) / 2;
+					var dy = Math.abs(y - 4);
+					if (dx + dy <= 2) pts.push({ z: 2, x: x, y: y });
+				}
+			}
+			for (var y = 3; y <= 5; y++) {
+				for (var x = 4; x <= 8; x += 2) {
+					var dx = Math.abs(x - 6) / 2;
+					var dy = Math.abs(y - 4);
+					if (dx + dy <= 1) pts.push({ z: 3, x: x, y: y });
+				}
+			}
+			pts.push({ z: 4, x: 6, y: 4 });
 			var out = evenTrim(pts);
 			out.conveyorTrack = track;
 			return out;

@@ -245,7 +245,8 @@ function buildProgression(count) {
 				isHalf: nb.some(function (t) { return t.isHalf; }),
 				freeBase: hasFreeBase(nb)
 			};
-			if (entry.playableTiles >= 36) {
+			var minReq = (layout.indexOf('conveyor_') === 0) ? 32 : 36;
+			if (entry.playableTiles >= minReq) {
 				if (layout.indexOf('conveyor_') === 0) {
 					conveyorPool.push(entry);
 				} else {
@@ -285,6 +286,8 @@ function buildProgression(count) {
 	/* global round-robin counter */
 	var rr0 = 0;
 	var prevLayout = null;
+	var prevConveyorLayout = null;
+	var convRound = 0;
 	var lastTiles = 0;
 	/* v0.9.3: coverage guarantee for the layouts — track already used. */
 	var usedLayouts = {};
@@ -413,6 +416,10 @@ function buildProgression(count) {
 
 		/* Special Conveyor Challenge every 10 levels on the 5s starting from Level 15 (15, 25, 35, 45...) */
 		var isConveyorLevel = (n + 1 >= 15) && ((n + 1) % 10 === 5);
+		/* Special Shield Wards Challenge every 10 levels on the 7s (7, 17, 27, 37...) */
+		var isShieldLevel = !isConveyorLevel && ((n + 1) % 10 === 7);
+		/* Special Chain Curtains Challenge every 10 levels on the 3s starting from Level 13 (13, 23, 33, 43...) */
+		var isChainLevel = !isConveyorLevel && !isShieldLevel && (n + 1 >= 13) && ((n + 1) % 10 === 3);
 
 		/* Coverage guarantee: if there are layouts never used
 		   that fit the current band (and respect freeBase on
@@ -450,8 +457,15 @@ function buildProgression(count) {
 			}
 			var unusedConv = convCandidates.filter(function (p) { return !usedLayouts[p.layout]; });
 			var poolToUse = unusedConv.length ? unusedConv : convCandidates;
-			var convIdx = Math.min(poolToUse.length - 1, Math.floor(progress * poolToUse.length));
+			var convIdx = convRound % poolToUse.length;
+			var convGuard = 0;
+			while (poolToUse[convIdx].layout === prevConveyorLayout && convGuard < poolToUse.length) {
+				convIdx = (convIdx + 1) % poolToUse.length;
+				convGuard++;
+			}
+			convRound++;
 			item = poolToUse[convIdx];
+			prevConveyorLayout = item.layout;
 			prevLayout = item.layout;
 		}
 
@@ -482,6 +496,8 @@ function buildProgression(count) {
 			mode: 'arcade',
 			multiplier: 1.0,
 			isConveyor: isConveyorLevel || (item.layout.indexOf('conveyor_') === 0),
+			isShield: isShieldLevel,
+			isChain: isChainLevel,
 			index: n + 1
 		});
 	}
@@ -509,7 +525,155 @@ function getLevelDef(index) {
 		mode: p.mode || 'arcade',
 		multiplier: p.multiplier || 1.0,
 		isConveyor: !!p.isConveyor,
+		isShield: !!p.isShield,
+		isChain: !!p.isChain,
 		index: p.index
+	};
+}
+
+/* ============================================================
+   SHIELD WARDS MECHANIC (v1.7.0)
+   Generates a shielded core area protected by 2 or 4 outer guardian
+   tiles. Protected tiles cannot be selected or moved to staging until
+   all guardian tiles have been matched.
+   ============================================================ */
+function computeShieldConfig(pts) {
+	if (pts.shield) {
+		var s = pts.shield;
+		var pSet = {};
+		var gSet = {};
+		s.protectedKeys.forEach(function (k) { pSet[k] = true; });
+		s.guardianKeys.forEach(function (k) { gSet[k] = true; });
+		return {
+			protectedKeys: s.protectedKeys.slice(),
+			protectedSet: pSet,
+			guardianKeys: s.guardianKeys.slice(),
+			guardianSet: gSet,
+			broken: false
+		};
+	}
+
+	var minX = 999, maxX = -999, minY = 999, maxY = -999;
+	pts.forEach(function (p) {
+		if (p.x < minX) minX = p.x;
+		if (p.x > maxX) maxX = p.x;
+		if (p.y < minY) minY = p.y;
+		if (p.y > maxY) maxY = p.y;
+	});
+	var cx = (minX + maxX) / 2;
+	var cy = (minY + maxY) / 2;
+
+	// Protected tiles: apex and upper surface layers closest to center
+	// (so they are prominently visible on top and block tiles beneath them!)
+	var byProt = pts.slice().sort(function (a, b) {
+		var sa = a.z * 24 - Math.hypot(a.x - cx, a.y - cy);
+		var sb = b.z * 24 - Math.hypot(b.x - cx, b.y - cy);
+		return sb - sa; // highest score first
+	});
+
+	// Choose 4 protected tiles if >= 44 tiles, else 2
+	var numProt = (pts.length >= 44) ? 4 : 2;
+	var protectedPts = byProt.slice(0, numProt);
+	var protectedKeys = protectedPts.map(function (p) { return makeKey(p.z, p.x, p.y); });
+	var protectedSet = {};
+	protectedKeys.forEach(function (k) { protectedSet[k] = true; });
+
+	// Guardian candidates: outer flank / wing tiles (lower/perimeter layers)
+	// that require matching through the board to reach and unlock
+	var byDistOuter = pts.slice()
+		.filter(function (p) { return !protectedSet[makeKey(p.z, p.x, p.y)]; })
+		.sort(function (a, b) {
+			var sa = Math.hypot(a.x - cx, a.y - cy) - a.z * 6;
+			var sb = Math.hypot(b.x - cx, b.y - cy) - b.z * 6;
+			return sb - sa; // furthest on lower tiers first
+		});
+
+	var numGuard = (pts.length >= 44) ? 4 : 2;
+	var guardianPts = byDistOuter.slice(0, numGuard);
+	var guardianKeys = guardianPts.map(function (p) { return makeKey(p.z, p.x, p.y); });
+	var guardianSet = {};
+	guardianKeys.forEach(function (k) { guardianSet[k] = true; });
+
+	return {
+		protectedKeys: protectedKeys,
+		protectedSet: protectedSet,
+		guardianKeys: guardianKeys,
+		guardianSet: guardianSet,
+		broken: false
+	};
+}
+
+/* ============================================================
+   CHAIN CURTAINS & LOCKS MECHANIC (v1.8.0)
+   Protects sections of the board under metallic chains and padlocks.
+   Chained tiles cannot be selected or moved to staging until the
+   matching Key pair (Bronze 🥉, Silver 🥈, Gold 🥇) is matched.
+   ============================================================ */
+function computeChainConfig(pts, levelNum) {
+	var total = pts.length;
+	var numStages = 1;
+	if (levelNum >= 100 && total >= 64) {
+		numStages = 3;
+	} else if (levelNum >= 40) {
+		numStages = 2;
+	}
+
+	var minX = 999, maxX = -999, minY = 999, maxY = -999;
+	pts.forEach(function (p) {
+		if (p.x < minX) minX = p.x;
+		if (p.x > maxX) maxX = p.x;
+		if (p.y < minY) minY = p.y;
+		if (p.y > maxY) maxY = p.y;
+	});
+	var cx = (minX + maxX) / 2;
+	var cy = (minY + maxY) / 2;
+
+	// Sort tiles by elevation and proximity to center (core & upper apex)
+	var byApex = pts.slice().sort(function (a, b) {
+		var sa = a.z * 20 - Math.hypot(a.x - cx, a.y - cy);
+		var sb = b.z * 20 - Math.hypot(b.x - cx, b.y - cy);
+		return sb - sa; // highest elevation / innermost first
+	});
+
+	// Maximum chained tiles: up to 35% of the board so there is ample free room
+	var maxChained = Math.min(Math.floor(total * 0.35), numStages * 6);
+	var perStage = Math.max(2, Math.floor(maxChained / (numStages * 2)) * 2);
+
+	var stages = [];
+	var chainedSet = {};
+	var stageNames = ['Bronzo', 'Argento', 'Oro'];
+	var stageBadges = ['🥉', '🥈', '🥇'];
+	var stageSymbols = ['key_bronze', 'key_silver', 'key_gold'];
+	var stageColors = ['#f59e0b', '#94a3b8', '#fbbf24'];
+
+	// Highest apex goes to highest stage index, unlocked last
+	var allocated = 0;
+	for (var st = numStages - 1; st >= 0; st--) {
+		var stageChained = [];
+		for (var i = allocated; i < byApex.length && stageChained.length < perStage; i++) {
+			var k = makeKey(byApex[i].z, byApex[i].x, byApex[i].y);
+			if (!chainedSet[k]) {
+				stageChained.push(k);
+				chainedSet[k] = st + 1; // 1-based stage
+			}
+		}
+		allocated += stageChained.length;
+		stages[st] = {
+			stage: st + 1,
+			name: stageNames[st],
+			badge: stageBadges[st],
+			keySymbol: stageSymbols[st],
+			color: stageColors[st],
+			chainedKeys: stageChained,
+			keyTileKeys: [],
+			unlocked: false
+		};
+	}
+
+	return {
+		stages: stages,
+		chainedSet: chainedSet,
+		numStages: numStages
 	};
 }
 
@@ -520,7 +684,7 @@ function getLevelDef(index) {
    are actively free at that simulation step.
    Guarantees 100% solvability and 0 vertical identical blockages.
    ============================================================ */
-function generateConstructiveLevel(layout, deck, mode, rng) {
+function generateConstructiveLevel(layout, deck, mode, rng, shieldConfig, chainConfig) {
 	var total = layout.length;
 	var slots = [];
 	var slotMap = {};
@@ -541,6 +705,25 @@ function generateConstructiveLevel(layout, deck, mode, rng) {
 		slotMap[key] = s;
 	}
 
+	function isShieldBroken() {
+		if (!shieldConfig) return true;
+		for (var k = 0; k < shieldConfig.guardianKeys.length; k++) {
+			var gKey = shieldConfig.guardianKeys[k];
+			if (slotMap[gKey] && !slotMap[gKey].removed) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function isSlotChained(s) {
+		if (!chainConfig || !chainConfig.stages) return false;
+		var stNum = chainConfig.chainedSet[s.key];
+		if (!stNum) return false;
+		var st = chainConfig.stages[stNum - 1];
+		return !st || !st.unlocked;
+	}
+
 	function hasLive(z, x, y) {
 		var s = slotMap[makeKey(z, x, y)];
 		return !!s && !s.removed;
@@ -558,6 +741,8 @@ function generateConstructiveLevel(layout, deck, mode, rng) {
 
 	function isFreeSlot(s) {
 		if (s.removed) return false;
+		if (shieldConfig && !isShieldBroken() && shieldConfig.protectedSet[s.key]) return false;
+		if (chainConfig && isSlotChained(s)) return false;
 		if (hasLive(s.z + 1, s.x, s.y)) return false;
 		if (hasLiveHalf(s.z + 1, s.x - 1, s.y) ||
 		    hasLiveHalf(s.z + 1, s.x + 1, s.y) ||
@@ -582,8 +767,33 @@ function generateConstructiveLevel(layout, deck, mode, rng) {
 		return score;
 	}
 
+	function createTileObj(s, d) {
+		return {
+			z: s.z,
+			x: s.x,
+			y: s.y,
+			isHalf: s.isHalf,
+			symbol: d.symbol,
+			svg: d.svg,
+			wildcardGroup: d.wildcardGroup,
+			label: s.index + 1,
+			removed: false,
+			staging: false,
+			faceDown: false,
+			obscured: false,
+			hinted: false,
+			shielded: !!(shieldConfig && shieldConfig.protectedSet[s.key]),
+			guardian: !!(shieldConfig && shieldConfig.guardianSet[s.key]),
+			chainStage: (chainConfig && chainConfig.chainedSet[s.key]) || 0,
+			isKey: !!s.isKey,
+			keyStage: s.keyStage || 0
+		};
+	}
+
 	var deckIdx = 0;
 	var history = [];
+	var nextStageToAssign = 0;
+	var pairsMatchedSinceLastKey = 0;
 
 	while (slots.some(function (s) { return !s.removed; })) {
 		var freeSlots = slots.filter(isFreeSlot);
@@ -601,11 +811,40 @@ function generateConstructiveLevel(layout, deck, mode, rng) {
 			}
 			s1.removed = true;
 			s2.removed = true;
-			var d1 = deck[deckIdx++];
-			var d2 = deck[deckIdx++];
-			s1.tile = { z: s1.z, x: s1.x, y: s1.y, isHalf: s1.isHalf, symbol: d1.symbol, svg: d1.svg, wildcardGroup: d1.wildcardGroup, label: s1.index + 1, removed: false, staging: false, faceDown: false, obscured: false, hinted: false };
-			s2.tile = { z: s2.z, x: s2.x, y: s2.y, isHalf: s2.isHalf, symbol: d2.symbol, svg: d2.svg, wildcardGroup: d2.wildcardGroup, label: s2.index + 1, removed: false, staging: false, faceDown: false, obscured: false, hinted: false };
-			history.push({ s1: s1, s2: s2, d1: d1, d2: d2 });
+
+			var shouldAssignKey = false;
+			if (chainConfig && chainConfig.stages && nextStageToAssign < chainConfig.stages.length) {
+				if (nextStageToAssign === 0 || pairsMatchedSinceLastKey >= 2) {
+					shouldAssignKey = true;
+				}
+			}
+
+			if (shouldAssignKey) {
+				var st = chainConfig.stages[nextStageToAssign];
+				var keySym = st.keySymbol;
+				var keyStageNum = st.stage;
+				s1.isKey = true;
+				s1.keyStage = keyStageNum;
+				s2.isKey = true;
+				s2.keyStage = keyStageNum;
+				var kd1 = { symbol: keySym, svg: null, wildcardGroup: null };
+				var kd2 = { symbol: keySym, svg: null, wildcardGroup: null };
+				s1.tile = createTileObj(s1, kd1);
+				s2.tile = createTileObj(s2, kd2);
+				st.keyTileKeys = [s1.key, s2.key];
+				st.unlocked = true; // Unlocked during simulation forward flow!
+				nextStageToAssign++;
+				pairsMatchedSinceLastKey = 0;
+				deckIdx += 2;
+				history.push({ s1: s1, s2: s2, d1: kd1, d2: kd2 });
+			} else {
+				var d1 = deck[deckIdx++];
+				var d2 = deck[deckIdx++];
+				s1.tile = createTileObj(s1, d1);
+				s2.tile = createTileObj(s2, d2);
+				pairsMatchedSinceLastKey++;
+				history.push({ s1: s1, s2: s2, d1: d1, d2: d2 });
+			}
 		} else {
 			var remaining = slots.filter(function (s) { return !s.removed; });
 			while (remaining.length >= 2 && deckIdx <= deck.length - 2) {
@@ -613,13 +852,36 @@ function generateConstructiveLevel(layout, deck, mode, rng) {
 				var r2 = remaining.shift();
 				r1.removed = true;
 				r2.removed = true;
-				var rd1 = deck[deckIdx++];
-				var rd2 = deck[deckIdx++];
-				r1.tile = { z: r1.z, x: r1.x, y: r1.y, isHalf: r1.isHalf, symbol: rd1.symbol, svg: rd1.svg, wildcardGroup: rd1.wildcardGroup, label: r1.index + 1, removed: false, staging: false, faceDown: false, obscured: false, hinted: false };
-				r2.tile = { z: r2.z, x: r2.x, y: r2.y, isHalf: r2.isHalf, symbol: rd2.symbol, svg: rd2.svg, wildcardGroup: rd2.wildcardGroup, label: r2.index + 1, removed: false, staging: false, faceDown: false, obscured: false, hinted: false };
+				if (chainConfig && chainConfig.stages && nextStageToAssign < chainConfig.stages.length) {
+					var rst = chainConfig.stages[nextStageToAssign];
+					r1.isKey = true;
+					r1.keyStage = rst.stage;
+					r2.isKey = true;
+					r2.keyStage = rst.stage;
+					var rkd1 = { symbol: rst.keySymbol, svg: null, wildcardGroup: null };
+					var rkd2 = { symbol: rst.keySymbol, svg: null, wildcardGroup: null };
+					r1.tile = createTileObj(r1, rkd1);
+					r2.tile = createTileObj(r2, rkd2);
+					rst.keyTileKeys = [r1.key, r2.key];
+					rst.unlocked = true;
+					nextStageToAssign++;
+					deckIdx += 2;
+				} else {
+					var rd1 = deck[deckIdx++];
+					var rd2 = deck[deckIdx++];
+					r1.tile = createTileObj(r1, rd1);
+					r2.tile = createTileObj(r2, rd2);
+				}
 			}
 			break;
 		}
+	}
+
+	// Reset all chain stages to locked for gameplay
+	if (chainConfig && chainConfig.stages) {
+		chainConfig.stages.forEach(function (st) {
+			st.unlocked = false;
+		});
 	}
 
 	var resultTiles = slots.map(function (s) { return s.tile; });
@@ -781,12 +1043,24 @@ function generateLevel(levelIndex) {
 
 	shuffle(deck, rng);
 
-	var tiles = generateConstructiveLevel(layout, deck, level.mode, rng);
+	var shieldConfig = null;
+	if (level.isShield) {
+		shieldConfig = computeShieldConfig(layout);
+	}
+
+	var chainConfig = null;
+	if (level.isChain) {
+		chainConfig = computeChainConfig(layout, level.index);
+	}
+
+	var tiles = generateConstructiveLevel(layout, deck, level.mode, rng, shieldConfig, chainConfig);
 	var board = buildBoard(tiles);
 
 	if (level.blackout) applyBlackout(tiles);
 	if (level.covered > 0) applyFaceDown(tiles, level.covered, board, level.mode);
 	tiles.conveyorTrack = chosen.conveyorTrack || null;
+	tiles.shield = shieldConfig;
+	tiles.chain = chainConfig;
 	return tiles;
 }
 
@@ -802,7 +1076,7 @@ function applyFaceDown(tiles, numPairs, board, mode) {
 		while (done < numPairs && guard < 100) {
 			guard++;
 			var idx = Math.floor(Math.random() * tiles.length);
-			if (tiles[idx].faceDown) continue;
+			if (tiles[idx].faceDown || tiles[idx].guardian || tiles[idx].isKey) continue;
 			tiles[idx].faceDown = true;
 			done++;
 		}
@@ -831,6 +1105,6 @@ function applyFaceDown(tiles, numPairs, board, mode) {
    memory): a z=0 tile can be both obscured and faceDown. */
 function applyBlackout(tiles) {
 	for (var i = 0; i < tiles.length; i++) {
-		if (tiles[i].z === 0) tiles[i].obscured = true;
+		if (tiles[i].z === 0 && !tiles[i].guardian && !tiles[i].isKey) tiles[i].obscured = true;
 	}
 }

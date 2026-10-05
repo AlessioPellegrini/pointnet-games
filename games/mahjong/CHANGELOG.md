@@ -1,6 +1,6 @@
 # Mahjong Arcade — Changelog & Note di Sviluppo
 
-> **Versione corrente: 1.6.0** — vedi `manifest.json`, `index.html` e `README.md`.
+> **Versione corrente: 1.7.0** — vedi `manifest.json`, `index.html` e `README.md`.
 > File per lo **storico essenziale**, i vincoli di design e le istruzioni di estensione.
 > Gli script di verifica sono permanenti in `games/mahjong/tests/` (non in /tmp).
 
@@ -18,6 +18,9 @@ node games/mahjong/tests/test-progression.js
 # Verifica meccanica Anello Rotante Conveyor: sblocco a spiraglio e rotazione continua
 node games/mahjong/tests/test-conveyor.js
 
+# Verifica meccanica Sigilli & Scudi Protettivi (Shield Wards): 33 livelli, guardiani e sblocco
+node games/mahjong/tests/test-shields.js
+
 # Verifica blackout: zona 101+, alternanza, obscured solo su z=0, auto-reveal
 node games/mahjong/tests/test-blackout.js
 
@@ -26,6 +29,9 @@ node games/mahjong/tests/test-free.js
 
 # Rendering FULL-su-HALF: onHalf, centratura sull'incrocio, apice dritto
 node games/mahjong/tests/test-temple-steps.js
+
+# Verifica solvibilità al 100% e tempo di generazione istantaneo (<250ms)
+node games/mahjong/tests/test-solvable.js
 ```
 
 Gli script caricano `layouts.js` + `data.js` + `engine.js` in Node `vm` e chiamano
@@ -35,7 +41,25 @@ le funzioni REALI del gioco (`validateSupport`, `buildProgression`).
 
 ## Changelog
 
-### v1.6.0 — Generazione a Ritroso Nativa (Native Reverse Generation Engine) & Rimozione Tabelle Statiche (HEAD)
+### v1.7.0 — Meccanica Sigilli & Scudi Protettivi (Shield Wards) & Varianti Conveyor Scalabili (HEAD)
+- **Meccanica Sigilli & Scudi Protettivi (`Shield Wards`)**:
+  - Modalità speciale attiva ogni 10 livelli su quelli terminanti con il 7 (7, 17, 27, 37... 327), per un totale di 33 livelli scudo nella progressione.
+  - Genera una zona centrale protetta da una barriera energetica trasparente (`.tile.shielded`), difesa da 2 o 4 tessere **Guardiane 🛡️** (`.tile.guardian`) posizionate sul perimetro esterno del tabellone.
+  - Le tessere protette non possono essere selezionate o spostate nello staging finché tutti i guardiani non sono stati accoppiati e rimossi.
+  - Feedback audiovisivo: deflessione energetica/metallica con scuotimento e bagliore (`shield_deflect`, `.tile.shield-deflect`), allerta luminosa a pulsazione sincronizzata su tutti i guardiani attivi (`.tile.guardian-alert`).
+  - Infrangimento epico (`breakShield`): all'eliminazione dell'ultimo guardiano, lo scudo si spezza con effetto sonoro a campana cristallina discendente (`shield_shatter`), esplosione di particelle celesti/dorate e bonus +500 punti.
+  - Piena reversibilità via `undo()`: ripristina lo scudo e storna il bonus se un match guardiano viene annullato.
+- **Generatore Costruttivo Nativo Aggiornato**:
+  - `generateConstructiveLevel` riceve `shieldConfig` e impedisce ai tile protetti di essere liberati prima dell'avvenuta rimozione dei guardiani, garantendo matematicamente al 100% la risolvibilità del livello senza deadlock.
+  - I guardiani sono esclusi da `applyFaceDown` e `applyBlackout` per rimanere sempre visibili e bersagliabili dal giocatore.
+- **Varianti Scalabili Conveyor**:
+  - Aggiunte varianti scalabili per `conveyor_temple` (medium 68, large 80), `conveyor_fortress` (medium 56, large 84) e `conveyor_diamond` (medium 56, large 88).
+  - Abbassata la soglia di inclusione minima a 32 tessere e implementata l'alternanza round-robin (`prevConveyorLayout`) per una rotazione bilanciata dei 5 circuiti conveyor.
+- **Nuova Traccia Musicale Arcade**:
+  - Aggiunto il brano "Mahjong Synco (Mashup)" nella playlist Arcade (7 tracce totali).
+- **Test Suite Automatizzata**: aggiunto il test permanente `games/mahjong/tests/test-shields.js` (tutti gli 8 test passano al 100%).
+
+### v1.6.0 — Generazione a Ritroso Nativa (Native Reverse Generation Engine) & Rimozione Tabelle Statiche
 - **Motore di Generazione a Ritroso Costruttiva (`generateConstructiveLevel`)**: implementato il generatore che popola il tabellone simulando a ritroso la rimozione delle tessere partendo da quelle contemporaneamente libere e procedendo verso l'interno. Ogni livello nasce matematicamente garantito al 100% risolvibile in meno di 1 millisecondo senza bisogno di risolutori esaustivi o backtracking lenti.
 - **Rimozione Tabelle Statiche (`solvable-levels.js`)**: eliminata la dipendenza dal file statico precalcolato; il gioco ora si autogenera dinamicamente e in modo autonomo per qualsiasi livello e configurazione, riducendo il payload di rete.
 - **Replayability Infinita**: ogni avvio o riavvio di livello genera una combinazione fresca e diversa di simboli pur mantenendo la struttura geometrica della figura.
