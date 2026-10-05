@@ -161,16 +161,17 @@ class PointNet_Games_Leaderboard {
 		$settings           = get_option( 'pointnet_games_settings', array() );
 		$require_validation = (int) $settings['require_validation'] ?? 0;
 
-		// Only the best score per registered user across all games.
+		// Only the best score per registered user per game across all games.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT s1.id, s1.game_id, s1.user_id, s1.nickname, s1.score, s1.score_meta, s1.played_at,
 				        p.post_title as game_title
 				 FROM %i s1
-				 LEFT JOIN %i s2 ON s1.score < s2.score
+				 LEFT JOIN %i s2 ON s1.game_id = s2.game_id
+				     AND ( s1.score < s2.score OR ( s1.score = s2.score AND s1.id < s2.id ) )
 				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
 				     AND s1.user_id = s2.user_id
-				 LEFT JOIN %i p ON p.ID = s1.game_id
+				 INNER JOIN %i p ON p.ID = s1.game_id AND p.post_status = 'publish'
 				 WHERE s1.user_id > 0
 				   AND s2.id IS NULL
 				 ORDER BY s1.score DESC, s1.played_at ASC

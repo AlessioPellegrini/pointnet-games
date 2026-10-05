@@ -1945,10 +1945,11 @@
 						startNewRun();
 					};
 				} else {
+					submitFinalScore(levelNum);
 					modalEmoji.textContent = '🏆';
 					modalTitle.textContent = 'Livello ' + levelNum + ' Completato!';
 					modalScore.textContent = 'Livello: +' + lvlScore.toLocaleString() + ' · Totale: ' + totalScore.toLocaleString();
-					modalPosition.textContent = '⏱️ Tempo: ' + formatTime(state.elapsed);
+					modalPosition.textContent = 'Invio record in classifica...';
 					nextBtn.textContent = '▶ Prossimo Livello (Lv ' + (levelNum + 1) + ')';
 					nextBtn.onclick = function () {
 						overlayEl.classList.remove('show');

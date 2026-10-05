@@ -228,9 +228,9 @@ class PointNet_Games_API {
 			);
 		}
 
-		// Plausibility check: games cannot be completed in less than 5 seconds.
+		// Plausibility check: games cannot be completed in less than 2 seconds.
 		$elapsed = time() - (int) ( $session['started_at'] ?? 0 );
-		if ( $elapsed < 5 ) {
+		if ( $elapsed < 2 ) {
 			return new WP_Error(
 				'pointnet_games_impossible_time',
 				__( 'Game duration is incoherently short.', 'pointnet-games' ),
