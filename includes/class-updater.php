@@ -17,16 +17,27 @@ class PointNet_Games_Updater {
 
 	private const GITHUB_REPO   = 'AlessioPellegrini/pointnet-games';
 	private const TRANSIENT_KEY = 'pointnet_games_github_release';
-	private const CACHE_TTL     = 43200; // 12 hours
+	private const CACHE_TTL     = 7200; // 2 hours
 
 	/**
 	 * Hook updater into WordPress lifecycle.
 	 */
 	public static function init(): void {
 		add_filter( 'pre_set_site_transient_update_plugins', array( __CLASS__, 'check_update' ) );
+		add_filter( 'site_transient_update_plugins',         array( __CLASS__, 'check_update' ) );
 		add_filter( 'plugins_api',                            array( __CLASS__, 'plugin_info' ), 20, 3 );
 		add_filter( 'upgrader_source_selection',             array( __CLASS__, 'fix_folder_name' ), 10, 4 );
 		add_action( 'upgrader_process_complete',             array( __CLASS__, 'clear_cache' ), 10, 2 );
+		add_action( 'admin_init',                            array( __CLASS__, 'handle_admin_recheck' ) );
+	}
+
+	/**
+	 * Invalidate GitHub cache when admin triggers a manual update recheck.
+	 */
+	public static function handle_admin_recheck(): void {
+		if ( ! empty( $_GET['force-check'] ) || ( isset( $_GET['action'] ) && 'do-core-recheck' === $_GET['action'] ) ) {
+			delete_site_transient( self::TRANSIENT_KEY );
+		}
 	}
 
 	/**
@@ -36,8 +47,13 @@ class PointNet_Games_Updater {
 	 * @return array|null
 	 */
 	public static function get_latest_release( bool $force_refresh = false ): ?array {
-		if ( ! $force_refresh && ! empty( $_GET['force-check'] ) ) {
-			$force_refresh = true;
+		if ( ! $force_refresh ) {
+			$is_recheck = ! empty( $_GET['force-check'] )
+				|| ( isset( $_GET['action'] ) && 'do-core-recheck' === $_GET['action'] )
+				|| ( isset( $_POST['action'] ) && 'do-core-recheck' === $_POST['action'] );
+			if ( $is_recheck ) {
+				$force_refresh = true;
+			}
 		}
 
 		if ( ! $force_refresh ) {
@@ -167,9 +183,21 @@ class PointNet_Games_Updater {
 		);
 
 		if ( version_compare( $latest_ver, POINTNET_GAMES_VERSION, '>' ) ) {
+			if ( ! isset( $transient->response ) || ! is_array( $transient->response ) ) {
+				$transient->response = array();
+			}
 			$transient->response[ $plugin_file ] = $item;
+			if ( isset( $transient->no_update[ $plugin_file ] ) ) {
+				unset( $transient->no_update[ $plugin_file ] );
+			}
 		} else {
+			if ( ! isset( $transient->no_update ) || ! is_array( $transient->no_update ) ) {
+				$transient->no_update = array();
+			}
 			$transient->no_update[ $plugin_file ] = $item;
+			if ( isset( $transient->response[ $plugin_file ] ) ) {
+				unset( $transient->response[ $plugin_file ] );
+			}
 		}
 
 		return $transient;

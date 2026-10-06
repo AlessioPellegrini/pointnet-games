@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.5
+Stable tag: 1.3.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,11 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.6 =
+* Auto-Updater: immediate cache invalidation on "Controlla di nuovo" in WordPress admin (detects `do-core-recheck` and deletes stale transient).
+* Auto-Updater: hooked `site_transient_update_plugins` filter so update notices and badges appear dynamically across WordPress admin.
+* Auto-Updater: reduced GitHub API cache TTL to 2 hours for faster detection of newly published tags and releases.
 
 = 1.3.5 =
 * Author Page & User Profiles: added personal arcade records and statistics cards for registered users. Automatically injected between the author header and post loop on author pages (/author/...), with full GeneratePress support and universal theme fallback.
