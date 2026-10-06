@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.7
+Stable tag: 1.3.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,13 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.8 =
+* Auto-Updater: added official Update URI plugin header matching PointNet MailGuard architecture.
+* Auto-Updater: enhanced GitHub API tags pagination (?per_page=100) to ensure newly pushed tags are never truncated.
+* Auto-Updater: hooked pre_set_site_transient_update_plugins with automatic force-refresh during WordPress update checks.
+* Author Page & User Profiles: universal theme compatibility (GeneratePress, Astra, Kadence, OceanWP, Genesis and standard WordPress themes) preserving avatar, username and bio.
+* Author Page: injected records span 100% full width of the main content column cleanly outside theme page-header.
 
 = 1.3.7 =
 * Author Page & User Profiles: universal theme compatibility (GeneratePress, Astra, Kadence, OceanWP, Genesis and standard WordPress themes).

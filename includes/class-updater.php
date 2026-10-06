@@ -23,7 +23,7 @@ class PointNet_Games_Updater {
 	 * Hook updater into WordPress lifecycle.
 	 */
 	public static function init(): void {
-		add_filter( 'pre_set_site_transient_update_plugins', array( __CLASS__, 'check_update' ) );
+		add_filter( 'pre_set_site_transient_update_plugins', array( __CLASS__, 'check_update_force' ) );
 		add_filter( 'site_transient_update_plugins',         array( __CLASS__, 'check_update' ) );
 		add_filter( 'plugins_api',                            array( __CLASS__, 'plugin_info' ), 20, 3 );
 		add_filter( 'upgrader_source_selection',             array( __CLASS__, 'fix_folder_name' ), 10, 4 );
@@ -98,7 +98,7 @@ class PointNet_Games_Updater {
 		}
 
 		// 2. Also check Git Tags in case tags were pushed without creating a formal GitHub release
-		$tags_url = 'https://api.github.com/repos/' . self::GITHUB_REPO . '/tags';
+		$tags_url = 'https://api.github.com/repos/' . self::GITHUB_REPO . '/tags?per_page=100';
 		$tags_res = wp_remote_get(
 			$tags_url,
 			array(
@@ -141,17 +141,28 @@ class PointNet_Games_Updater {
 	}
 
 	/**
-	 * Check if a newer release is available and inject it into WordPress update transient.
+	 * Forced check executed when WordPress rebuilds update_plugins transient.
 	 *
 	 * @param object|null $transient WordPress update plugins transient.
 	 * @return object|null
 	 */
-	public static function check_update( $transient ) {
+	public static function check_update_force( $transient ) {
+		return self::check_update( $transient, true );
+	}
+
+	/**
+	 * Check if a newer release is available and inject it into WordPress update transient.
+	 *
+	 * @param object|null $transient WordPress update plugins transient.
+	 * @param bool        $force_refresh Whether to bypass transient cache.
+	 * @return object|null
+	 */
+	public static function check_update( $transient, bool $force_refresh = false ) {
 		if ( ! is_object( $transient ) ) {
 			return $transient;
 		}
 
-		$release = self::get_latest_release();
+		$release = self::get_latest_release( $force_refresh );
 		if ( ! $release ) {
 			return $transient;
 		}
