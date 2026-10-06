@@ -273,6 +273,18 @@ class PointNet_Games_Admin {
 							</label>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row">
+							<label for="pointnet_games_show_author_records"><?php esc_html_e( 'Author Page Records', 'pointnet-games' ); ?></label>
+						</th>
+						<td>
+							<label>
+								<input type="checkbox" name="pointnet_games_settings[show_author_records]" id="pointnet_games_show_author_records" value="1" <?php checked( (int) ( $settings['show_author_records'] ?? 1 ), 1 ); ?>>
+								<?php esc_html_e( 'Display personal arcade records and stats cards on author profile pages (/author/...).', 'pointnet-games' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Automatically injects modern player cards on user profile pages. Can also be manually placed anywhere using the [pointnet_user_records] shortcode.', 'pointnet-games' ); ?></p>
+						</td>
+					</tr>
 				</table>
 				<?php submit_button(); ?>
 			</form>
@@ -291,11 +303,13 @@ class PointNet_Games_Admin {
 		$defaults = array(
 			'rate_limit'          => 5,
 			'require_validation'  => 0,
+			'show_author_records' => 1,
 		);
 
 		$clean = wp_parse_args( $input, $defaults );
 
 		$clean['require_validation']  = isset( $input['require_validation'] ) ? 1 : 0;
+		$clean['show_author_records'] = isset( $input['show_author_records'] ) ? 1 : 0;
 		$clean['rate_limit']          = (int) $input['rate_limit'];
 
 		return $clean;
@@ -453,6 +467,22 @@ class PointNet_Games_Admin {
 				'example'     => array(
 					array( '[pointnet_games_list]', __( '12 games, 3 columns.', 'pointnet-games' ) ),
 					array( '[pointnet_games_list limit="8" category="puzzle" columns="4"]', __( '8 puzzle games on 4 columns.', 'pointnet-games' ) ),
+				),
+			),
+			array(
+				'shortcode'   => '[pointnet_user_records user_id="123" username="eko" show_stats="1" show_play_btn="1"]',
+				'description' => __( 'Shows the personal arcade highscores and statistics cards of a player. Automatically detects the viewed user on author pages (/author/...), or defaults to the currently logged-in player.', 'pointnet-games' ),
+				'attrs'       => '<ul>' .
+					'<li><strong>user_id</strong> <em>(int, default <code>0</code>)</em> — WordPress User ID. If <code>0</code>, it is auto-detected from the author archive page or the logged-in user.</li>' .
+					'<li><strong>username</strong> <em>(string, default empty)</em> — User login or slug (alternative to user_id).</li>' .
+					'<li><strong>show_stats</strong> <em>(0|1, default <code>1</code>)</em> — Displays the top summary KPI pills (total points, games played, best rank).</li>' .
+					'<li><strong>show_play_btn</strong> <em>(0|1, default <code>1</code>)</em> — Displays the "Play" action button on each game card.</li>' .
+					'<li><strong>layout</strong> <em>(cards|compact, default <code>cards</code>)</em> — Visual layout format.</li>' .
+					'</ul>',
+				'example'     => array(
+					array( '[pointnet_user_records]', __( 'Personal records of current user or author page.', 'pointnet-games' ) ),
+					array( '[pointnet_user_records username="eko"]', __( 'Arcade records of user "eko".', 'pointnet-games' ) ),
+					array( '[pointnet_user_records user_id="1" show_stats="0"]', __( 'User ID 1 without summary pills.', 'pointnet-games' ) ),
 				),
 			),
 		);

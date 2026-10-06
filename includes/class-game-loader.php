@@ -16,27 +16,100 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PointNet_Games_Game_Loader {
 
 	/**
+	 * Track if author records were already output to prevent duplicates.
+	 *
+	 * @var bool
+	 */
+	private static $author_records_injected = false;
+
+	/**
 	 * Register hooks.
 	 */
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_game_assets' ) );
 		add_filter( 'the_content', array( $this, 'inject_game_before_content' ) );
+
+		// Hook for author archive page:
+		// 1. GeneratePress specific hook (fires right after author title / avatar block)
+		add_action( 'generate_after_archive_title', array( $this, 'inject_user_records_on_author_page' ) );
+		// 2. Generic fallback hook for all standard WordPress themes
+		add_action( 'loop_start', array( $this, 'inject_user_records_on_loop_start' ) );
 	}
 
 	/**
-	 * Enqueue the game embed script only when a game shortcode or singular game page is present.
+	 * Enqueue the game embed script only when a game shortcode, author page or singular game page is present.
 	 */
 	public function maybe_enqueue_game_assets() {
 		global $post;
 
-		$has_shortcode = is_a( $post, 'WP_Post' ) && has_shortcode( $post->post_content, 'pointnet_game' );
+		$has_shortcode  = is_a( $post, 'WP_Post' ) && has_shortcode( $post->post_content, 'pointnet_game' );
 		$is_game_single = is_singular( PointNet_Games_Post_Types::GAME_CPT );
+		$is_author_page = is_author();
+
+		if ( $has_shortcode || $is_game_single || $is_author_page ) {
+			wp_enqueue_style( 'pointnet-games-public' );
+		}
 
 		if ( $has_shortcode || $is_game_single ) {
-			wp_enqueue_style( 'pointnet-games-public' );
 			wp_enqueue_script( 'pointnet-games-api' );
 			wp_enqueue_script( 'pointnet-games-embed' );
 		}
+	}
+
+	/**
+	 * Inject user arcade records on author archive page (GeneratePress hook).
+	 */
+	public function inject_user_records_on_author_page() {
+		if ( ! is_author() || ! is_main_query() ) {
+			return;
+		}
+
+		$settings = get_option( 'pointnet_games_settings', array() );
+		$enabled  = ! isset( $settings['show_author_records'] ) || (int) $settings['show_author_records'] === 1;
+		if ( ! $enabled ) {
+			return;
+		}
+
+		if ( self::$author_records_injected ) {
+			return;
+		}
+
+		$author_id = (int) get_queried_object_id();
+		if ( ! $author_id ) {
+			return;
+		}
+
+		echo PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) );
+		self::$author_records_injected = true;
+	}
+
+	/**
+	 * Fallback injection for standard themes where generate_after_archive_title does not exist.
+	 *
+	 * @param WP_Query $query The query instance.
+	 */
+	public function inject_user_records_on_loop_start( $query ) {
+		if ( self::$author_records_injected ) {
+			return;
+		}
+
+		if ( ! is_author() || ! $query->is_author() || ! $query->is_main_query() ) {
+			return;
+		}
+
+		$settings = get_option( 'pointnet_games_settings', array() );
+		$enabled  = ! isset( $settings['show_author_records'] ) || (int) $settings['show_author_records'] === 1;
+		if ( ! $enabled ) {
+			return;
+		}
+
+		$author_id = (int) get_queried_object_id();
+		if ( ! $author_id ) {
+			return;
+		}
+
+		echo PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) );
+		self::$author_records_injected = true;
 	}
 
 	/**

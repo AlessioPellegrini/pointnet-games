@@ -436,4 +436,141 @@ class PointNet_Games_Leaderboard {
 			array( '%d', '%d' )
 		);
 	}
+
+	/**
+	 * Get all best scores and aggregated statistics for a specific user across all games.
+	 *
+	 * @param int $user_id WP user ID.
+	 *
+	 * @return array Array with 'stats' (total_score, games_played, best_position, records_count)
+	 *               and 'games' (grouped by game_id with game details and records list).
+	 */
+	public static function get_user_records( $user_id ) {
+		global $wpdb;
+
+		$user_id = absint( $user_id );
+		if ( ! $user_id ) {
+			return array(
+				'stats' => array(
+					'total_score'   => 0,
+					'games_played'  => 0,
+					'best_position' => null,
+					'records_count' => 0,
+				),
+				'games' => array(),
+			);
+		}
+
+		$table              = pointnet_games_scores_table();
+		$settings           = get_option( 'pointnet_games_settings', array() );
+		$require_validation = (int) ( $settings['require_validation'] ?? 0 );
+
+		// Query best score per game per difficulty for this user.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT s1.id, s1.game_id, s1.score, s1.score_meta, s1.played_at,
+				        p.post_title, p.post_name,
+				        COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')), '') as diff_slug
+				 FROM %i s1
+				 LEFT JOIN %i s2 ON s1.game_id = s2.game_id
+				     AND ( s1.score < s2.score OR ( s1.score = s2.score AND s1.id < s2.id ) )
+				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
+				     AND s1.user_id = s2.user_id
+				     AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')), '') = COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')), '')
+				 INNER JOIN %i p ON p.ID = s1.game_id AND p.post_status = 'publish'
+				 WHERE s1.user_id = %d
+				   AND ( %d = 0 OR s1.validated = 1 )
+				   AND s2.id IS NULL
+				 ORDER BY s1.game_id ASC, s1.score DESC, s1.played_at ASC",
+				$table,
+				$table,
+				$require_validation,
+				$wpdb->posts,
+				$user_id,
+				$require_validation
+			),
+			ARRAY_A
+		);
+
+		if ( empty( $rows ) ) {
+			return array(
+				'stats' => array(
+					'total_score'   => 0,
+					'games_played'  => 0,
+					'best_position' => null,
+					'records_count' => 0,
+				),
+				'games' => array(),
+			);
+		}
+
+		$total_score   = 0;
+		$best_position = null;
+		$games_map     = array();
+
+		foreach ( $rows as $row ) {
+			$game_id   = (int) $row['game_id'];
+			$score     = (int) $row['score'];
+			$diff_slug = $row['diff_slug'];
+			$meta      = json_decode( $row['score_meta'], true ) ?: array();
+
+			$total_score += $score;
+
+			// Fetch player's rank/position in this game & difficulty.
+			$position = self::get_player_position( $game_id, $user_id, '', $diff_slug );
+			if ( null !== $position ) {
+				if ( null === $best_position || $position < $best_position ) {
+					$best_position = $position;
+				}
+			}
+
+			if ( ! isset( $games_map[ $game_id ] ) ) {
+				$manifest  = get_post_meta( $game_id, '_pointnet_games_manifest', true );
+				$manifest  = is_array( $manifest ) ? $manifest : array();
+				$thumbnail = get_the_post_thumbnail_url( $game_id, 'thumbnail' );
+				$permalink = get_permalink( $game_id );
+
+				$games_map[ $game_id ] = array(
+					'id'           => $game_id,
+					'title'        => $row['post_title'],
+					'slug'         => $row['post_name'],
+					'permalink'    => $permalink,
+					'thumbnail'    => $thumbnail,
+					'manifest'     => $manifest,
+					'difficulties' => isset( $manifest['difficulties'] ) && is_array( $manifest['difficulties'] ) ? $manifest['difficulties'] : array(),
+					'records'      => array(),
+				);
+			}
+
+			// Resolve human label for difficulty.
+			$difficulties = $games_map[ $game_id ]['difficulties'];
+			if ( isset( $difficulties[ $diff_slug ] ) ) {
+				$diff_label = $difficulties[ $diff_slug ];
+			} elseif ( ! empty( $diff_slug ) ) {
+				$diff_label = ucfirst( str_replace( array( '_', '-' ), ' ', $diff_slug ) );
+			} else {
+				$diff_label = __( 'Standard', 'pointnet-games' );
+			}
+
+			$games_map[ $game_id ]['records'][] = array(
+				'id'               => (int) $row['id'],
+				'score'            => $score,
+				'difficulty'       => $diff_slug,
+				'difficulty_label' => $diff_label,
+				'position'         => $position,
+				'played_at'        => $row['played_at'],
+				'meta'             => $meta,
+			);
+		}
+
+		return array(
+			'stats' => array(
+				'total_score'   => $total_score,
+				'games_played'  => count( $games_map ),
+				'best_position' => $best_position,
+				'records_count' => count( $rows ),
+			),
+			'games' => array_values( $games_map ),
+		);
+	}
 }

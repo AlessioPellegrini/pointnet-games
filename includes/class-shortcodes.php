@@ -23,6 +23,7 @@ class PointNet_Games_Shortcodes {
 		add_shortcode( 'pointnet_game_leaderboard', array( $this, 'shortcode_leaderboard' ) );
 		add_shortcode( 'pointnet_games_leaderboard', array( $this, 'shortcode_leaderboard' ) );
 		add_shortcode( 'pointnet_games_list', array( $this, 'shortcode_games_list' ) );
+		add_shortcode( 'pointnet_user_records', array( $this, 'shortcode_user_records' ) );
 	}
 
 	/**
@@ -322,6 +323,207 @@ class PointNet_Games_Shortcodes {
 		}
 		$html .= '</div>';
 
+		return $html;
+	}
+
+	/**
+	 * [pointnet_user_records user_id="123" username="eko" show_stats="1" show_play_btn="1" layout="cards"]
+	 *
+	 * @param array $atts Shortcode attributes.
+	 *
+	 * @return string HTML output.
+	 */
+	public function shortcode_user_records( $atts ) {
+		wp_enqueue_style( 'pointnet-games-public' );
+
+		$atts = shortcode_atts(
+			array(
+				'user_id'       => 0,
+				'username'      => '',
+				'show_stats'    => 1,
+				'show_play_btn' => 1,
+				'layout'        => 'cards',
+			),
+			$atts,
+			'pointnet_user_records'
+		);
+
+		$user_id = absint( $atts['user_id'] );
+
+		// Resolve by username if provided.
+		if ( ! $user_id && ! empty( $atts['username'] ) ) {
+			$u = get_user_by( 'login', sanitize_user( $atts['username'] ) );
+			if ( ! $u ) {
+				$u = get_user_by( 'slug', sanitize_title( $atts['username'] ) );
+			}
+			if ( $u ) {
+				$user_id = (int) $u->ID;
+			}
+		}
+
+		// Auto-detect on author page.
+		if ( ! $user_id && is_author() ) {
+			$user_id = (int) get_queried_object_id();
+		}
+
+		// Fallback to current logged-in user.
+		if ( ! $user_id ) {
+			$user_id = (int) get_current_user_id();
+		}
+
+		return self::render_user_records_html( $user_id, $atts );
+	}
+
+	/**
+	 * Render the user records cards HTML.
+	 *
+	 * @param int   $user_id User ID.
+	 * @param array $options Options (show_stats, show_play_btn, layout, is_auto_injected).
+	 *
+	 * @return string HTML.
+	 */
+	public static function render_user_records_html( $user_id, $options = array() ) {
+		wp_enqueue_style( 'pointnet-games-public' );
+
+		$user_id        = absint( $user_id );
+		$current_user   = (int) get_current_user_id();
+		$is_own_profile = ( $current_user && $current_user === $user_id );
+		$is_auto        = ! empty( $options['is_auto_injected'] );
+
+		if ( ! $user_id ) {
+			if ( $is_auto ) {
+				return '';
+			}
+			return '<div class="pointnet-games-user-records"><div class="pointnet-games-user-empty"><p>🎮 ' . esc_html__( 'Accedi per visualizzare i tuoi record arcade personali e scalare la classifica!', 'pointnet-games' ) . '</p><a href="' . esc_url( wp_login_url() ) . '" class="pointnet-games-btn-primary">' . esc_html__( 'Accedi', 'pointnet-games' ) . '</a></div></div>';
+		}
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return '';
+		}
+
+		$records_data = PointNet_Games_Leaderboard::get_user_records( $user_id );
+		$stats        = $records_data['stats'];
+		$games        = $records_data['games'];
+
+		// If user has never played any game:
+		if ( empty( $games ) ) {
+			// If auto-injected on someone else's profile and they have no scores, don't display empty card.
+			if ( $is_auto && ! $is_own_profile ) {
+				return '';
+			}
+
+			$html  = '<section class="pointnet-games-user-records">';
+			$html .= '<div class="pointnet-games-user-records-header">';
+			$html .= '<h3 class="pointnet-games-user-records-title">' . ( $is_own_profile ? esc_html__( '🎮 I tuoi Record Arcade', 'pointnet-games' ) : sprintf( esc_html__( '🎮 Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) ) ) . '</h3>';
+			$html .= '</div>';
+			$html .= '<div class="pointnet-games-user-empty">';
+			if ( $is_own_profile ) {
+				$html .= '<p>' . esc_html__( 'Non hai ancora salvato nessun record. Scegli un gioco arcade e inizia la scalata per entrare nella classifica!', 'pointnet-games' ) . '</p>';
+				$games_cpt_url = get_post_type_archive_link( PointNet_Games_Post_Types::GAME_CPT );
+				if ( ! $games_cpt_url ) {
+					$games_cpt_url = home_url( '/#pointnet-games' );
+				}
+				$html .= '<a href="' . esc_url( $games_cpt_url ) . '" class="pointnet-games-btn-primary">🎮 ' . esc_html__( 'Gioca ora', 'pointnet-games' ) . '</a>';
+			} else {
+				$html .= '<p>' . esc_html__( 'Nessun record arcade registrato finora.', 'pointnet-games' ) . '</p>';
+			}
+			$html .= '</div>';
+			$html .= '</section>';
+			return $html;
+		}
+
+		$show_stats    = ! isset( $options['show_stats'] ) || (bool) $options['show_stats'];
+		$show_play_btn = ! isset( $options['show_play_btn'] ) || (bool) $options['show_play_btn'];
+
+		$title = $is_own_profile
+			? esc_html__( 'I tuoi Record Arcade', 'pointnet-games' )
+			: sprintf( esc_html__( 'Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) );
+
+		$html  = '<section class="pointnet-games-user-records">';
+		$html .= '<div class="pointnet-games-user-records-header">';
+		$html .= '<h3 class="pointnet-games-user-records-title">🎮 ' . $title . '</h3>';
+
+		if ( $show_stats ) {
+			$html .= '<div class="pointnet-games-user-stats-bar">';
+			$html .= '<div class="pointnet-games-stat-pill"><span class="png-pill-icon">🏆</span> <span class="png-pill-label">' . esc_html__( 'Punteggio Totale:', 'pointnet-games' ) . '</span> <strong>' . esc_html( number_format_i18n( $stats['total_score'] ) ) . ' pt</strong></div>';
+			$html .= '<div class="pointnet-games-stat-pill"><span class="png-pill-icon">🎮</span> <span class="png-pill-label">' . esc_html__( 'Giochi:', 'pointnet-games' ) . '</span> <strong>' . esc_html( (string) $stats['games_played'] ) . '</strong></div>';
+			if ( null !== $stats['best_position'] ) {
+				$medal = 1 === (int) $stats['best_position'] ? '🥇' : ( 2 === (int) $stats['best_position'] ? '🥈' : ( 3 === (int) $stats['best_position'] ? '🥉' : '🎖️' ) );
+				$html .= '<div class="pointnet-games-stat-pill png-pill-gold"><span class="png-pill-icon">' . $medal . '</span> <span class="png-pill-label">' . esc_html__( 'Miglior Rank:', 'pointnet-games' ) . '</span> <strong>#' . esc_html( (string) $stats['best_position'] ) . '</strong></div>';
+			}
+			$html .= '</div>';
+		}
+		$html .= '</div>'; // .pointnet-games-user-records-header
+
+		// Grid of game cards
+		$html .= '<div class="pointnet-games-user-cards-grid">';
+		foreach ( $games as $game ) {
+			$html .= '<div class="pointnet-games-user-game-card">';
+
+			// Game card header
+			$html .= '<div class="pointnet-games-user-card-head">';
+			$html .= '<div class="pointnet-games-user-card-game-info">';
+			if ( ! empty( $game['thumbnail'] ) ) {
+				$html .= '<img src="' . esc_url( $game['thumbnail'] ) . '" alt="' . esc_attr( $game['title'] ) . '" class="pointnet-games-user-card-thumb" loading="lazy" />';
+			} else {
+				$html .= '<div class="pointnet-games-user-card-thumb-placeholder">🎮</div>';
+			}
+			$html .= '<div class="pointnet-games-user-card-titles">';
+			$html .= '<h4 class="pointnet-games-user-card-title"><a href="' . esc_url( $game['permalink'] ) . '">' . esc_html( $game['title'] ) . '</a></h4>';
+			$html .= '<span class="pointnet-games-user-card-subtitle">' . sprintf( esc_html__( '%d record registrati', 'pointnet-games' ), count( $game['records'] ) ) . '</span>';
+			$html .= '</div></div>';
+
+			if ( $show_play_btn ) {
+				$html .= '<a href="' . esc_url( $game['permalink'] ) . '" class="pointnet-games-btn-play-sm">🎮 ' . ( $is_own_profile ? esc_html__( 'Migliora', 'pointnet-games' ) : esc_html__( 'Sfida', 'pointnet-games' ) ) . '</a>';
+			}
+			$html .= '</div>'; // .pointnet-games-user-card-head
+
+			// Game records rows
+			$html .= '<div class="pointnet-games-user-card-records">';
+			foreach ( $game['records'] as $rec ) {
+				$html .= '<div class="pointnet-games-user-record-row">';
+
+				// Left: Mode badge & details
+				$html .= '<div class="pointnet-games-user-record-left">';
+				$html .= '<span class="pointnet-games-mode-badge pointnet-games-mode-' . esc_attr( sanitize_html_class( $rec['difficulty'] ) ) . '">' . esc_html( $rec['difficulty_label'] ) . '</span>';
+
+				// Meta items
+				$meta_items = array();
+				if ( ! empty( $rec['meta'] ) && is_array( $rec['meta'] ) ) {
+					$excluded = array( 'difficulty', 'label', 'session_token', 'time_seconds', 'level_time_seconds', 'level_reached', 'won' );
+					foreach ( $rec['meta'] as $mk => $mv ) {
+						if ( in_array( strtolower( (string) $mk ), $excluded, true ) ) {
+							continue;
+						}
+						if ( is_scalar( $mv ) ) {
+							$meta_items[] = '<strong>' . esc_html( ucfirst( str_replace( '_', ' ', (string) $mk ) ) ) . ':</strong> ' . esc_html( (string) $mv );
+						}
+					}
+				}
+				if ( ! empty( $meta_items ) ) {
+					$html .= '<span class="pointnet-games-user-record-meta">' . implode( ' &bull; ', $meta_items ) . '</span>';
+				}
+				$html .= '</div>'; // .pointnet-games-user-record-left
+
+				// Right: Rank badge & score
+				$html .= '<div class="pointnet-games-user-record-right">';
+				if ( null !== $rec['position'] ) {
+					$rank_class = 1 === (int) $rec['position'] ? 'png-rank-first' : ( 2 === (int) $rec['position'] ? 'png-rank-second' : ( 3 === (int) $rec['position'] ? 'png-rank-third' : '' ) );
+					$html .= '<span class="pointnet-games-rank-badge ' . esc_attr( $rank_class ) . '">#' . esc_html( (string) $rec['position'] ) . '</span>';
+				}
+				$html .= '<span class="pointnet-games-user-record-score">' . esc_html( number_format_i18n( $rec['score'] ) ) . ' <small>pt</small></span>';
+				$html .= '</div>'; // .pointnet-games-user-record-right
+
+				$html .= '</div>'; // .pointnet-games-user-record-row
+			}
+			$html .= '</div>'; // .pointnet-games-user-card-records
+
+			$html .= '</div>'; // .pointnet-games-user-game-card
+		}
+		$html .= '</div>'; // .pointnet-games-user-cards-grid
+
+		$html .= '</section>'; // .pointnet-games-user-records
 		return $html;
 	}
 }

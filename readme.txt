@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.4
+Stable tag: 1.3.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,11 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.5 =
+* Author Page & User Profiles: added personal arcade records and statistics cards for registered users. Automatically injected between the author header and post loop on author pages (/author/...), with full GeneratePress support and universal theme fallback.
+* Shortcode: added [pointnet_user_records] to display personal gaming records anywhere with modern KPI stat pills, game cards, mode badges, ranks, and speedrun/arcade details.
+* Settings: added toggle in PointNet Games Settings to easily enable/disable author page arcade records injection.
 
 = 1.3.4 =
 * Branding & Admin: added custom arcade controller icon (SVG, 256x256 and 128x128 PNG) for WordPress updates and plugin information screens, eliminating the default plug placeholder icon.
