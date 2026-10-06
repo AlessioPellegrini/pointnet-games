@@ -406,6 +406,8 @@ class PointNet_Games_Shortcodes {
 		$stats        = $records_data['stats'];
 		$games        = $records_data['games'];
 
+		$section_id = 'pointnet-user-records-' . $user_id;
+
 		// If user has never played any game:
 		if ( empty( $games ) ) {
 			// If auto-injected on someone else's profile and they have no scores, don't display empty card.
@@ -413,7 +415,7 @@ class PointNet_Games_Shortcodes {
 				return '';
 			}
 
-			$html  = '<section class="pointnet-games-user-records">';
+			$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';
 			$html .= '<div class="pointnet-games-user-records-header">';
 			$html .= '<h3 class="pointnet-games-user-records-title">' . ( $is_own_profile ? esc_html__( '🎮 I tuoi Record Arcade', 'pointnet-games' ) : sprintf( esc_html__( '🎮 Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) ) ) . '</h3>';
 			$html .= '</div>';
@@ -430,6 +432,11 @@ class PointNet_Games_Shortcodes {
 			}
 			$html .= '</div>';
 			$html .= '</section>';
+
+			if ( $is_auto ) {
+				$html .= '<script>(function(){var r=document.getElementById("' . esc_js( $section_id ) . '");if(!r)return;var h=r.closest(".page-header,.author-box,.author-header,.archive-header,header");if(h&&h.parentNode&&h.contains(r)){h.parentNode.insertBefore(r,h.nextSibling);}})();</script>';
+			}
+
 			return $html;
 		}
 
@@ -440,7 +447,7 @@ class PointNet_Games_Shortcodes {
 			? esc_html__( 'I tuoi Record Arcade', 'pointnet-games' )
 			: sprintf( esc_html__( 'Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) );
 
-		$html  = '<section class="pointnet-games-user-records">';
+		$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';
 		$html .= '<div class="pointnet-games-user-records-header">';
 		$html .= '<h3 class="pointnet-games-user-records-title">🎮 ' . $title . '</h3>';
 
@@ -524,6 +531,11 @@ class PointNet_Games_Shortcodes {
 		$html .= '</div>'; // .pointnet-games-user-cards-grid
 
 		$html .= '</section>'; // .pointnet-games-user-records
+
+		if ( $is_auto ) {
+			$html .= '<script>(function(){var r=document.getElementById("' . esc_js( $section_id ) . '");if(!r)return;var h=r.closest(".page-header,.author-box,.author-header,.archive-header,header");if(h&&h.parentNode&&h.contains(r)){h.parentNode.insertBefore(r,h.nextSibling);}})();</script>';
+		}
+
 		return $html;
 	}
 }

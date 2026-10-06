@@ -29,10 +29,19 @@ class PointNet_Games_Game_Loader {
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_game_assets' ) );
 		add_filter( 'the_content', array( $this, 'inject_game_before_content' ) );
 
-		// Hook for author archive page:
-		// 1. GeneratePress specific hook (fires right after author title / avatar block)
-		add_action( 'generate_after_archive_title', array( $this, 'inject_user_records_on_author_page' ) );
-		// 2. Generic fallback hook for all standard WordPress themes
+		// Hooks for author archive page (universal theme support):
+		// 1. GeneratePress: outside page-header, right before the loop
+		add_action( 'generate_before_loop', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		// 2. Astra
+		add_action( 'astra_archive_header_after', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		add_action( 'astra_entry_before', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		// 3. Kadence
+		add_action( 'kadence_before_archive_content', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		// 4. OceanWP
+		add_action( 'ocean_before_content_inner', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		// 5. Genesis
+		add_action( 'genesis_before_loop', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		// 6. Universal WordPress fallback: fires when the posts loop starts
 		add_action( 'loop_start', array( $this, 'inject_user_records_on_loop_start' ) );
 	}
 
@@ -57,10 +66,14 @@ class PointNet_Games_Game_Loader {
 	}
 
 	/**
-	 * Inject user arcade records on author archive page (GeneratePress hook).
+	 * Core method to output author arcade records once per request.
 	 */
-	public function inject_user_records_on_author_page() {
-		if ( ! is_author() || ! is_main_query() ) {
+	public static function output_author_records(): void {
+		if ( self::$author_records_injected ) {
+			return;
+		}
+
+		if ( ! is_author() ) {
 			return;
 		}
 
@@ -70,46 +83,35 @@ class PointNet_Games_Game_Loader {
 			return;
 		}
 
-		if ( self::$author_records_injected ) {
-			return;
-		}
-
 		$author_id = (int) get_queried_object_id();
 		if ( ! $author_id ) {
 			return;
 		}
 
-		echo PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) );
+		// Mark injected immediately to prevent any concurrent or secondary hook from firing.
 		self::$author_records_injected = true;
+
+		echo PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) );
 	}
 
 	/**
-	 * Fallback injection for standard themes where generate_after_archive_title does not exist.
+	 * Inject user arcade records on author archive page via theme-specific action hook.
+	 */
+	public function inject_user_records_on_author_page(): void {
+		self::output_author_records();
+	}
+
+	/**
+	 * Fallback injection for standard WordPress themes where theme-specific hooks do not exist.
 	 *
 	 * @param WP_Query $query The query instance.
 	 */
-	public function inject_user_records_on_loop_start( $query ) {
-		if ( self::$author_records_injected ) {
+	public function inject_user_records_on_loop_start( $query ): void {
+		if ( ! is_a( $query, 'WP_Query' ) || ! $query->is_main_query() ) {
 			return;
 		}
 
-		if ( ! is_author() || ! $query->is_author() || ! $query->is_main_query() ) {
-			return;
-		}
-
-		$settings = get_option( 'pointnet_games_settings', array() );
-		$enabled  = ! isset( $settings['show_author_records'] ) || (int) $settings['show_author_records'] === 1;
-		if ( ! $enabled ) {
-			return;
-		}
-
-		$author_id = (int) get_queried_object_id();
-		if ( ! $author_id ) {
-			return;
-		}
-
-		echo PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) );
-		self::$author_records_injected = true;
+		self::output_author_records();
 	}
 
 	/**

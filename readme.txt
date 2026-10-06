@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.6
+Stable tag: 1.3.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,12 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.7 =
+* Author Page & User Profiles: universal theme compatibility (GeneratePress, Astra, Kadence, OceanWP, Genesis and standard WordPress themes).
+* Author Page: preserved theme author header (avatar, username and bio remain untouched at the top of the page).
+* Author Page: injected records now span 100% full width of the main content column, completely outside the theme page-header.
+* Author Page: enhanced layout with responsive grid, pill white-space protection and strict single-render static guard.
 
 = 1.3.6 =
 * Auto-Updater: immediate cache invalidation on "Controlla di nuovo" in WordPress admin (detects `do-core-recheck` and deletes stale transient).
