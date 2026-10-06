@@ -17,7 +17,7 @@ class PointNet_Games_Updater {
 
 	private const GITHUB_REPO   = 'AlessioPellegrini/pointnet-games';
 	private const TRANSIENT_KEY = 'pointnet_games_github_release';
-	private const CACHE_TTL     = 7200; // 2 hours
+	private const CACHE_TTL     = 3600; // 1 hour (auto-refreshed in background)
 
 	/**
 	 * Hook updater into WordPress lifecycle.
