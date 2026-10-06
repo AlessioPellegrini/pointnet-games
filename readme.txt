@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,13 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.3 =
+* Leaderboard: comprehensive "All" overview displaying a player's best score across every played mode/difficulty without Scalata eclipsing Classic mode scores.
+* Leaderboard: dedicated "Mode" column and styling badge in multi-difficulty views and global rankings.
+* Leaderboard: dynamic tabs support in [pointnet_game_leaderboard] — automatically generates tabbed navigation when a game defines 2 or more difficulties in manifest.json, avoiding redundant tabs for single-mode games.
+* Leaderboard: default show_meta enabled out-of-the-box to display score details (time, level, outcome) seamlessly.
+* Responsive: horizontal scrolling support on mobile devices for multi-column leaderboards.
 
 = 1.3.2 =
 * Minesweeper: enhanced tile micro-contrast and edge definition for high-ambient OLED smartphone outdoor legibility without compromising dark theme aesthetics.

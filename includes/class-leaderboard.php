@@ -95,7 +95,7 @@ class PointNet_Games_Leaderboard {
 		// Difficulty filter value (empty string = filter disabled).
 		$difficulty = ! empty( $filters['difficulty'] ) ? sanitize_text_field( $filters['difficulty'] ) : '';
 
-		// Only the best score per registered user.
+		// Only the best score per registered user per difficulty (or overall best per difficulty in "All" view).
 		// Optional filters use the ( %d = 0 OR ... ) / ( %s = '' OR ... ) pattern:
 		// passing 0/'' disables the condition while keeping every placeholder
 		// statically inside the SQL string passed to $wpdb->prepare().
@@ -104,10 +104,14 @@ class PointNet_Games_Leaderboard {
 				"SELECT s1.id, s1.game_id, s1.user_id, s1.nickname, s1.score, s1.score_meta, s1.played_at
 				 FROM %i s1
 				 LEFT JOIN %i s2 ON s1.game_id = s2.game_id
-				     AND s1.score < s2.score
+				     AND ( s1.score < s2.score OR ( s1.score = s2.score AND s1.id < s2.id ) )
 				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
-				     AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')) = %s )
 				     AND s1.user_id = s2.user_id
+				     AND (
+				         ( %s != '' AND JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')) = %s )
+				         OR
+				         ( %s = '' AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')), '') = COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')), '') )
+				     )
 				 WHERE s1.game_id = %d
 				   AND s1.user_id > 0
 				   AND s2.id IS NULL
@@ -117,6 +121,7 @@ class PointNet_Games_Leaderboard {
 				$table,
 				$table,
 				$require_validation,
+				$difficulty,
 				$difficulty,
 				$difficulty,
 				$game_id,
@@ -159,9 +164,9 @@ class PointNet_Games_Leaderboard {
 		$limit = min( max( 1, absint( $limit ) ), 100 );
 
 		$settings           = get_option( 'pointnet_games_settings', array() );
-		$require_validation = (int) $settings['require_validation'] ?? 0;
+		$require_validation = (int) ( $settings['require_validation'] ?? 0 );
 
-		// Only the best score per registered user per game across all games.
+		// Only the best score per registered user per game per difficulty across all games.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT s1.id, s1.game_id, s1.user_id, s1.nickname, s1.score, s1.score_meta, s1.played_at,
@@ -171,6 +176,7 @@ class PointNet_Games_Leaderboard {
 				     AND ( s1.score < s2.score OR ( s1.score = s2.score AND s1.id < s2.id ) )
 				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
 				     AND s1.user_id = s2.user_id
+				     AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')), '') = COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')), '')
 				 INNER JOIN %i p ON p.ID = s1.game_id AND p.post_status = 'publish'
 				 WHERE s1.user_id > 0
 				   AND s2.id IS NULL

@@ -64,21 +64,27 @@ class PointNet_Games_Shortcodes {
 	}
 
 	/**
-	 * [pointnet_game_leaderboard game_id="123" limit="10" global="0"]
+	 * [pointnet_game_leaderboard game_id="123" limit="10" global="0" tabs="auto" show_meta="1"]
 	 *
-	 * @param array $atts Shortcode attributes.
+	 * @param array       $atts    Shortcode attributes.
+	 * @param string|null $content Enclosed content (unused).
+	 * @param string      $tag     Shortcode tag.
 	 *
 	 * @return string
 	 */
 	public function shortcode_leaderboard( $atts, $content = null, $tag = '' ) {
+		wp_enqueue_style( 'pointnet-games-public' );
+		wp_enqueue_script( 'pointnet-games-embed' );
+
 		$default_global = ( 'pointnet_games_leaderboard' === $tag ) ? 1 : 0;
-		$atts = shortcode_atts(
+		$atts           = shortcode_atts(
 			array(
 				'game_id'    => 0,
 				'limit'      => 10,
 				'global'     => $default_global,
-				'show_meta'  => 0,
+				'show_meta'  => 1,
 				'difficulty' => '',
+				'tabs'       => 'auto',
 			),
 			$atts,
 			'pointnet_game_leaderboard'
@@ -87,16 +93,73 @@ class PointNet_Games_Shortcodes {
 		$limit      = min( max( 1, absint( $atts['limit'] ) ), 100 );
 		$is_global  = (bool) $atts['global'];
 		$difficulty = sanitize_text_field( $atts['difficulty'] );
+		$show_meta  = (bool) $atts['show_meta'];
 
+		if ( $is_global ) {
+			return $this->render_leaderboard_table( 0, $limit, '', $show_meta, array(), true );
+		}
+
+		$game_id = absint( $atts['game_id'] );
+		if ( ! $game_id ) {
+			return '<p class="pointnet-games-error">' . esc_html__( 'Specify a game_id for the leaderboard.', 'pointnet-games' ) . '</p>';
+		}
+
+		// Retrieve game manifest to inspect available difficulties.
+		$manifest     = get_post_meta( $game_id, '_pointnet_games_manifest', true );
+		$manifest     = is_array( $manifest ) ? $manifest : array();
+		$difficulties = isset( $manifest['difficulties'] ) && is_array( $manifest['difficulties'] ) ? $manifest['difficulties'] : array();
+
+		// Check if tabs should be displayed.
+		$tabs_enabled   = ( '0' !== (string) $atts['tabs'] && 'false' !== (string) $atts['tabs'] );
+		$has_multi_diff = count( $difficulties ) >= 2;
+
+		if ( $tabs_enabled && $has_multi_diff && '' === $difficulty ) {
+			$html  = '<div class="pointnet-games-leaderboard-container" data-game-id="' . (int) $game_id . '">';
+			$html .= '<div class="pointnet-games-leaderboard-tabs" data-game-id="' . (int) $game_id . '">';
+			$html .= '<button type="button" class="pointnet-games-leaderboard-tab pointnet-games-leaderboard-tab-active" data-difficulty="">' . esc_html__( 'All', 'pointnet-games' ) . '</button>';
+			foreach ( $difficulties as $diff_slug => $diff_label ) {
+				$html .= '<button type="button" class="pointnet-games-leaderboard-tab" data-difficulty="' . esc_attr( $diff_slug ) . '">' . esc_html( $diff_label ) . '</button>';
+			}
+			$html .= '</div>';
+
+			// Panel for "All":
+			$html .= '<div class="pointnet-games-leaderboard-panel pointnet-games-leaderboard-panel-active" data-panel="">';
+			$html .= $this->render_leaderboard_table( $game_id, $limit, '', $show_meta, $difficulties, false );
+			$html .= '</div>';
+
+			// Panels for each difficulty:
+			foreach ( $difficulties as $diff_slug => $diff_label ) {
+				$html .= '<div class="pointnet-games-leaderboard-panel" data-panel="' . esc_attr( $diff_slug ) . '">';
+				$html .= $this->render_leaderboard_table( $game_id, $limit, $diff_slug, $show_meta, $difficulties, false );
+				$html .= '</div>';
+			}
+
+			$html .= '</div>';
+			return $html;
+		}
+
+		// Single mode or explicitly requested difficulty.
+		return $this->render_leaderboard_table( $game_id, $limit, $difficulty, $show_meta, $difficulties, false );
+	}
+
+	/**
+	 * Render a single leaderboard HTML table.
+	 *
+	 * @param int    $game_id      Game post ID (0 for global).
+	 * @param int    $limit        Max results.
+	 * @param string $difficulty   Difficulty filter.
+	 * @param bool   $show_meta    Whether to show metadata details.
+	 * @param array  $difficulties Map of difficulties for the game.
+	 * @param bool   $is_global    Whether this is the global leaderboard.
+	 *
+	 * @return string Table HTML.
+	 */
+	public function render_leaderboard_table( $game_id, $limit, $difficulty = '', $show_meta = true, $difficulties = array(), $is_global = false ) {
 		if ( $is_global ) {
 			$entries = PointNet_Games_Leaderboard::get_global_leaderboard( $limit );
 		} else {
-			$game_id = absint( $atts['game_id'] );
-			if ( ! $game_id ) {
-				return '<p class="pointnet-games-error">' . esc_html__( 'Specify a game_id for the leaderboard.', 'pointnet-games' ) . '</p>';
-			}
 			$filters = array();
-			if ( $difficulty ) {
+			if ( '' !== $difficulty ) {
 				$filters['difficulty'] = $difficulty;
 			}
 			$entries = PointNet_Games_Leaderboard::get_leaderboard( $game_id, $limit, 0, $filters );
@@ -106,15 +169,22 @@ class PointNet_Games_Shortcodes {
 			return '<p class="pointnet-games-empty">' . esc_html__( 'No scores yet.', 'pointnet-games' ) . '</p>';
 		}
 
+		// Show mode column when viewing "All" in a multi-difficulty game.
+		$show_mode_column = ( ! $is_global && '' === $difficulty && count( $difficulties ) >= 2 );
+
 		$html  = '<div class="pointnet-games-leaderboard">';
 		$html .= '<table class="pointnet-games-leaderboard-table">';
-		$html .= '<thead><tr><th>' . esc_html__( 'Pos.', 'pointnet-games' ) . '</th><th>' . esc_html__( 'Player', 'pointnet-games' ) . '</th>';
+		$html .= '<thead><tr>';
+		$html .= '<th>' . esc_html__( 'Pos.', 'pointnet-games' ) . '</th>';
+		$html .= '<th>' . esc_html__( 'Player', 'pointnet-games' ) . '</th>';
 
 		if ( $is_global ) {
 			$html .= '<th>' . esc_html__( 'Game', 'pointnet-games' ) . '</th>';
+		} elseif ( $show_mode_column ) {
+			$html .= '<th>' . esc_html__( 'Mode', 'pointnet-games' ) . '</th>';
 		}
 
-		if ( $atts['show_meta'] ) {
+		if ( $show_meta ) {
 			$html .= '<th>' . esc_html__( 'Details', 'pointnet-games' ) . '</th>';
 		}
 
@@ -128,32 +198,58 @@ class PointNet_Games_Shortcodes {
 			$html     .= '<td>' . esc_html( $entry['nickname'] ) . '</td>';
 
 			if ( $is_global ) {
-				$html .= '<td>' . esc_html( $entry['game_title'] ) . '</td>';
+				$mode_key   = $entry['meta']['difficulty'] ?? '';
+				$mode_label = '';
+				if ( ! empty( $mode_key ) ) {
+					$mode_label = ucfirst( str_replace( array( '_', '-' ), ' ', (string) $mode_key ) );
+				}
+				$game_col = esc_html( $entry['game_title'] );
+				if ( $mode_label ) {
+					$game_col .= ' <span class="pointnet-games-mode-badge">' . esc_html( $mode_label ) . '</span>';
+				}
+				$html .= '<td>' . $game_col . '</td>';
+			} elseif ( $show_mode_column ) {
+				$diff_key   = $entry['meta']['difficulty'] ?? '';
+				$diff_label = '';
+				if ( isset( $difficulties[ $diff_key ] ) ) {
+					$diff_label = $difficulties[ $diff_key ];
+				} elseif ( ! empty( $diff_key ) ) {
+					$diff_label = ucfirst( str_replace( array( '_', '-' ), ' ', (string) $diff_key ) );
+				} else {
+					$diff_label = '—';
+				}
+				$html .= '<td><span class="pointnet-games-mode-badge pointnet-games-mode-' . esc_attr( sanitize_html_class( (string) $diff_key ) ) . '">' . esc_html( $diff_label ) . '</span></td>';
 			}
 
-			if ( $atts['show_meta'] && ! empty( $entry['meta'] ) && is_array( $entry['meta'] ) ) {
-				$meta_parts    = array();
-				$excluded_keys = array( 'difficulty', 'label', 'session_token', 'time_seconds', 'level_time_seconds', 'level_reached', 'won' );
+			if ( $show_meta ) {
+				$meta_cell = '';
+				if ( ! empty( $entry['meta'] ) && is_array( $entry['meta'] ) ) {
+					$meta_parts    = array();
+					$excluded_keys = array( 'difficulty', 'label', 'session_token', 'time_seconds', 'level_time_seconds', 'level_reached', 'won' );
 
-				foreach ( $entry['meta'] as $meta_key => $meta_value ) {
-					if ( in_array( strtolower( (string) $meta_key ), $excluded_keys, true ) ) {
-						continue;
-					}
-					if ( is_scalar( $meta_value ) ) {
-						$label = ucfirst( str_replace( '_', ' ', (string) $meta_key ) );
-						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html( $label ) . ':</strong> ' . esc_html( (string) $meta_value ) . '</span>';
-					}
-				}
-
-				if ( empty( $meta_parts ) ) {
 					foreach ( $entry['meta'] as $meta_key => $meta_value ) {
-						if ( is_scalar( $meta_value ) && ! in_array( strtolower( (string) $meta_key ), array( 'session_token' ), true ) ) {
-							$meta_parts[] = '<span class="png-meta-item">' . esc_html( (string) $meta_key ) . ': ' . esc_html( (string) $meta_value ) . '</span>';
+						if ( in_array( strtolower( (string) $meta_key ), $excluded_keys, true ) ) {
+							continue;
+						}
+						if ( is_scalar( $meta_value ) ) {
+							$label        = ucfirst( str_replace( '_', ' ', (string) $meta_key ) );
+							$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html( $label ) . ':</strong> ' . esc_html( (string) $meta_value ) . '</span>';
 						}
 					}
-				}
 
-				$html .= '<td class="pointnet-games-meta-cell">' . implode( ' <span class="png-meta-sep">&bull;</span> ', $meta_parts ) . '</td>';
+					if ( empty( $meta_parts ) ) {
+						foreach ( $entry['meta'] as $meta_key => $meta_value ) {
+							if ( is_scalar( $meta_value ) && ! in_array( strtolower( (string) $meta_key ), array( 'session_token' ), true ) ) {
+								$meta_parts[] = '<span class="png-meta-item">' . esc_html( (string) $meta_key ) . ': ' . esc_html( (string) $meta_value ) . '</span>';
+							}
+						}
+					}
+
+					if ( ! empty( $meta_parts ) ) {
+						$meta_cell = implode( ' <span class="png-meta-sep">&bull;</span> ', $meta_parts );
+					}
+				}
+				$html .= '<td class="pointnet-games-meta-cell">' . ( $meta_cell ? $meta_cell : '—' ) . '</td>';
 			}
 
 			$html .= '<td>' . esc_html( number_format_i18n( $entry['score'] ) ) . '</td>';

@@ -77,32 +77,7 @@ class PointNet_Games_Game_Loader {
 		// 2. Leaderboard.
 		$html .= '<section class="pointnet-games-single-leaderboard">';
 		$html .= '<h2>' . esc_html__( 'Leaderboard', 'pointnet-games' ) . '</h2>';
-
-		// If the game declares difficulty levels in its manifest, show tabs.
-		$difficulties = isset( $manifest['difficulties'] ) ? $manifest['difficulties'] : array();
-		if ( ! empty( $difficulties ) ) {
-			$html .= '<div class="pointnet-games-leaderboard-tabs" data-game-id="' . (int) $game_id . '">';
-			$html .= '<button class="pointnet-games-leaderboard-tab pointnet-games-leaderboard-tab-active" data-difficulty="">' . esc_html__( 'All', 'pointnet-games' ) . '</button>';
-			foreach ( $difficulties as $diff_slug => $diff_label ) {
-				$html .= '<button class="pointnet-games-leaderboard-tab" data-difficulty="' . esc_attr( $diff_slug ) . '">' . esc_html( $diff_label ) . '</button>';
-			}
-			$html .= '</div>';
-		}
-
-		// Leaderboard panels: one per difficulty (pre-rendered server-side).
-		$html .= '<div class="pointnet-games-leaderboard-panel pointnet-games-leaderboard-panel-active" data-panel="">';
-		$html .= do_shortcode( '[pointnet_game_leaderboard game_id="' . (int) $game_id . '" limit="10"]' );
-		$html .= '</div>';
-
-		if ( ! empty( $difficulties ) ) {
-			foreach ( $difficulties as $diff_slug => $diff_label ) {
-				$html .= '<div class="pointnet-games-leaderboard-panel" data-panel="' . esc_attr( $diff_slug ) . '">';
-				$html .= do_shortcode(
-					'[pointnet_game_leaderboard game_id="' . (int) $game_id . '" limit="10" difficulty="' . esc_attr( $diff_slug ) . '"]'
-				);
-				$html .= '</div>';
-			}
-		}
+		$html .= do_shortcode( '[pointnet_game_leaderboard game_id="' . (int) $game_id . '" limit="10" show_meta="1" tabs="auto"]' );
 		$html .= '</section>';
 
 		// 3. Instructions (original post content).

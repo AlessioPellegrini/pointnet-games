@@ -367,6 +367,11 @@
 	function setupLeaderboardTabs() {
 		var tabGroups = document.querySelectorAll('.pointnet-games-leaderboard-tabs');
 		tabGroups.forEach(function (tabsEl) {
+			if (tabsEl.dataset.tabsInitialized) {
+				return;
+			}
+			tabsEl.dataset.tabsInitialized = '1';
+
 			var tabs = tabsEl.querySelectorAll('.pointnet-games-leaderboard-tab');
 
 			tabs.forEach(function (tab) {
@@ -378,12 +383,14 @@
 						t.classList.toggle('pointnet-games-leaderboard-tab-active', t === tab);
 					});
 
-					// Show the matching leaderboard panel (scoped to this game's section).
-					var section = tabsEl.closest('.pointnet-games-single-leaderboard');
-					if (section) {
-						var panels = section.querySelectorAll('.pointnet-games-leaderboard-panel');
+					// Show the matching leaderboard panel (scoped to this game's container or section).
+					var container = tabsEl.closest('.pointnet-games-single-leaderboard, .pointnet-games-leaderboard-container') || tabsEl.parentElement;
+					if (container) {
+						var panels = container.querySelectorAll('.pointnet-games-leaderboard-panel');
 						panels.forEach(function (panel) {
-							panel.classList.toggle('pointnet-games-leaderboard-panel-active', (panel.dataset.panel || '') === difficulty);
+							if (panel.closest('.pointnet-games-single-leaderboard, .pointnet-games-leaderboard-container') === container) {
+								panel.classList.toggle('pointnet-games-leaderboard-panel-active', (panel.dataset.panel || '') === difficulty);
+							}
 						});
 					}
 				});
