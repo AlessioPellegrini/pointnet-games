@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,9 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.2 =
+* Minesweeper: enhanced tile micro-contrast and edge definition for high-ambient OLED smartphone outdoor legibility without compromising dark theme aesthetics.
 
 = 1.3.1 =
 * Leaderboard: fixed global multi-game leaderboard query to isolate best score per game per player so all installed games appear simultaneously.
