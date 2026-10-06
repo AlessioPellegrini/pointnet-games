@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,9 @@ The score is based on the game level reached at the moment of clearing the field
 3. Settings panel
 
 == Changelog ==
+
+= 1.3.4 =
+* Branding & Admin: added custom arcade controller icon (SVG, 256x256 and 128x128 PNG) for WordPress updates and plugin information screens, eliminating the default plug placeholder icon.
 
 = 1.3.3 =
 * Leaderboard: comprehensive "All" overview displaying a player's best score across every played mode/difficulty without Scalata eclipsing Classic mode scores.

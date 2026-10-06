@@ -162,7 +162,7 @@ class PointNet_Games_Updater {
 			'package'      => $package,
 			'tested'       => '7.1',
 			'requires_php' => '8.0',
-			'icons'        => array(),
+			'icons'        => self::get_plugin_icons(),
 			'banners'      => array(),
 		);
 
@@ -223,10 +223,41 @@ class PointNet_Games_Updater {
 			'tested'        => '7.1',
 			'requires_php'  => '8.0',
 			'download_link' => $package,
+			'icons'         => self::get_plugin_icons(),
 			'sections'      => array(
 				'description' => esc_html__( 'Arcade games platform for WordPress with scores for registered users, global leaderboards and a standardized API for game developers.', 'pointnet-games' ),
 				'changelog'   => $changelog,
 			),
+		);
+	}
+
+	/**
+	 * Get plugin icon URLs for WordPress update screens and plugin information modal.
+	 *
+	 * @return array
+	 */
+	public static function get_plugin_icons() {
+		$local_128 = POINTNET_GAMES_PLUGIN_DIR . 'assets/icon-128x128.png';
+		$local_256 = POINTNET_GAMES_PLUGIN_DIR . 'assets/icon-256x256.png';
+		$local_svg = POINTNET_GAMES_PLUGIN_DIR . 'assets/icon.svg';
+
+		$url_128 = file_exists( $local_128 )
+			? POINTNET_GAMES_PLUGIN_URL . 'assets/icon-128x128.png'
+			: 'https://raw.githubusercontent.com/' . self::GITHUB_REPO . '/main/assets/icon-128x128.png';
+
+		$url_256 = file_exists( $local_256 )
+			? POINTNET_GAMES_PLUGIN_URL . 'assets/icon-256x256.png'
+			: 'https://raw.githubusercontent.com/' . self::GITHUB_REPO . '/main/assets/icon-256x256.png';
+
+		$url_svg = file_exists( $local_svg )
+			? POINTNET_GAMES_PLUGIN_URL . 'assets/icon.svg'
+			: 'https://raw.githubusercontent.com/' . self::GITHUB_REPO . '/main/assets/icon.svg';
+
+		return array(
+			'1x'      => $url_128,
+			'2x'      => $url_256,
+			'default' => $url_256,
+			'svg'     => $url_svg,
 		);
 	}
 
