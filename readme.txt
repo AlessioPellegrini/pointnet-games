@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.8
+Stable tag: 1.3.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,6 +129,14 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.3.9 =
+* Privacy & Security: leaderboards and user cards now use WordPress `display_name` instead of revealing private `user_login` credentials.
+* Player Disambiguation: automatic sequential duplicate numbering (`#2`, `#3`...) for players sharing the exact same display name, safely detached from database user IDs.
+* Event-Driven Performance: player arcade names are pre-calculated and cached on `user_register` and `profile_update` hooks, ensuring zero database load on leaderboard pageviews.
+* Settings: added optional "Link Player Profiles" admin setting in PointNet Games → Impostazioni (disabled by default for privacy; active only for authenticated users).
+* Admin Security: added warning notice in settings panel explaining WordPress username disclosure and brute-force mitigation best practices.
+* Code Quality: added translator comments for i18n placeholders and switched updater assets to local relative icons.
 
 = 1.3.8 =
 * Auto-Updater: added official Update URI plugin header.
@@ -274,6 +282,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.3.9 =
+Recommended update: enhances player privacy by adopting WordPress display names with sequential duplicate resolution, adds optional author profile linking for logged-in users, and introduces performance caching on profile hooks.
 
 = 1.3.8 =
 Recommended update: adds standard Update URI header, tag pagination (up to 100 tags) and automatic force-refresh during WordPress update checks for seamless 1-click updates.

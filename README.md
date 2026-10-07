@@ -6,7 +6,7 @@ Arcade games platform for WordPress with scores for registered users, global lea
 **Tags:** games, arcade, leaderboard, highscore, puzzle, minesweeper, mahjong  
 **Requires at least:** WordPress 7.0  
 **Tested up to:** 7.1  
-**Stable tag:** 1.3.8  
+**Stable tag:** 1.3.9  
 **Requires PHP:** 8.0+  
 **License:** GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)  
 
@@ -163,6 +163,7 @@ pointnet-games/
 - [x] **v1.3.5**: Personal arcade records on author profiles and `[pointnet_user_records]`.
 - [x] **v1.3.7**: Universal theme compatibility for author pages (GeneratePress, Astra, etc.).
 - [x] **v1.3.8**: Standard `Update URI`, tag pagination, and core recheck force-refresh.
+- [x] **v1.3.9**: Privacy-safe display names, duplicate resolution (`#2`, `#3`), optional profile linking for logged-in users, and cached profile hooks.
 - [ ] **v1.4.0**: Additional arcade titles (Snake Arcade, Block Puzzle).
 - [ ] **v1.5.0**: Player achievements & unlockable profile badges system.
 - [ ] **v1.6.0**: Timeframe leaderboard filters (All-Time, Monthly, Weekly).

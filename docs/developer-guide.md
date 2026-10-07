@@ -535,6 +535,7 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
+- **v1.3.9** — Privacy e Sicurezza: le classifiche utilizzano il `display_name` pubblico di WordPress (con de-duplicazione progressiva `#2`, `#3` calcolata su hook `user_register`/`profile_update` e salvata in user meta) per proteggere i dati di login. Nuova impostazione opzionale "Link Player Profiles" in amministrazione per mostrare i link ai profili solo agli utenti autenticati.
 - **v1.3.8** — Auto-Updater: aggiunta documentazione header `Update URI: https://github.com/AlessioPellegrini/pointnet-games`, gestione paginazione tag GitHub (`?per_page=100`) e controllo forzato senza cache su `pre_set_site_transient_update_plugins`.
 - **v1.3.7** — Sezione 6.3: compatibilità universale temi per pagine autore (GeneratePress, Astra, Kadence, OceanWP, Genesis), estensione a piena larghezza (100%), griglia responsiva con auto-fit e guardia statica anti-duplicati.
 - **v1.3.6** — Auto-updater: invalidazione immediata della cache transitoria su `do-core-recheck` e aggancio a `site_transient_update_plugins`.
