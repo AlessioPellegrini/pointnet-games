@@ -288,6 +288,7 @@ class PointNet_Games_Shortcodes {
 		);
 
 		if ( ! empty( $atts['category'] ) ) {
+			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Intentional category filter for shortcode.
 			$query_args['tax_query'] = array(
 				array(
 					'taxonomy' => 'pointnet_game_category',
@@ -417,7 +418,13 @@ class PointNet_Games_Shortcodes {
 
 			$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';
 			$html .= '<div class="pointnet-games-user-records-header">';
-			$html .= '<h3 class="pointnet-games-user-records-title">' . ( $is_own_profile ? esc_html__( '🎮 I tuoi Record Arcade', 'pointnet-games' ) : sprintf( esc_html__( '🎮 Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) ) ) . '</h3>';
+			if ( $is_own_profile ) {
+				$header_title = esc_html__( '🎮 I tuoi Record Arcade', 'pointnet-games' );
+			} else {
+				/* translators: %s: player display name */
+				$header_title = sprintf( esc_html__( '🎮 Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) );
+			}
+			$html .= '<h3 class="pointnet-games-user-records-title">' . $header_title . '</h3>';
 			$html .= '</div>';
 			$html .= '<div class="pointnet-games-user-empty">';
 			if ( $is_own_profile ) {
@@ -443,9 +450,12 @@ class PointNet_Games_Shortcodes {
 		$show_stats    = ! isset( $options['show_stats'] ) || (bool) $options['show_stats'];
 		$show_play_btn = ! isset( $options['show_play_btn'] ) || (bool) $options['show_play_btn'];
 
-		$title = $is_own_profile
-			? esc_html__( 'I tuoi Record Arcade', 'pointnet-games' )
-			: sprintf( esc_html__( 'Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) );
+		if ( $is_own_profile ) {
+			$title = esc_html__( 'I tuoi Record Arcade', 'pointnet-games' );
+		} else {
+			/* translators: %s: player display name */
+			$title = sprintf( esc_html__( 'Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) );
+		}
 
 		$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';
 		$html .= '<div class="pointnet-games-user-records-header">';
@@ -478,7 +488,9 @@ class PointNet_Games_Shortcodes {
 			}
 			$html .= '<div class="pointnet-games-user-card-titles">';
 			$html .= '<h4 class="pointnet-games-user-card-title"><a href="' . esc_url( $game['permalink'] ) . '">' . esc_html( $game['title'] ) . '</a></h4>';
-			$html .= '<span class="pointnet-games-user-card-subtitle">' . sprintf( esc_html__( '%d record registrati', 'pointnet-games' ), count( $game['records'] ) ) . '</span>';
+			/* translators: %d: number of records */
+			$records_count_label = sprintf( esc_html__( '%d record registrati', 'pointnet-games' ), count( $game['records'] ) );
+			$html .= '<span class="pointnet-games-user-card-subtitle">' . $records_count_label . '</span>';
 			$html .= '</div></div>';
 
 			if ( $show_play_btn ) {

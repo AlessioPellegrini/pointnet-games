@@ -35,6 +35,7 @@ class PointNet_Games_Updater {
 	 * Invalidate GitHub cache when admin triggers a manual update recheck.
 	 */
 	public static function handle_admin_recheck(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking standard core recheck trigger.
 		if ( ! empty( $_GET['force-check'] ) || ( isset( $_GET['action'] ) && 'do-core-recheck' === $_GET['action'] ) ) {
 			delete_site_transient( self::TRANSIENT_KEY );
 		}
@@ -48,6 +49,7 @@ class PointNet_Games_Updater {
 	 */
 	public static function get_latest_release( bool $force_refresh = false ): ?array {
 		if ( ! $force_refresh ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing -- Passive cache invalidation check during WP updates check.
 			$is_recheck = ! empty( $_GET['force-check'] )
 				|| ( isset( $_GET['action'] ) && 'do-core-recheck' === $_GET['action'] )
 				|| ( isset( $_POST['action'] ) && 'do-core-recheck' === $_POST['action'] );
@@ -276,27 +278,11 @@ class PointNet_Games_Updater {
 	 * @return array
 	 */
 	public static function get_plugin_icons() {
-		$local_128 = POINTNET_GAMES_PLUGIN_DIR . 'assets/icon-128x128.png';
-		$local_256 = POINTNET_GAMES_PLUGIN_DIR . 'assets/icon-256x256.png';
-		$local_svg = POINTNET_GAMES_PLUGIN_DIR . 'assets/icon.svg';
-
-		$url_128 = file_exists( $local_128 )
-			? POINTNET_GAMES_PLUGIN_URL . 'assets/icon-128x128.png'
-			: 'https://raw.githubusercontent.com/' . self::GITHUB_REPO . '/main/assets/icon-128x128.png';
-
-		$url_256 = file_exists( $local_256 )
-			? POINTNET_GAMES_PLUGIN_URL . 'assets/icon-256x256.png'
-			: 'https://raw.githubusercontent.com/' . self::GITHUB_REPO . '/main/assets/icon-256x256.png';
-
-		$url_svg = file_exists( $local_svg )
-			? POINTNET_GAMES_PLUGIN_URL . 'assets/icon.svg'
-			: 'https://raw.githubusercontent.com/' . self::GITHUB_REPO . '/main/assets/icon.svg';
-
 		return array(
-			'1x'      => $url_128,
-			'2x'      => $url_256,
-			'default' => $url_256,
-			'svg'     => $url_svg,
+			'1x'      => POINTNET_GAMES_PLUGIN_URL . 'assets/icon-128x128.png',
+			'2x'      => POINTNET_GAMES_PLUGIN_URL . 'assets/icon-256x256.png',
+			'default' => POINTNET_GAMES_PLUGIN_URL . 'assets/icon-256x256.png',
+			'svg'     => POINTNET_GAMES_PLUGIN_URL . 'assets/icon.svg',
 		);
 	}
 
