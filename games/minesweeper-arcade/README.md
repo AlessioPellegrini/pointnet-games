@@ -1,4 +1,6 @@
 # 💣 Minesweeper
+ 
+> **Versione: 1.3.5** — *The Clean One* aesthetics, doppia modalità (Classica 4 preset + Scalata 18 livelli), Pan & Pinch-to-Zoom e contrasto OLED per esterni.
 
 Ispirato al design e all'esperienza tattile di *Minesweeper: The Clean One*, con **doppia modalità di gioco**: la classica partita singola a selezione libera o l'emozionante modalità Scalata a 18 livelli progressivi fino al livello Estremo!
 
@@ -70,7 +72,19 @@ Scalata a livelli continui a vite singola: ogni tavola completata fa guadagnare 
 
 ## 📝 Changelog
 
-### 1.3.0 (current)
+### 1.3.5 (current)
+- **Integrazione Statistiche & Record Personali**: formattazione metadati arricchita per il modulo PointNet Games 1.3.5+ e per lo shortcode `[pointnet_user_records]`; supporto dettagli speedrun (tempo formattato mm:ss, esito vittoria/boom) e avanzamento livello Scalata (es. 14 / 18).
+- **Badge Modalità & Allineamento Manifest**: sincronizzazione versione `1.3.5` nel manifest e tracciamento univoco della modalità.
+
+### 1.3.2
+- **Ottimizzazione Contrasto OLED all'Aperto**: aggiunto micro-bordo perimetrale a 1px ad alta definizione (`border: 1px solid rgba(255, 255, 255, 0.08)`) con doppio highlight superiore interno (`inset 0 1px 0 rgba(255, 255, 255, 0.16)`) su tutte le caselle coperte.
+- **Massima Leggibilità Esterna**: garantisce perfetta separazione visiva delle celle sotto la luce solare diretta su smartphone OLED senza alterare l'eleganza dark di *The Clean One*.
+
+### 1.3.1
+- **Salvataggio Istantaneo Scalata**: invio automatico e immediato del punteggio progressivo alla classifica al completamento di ogni singolo livello (a partire dal Livello 1), evitando la perdita di punteggio in caso di chiusura accidentale.
+- **Anti-Cheat Adaptive Duration**: calibrazione della soglia di durata minima plausibile per evitare falsi positivi sui tap ultrarapidi su tavole a bassa densità.
+
+### 1.3.0
 - **Doppia Modalità (Classica & Scalata)**: introdotta la modalità Classica con i 4 preset di *The Clean One* (Facile 9×9, Medio 16×16, Difficile 30×16, Estremo 32×18) affiancata alla modalità Scalata progressiva ampliata a 18 livelli fino all'Estremo 32×18 con 150 mine.
 - **Pan & Pinch-to-Zoom fluido**: motore viewport a trasformazione hardware con supporto per drag a 1 dito, pinch-to-zoom a 2 dita, rotellina del mouse su desktop, zoom buttons (`⛶`, `＋`, `−`) e soppressione automatica dei clic accidentali durante lo scorrimento.
 - **Rimozione denominazione "Arcade"**: rinominato il gioco in **Minesweeper** per rispecchiare la nuova natura a doppia modalità, preservando al contempo lo slug `minesweeper-arcade` per la piena compatibilità con database, post e URL WordPress esistenti.

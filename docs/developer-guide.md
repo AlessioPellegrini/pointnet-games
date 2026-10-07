@@ -445,6 +445,34 @@ var player = new PointNetMusicPlayer({
 
 ---
 
+## 6.3 Shortcodes & Integrazione con i Temi WordPress
+
+Il plugin mette a disposizione degli sviluppatori di temi e siti una serie di shortcode standard e hook per visualizzare giochi, classifiche e record personali.
+
+### Shortcodes disponibili
+
+| Shortcode | Parametri Principali | Descrizione |
+|---|---|---|
+| `[pointnet_game]` | `slug="minesweeper-arcade"` | Incorpora l'iframe del gioco con splash screen e drawer laterale classifica. |
+| `[pointnet_game_leaderboard]` | `slug="..."`, `difficulty="easy"`, `limit="10"` | Classifica del singolo gioco. Se il gioco ha più difficoltà in `manifest.json`, genera automaticamente tab cliccabili. |
+| `[pointnet_games_leaderboard]` | `limit="20"` | Classifica globale multi-gioco con il miglior punteggio per gioco per ogni giocatore. |
+| `[pointnet_games_list]` | `columns="3"` | Griglia responsiva con anteprime, badge e pulsanti GIOCA di tutti i giochi installati. |
+| `[pointnet_user_records]` | `user_id=""`, `columns="2"`, `show_stats="1"`, `show_cards="1"` | Mostra la vetrina dei record arcade personali (KPI pills, card per gioco, medaglie di rango e metadati di vittoria/tempo). Se omesso `user_id`, rileva l'autore della pagina o l'utente loggato. |
+
+### Integrazione Automatica nelle Pagine Autore (`/author/...`)
+
+PointNet Games inietta automaticamente i record personali tra l'intestazione del profilo e l'elenco degli articoli nelle pagine autore. L'iniezione supporta nativamente:
+- **GeneratePress**: `generate_before_loop` (priorità 5) posizionato subito dopo la chiusura di `<header class="page-header">`.
+- **Astra**: `astra_archive_header_after` e `astra_entry_before`.
+- **Kadence**: `kadence_before_archive_content`.
+- **OceanWP**: `ocean_before_content_inner`.
+- **Genesis**: `genesis_before_loop`.
+- **Temi Standard / Fallback Universale**: hook `loop_start` con guardia statica anti-duplicazione e script inline protetto che sposta il blocco subito sotto l'header del tema se generato all'interno di elementi flex o float.
+
+L'iniezione automatica può essere attivata o disattivata da **PointNet Games → Impostazioni**.
+
+---
+
 ## 7. Esempio Completo
 
 Ecco il flusso tipico di un gioco compatibile:
@@ -507,6 +535,10 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
+- **v1.3.8** — Auto-Updater: aggiunta documentazione header `Update URI: https://github.com/AlessioPellegrini/pointnet-games`, gestione paginazione tag GitHub (`?per_page=100`) e controllo forzato senza cache su `pre_set_site_transient_update_plugins`.
+- **v1.3.7** — Sezione 6.3: compatibilità universale temi per pagine autore (GeneratePress, Astra, Kadence, OceanWP, Genesis), estensione a piena larghezza (100%), griglia responsiva con auto-fit e guardia statica anti-duplicati.
+- **v1.3.6** — Auto-updater: invalidazione immediata della cache transitoria su `do-core-recheck` e aggancio a `site_transient_update_plugins`.
+- **v1.3.5** — Sezione 6.3 introdotta: documentazione completa dello shortcode `[pointnet_user_records]`, iniezione record e statistiche KPI per profili e pagine autore (`/author/...`), e toggle di abilitazione in impostazioni.
 - **v1.3.0** — Aggiornamento standard mobile: meccanica di Chording per Campo Minato, selettore rapido scava/bandiera per touch, docking HUD laterale in landscape e risoluzione conflitti touch su dispositivi Android/iOS.
 - **v1.2.5** — Rimozione supporto punteggi anonimi: registrazione e login obbligatori per inviare punteggi e competere nelle classifiche. Aggiornati requisiti minimi a WordPress 7.0+ e PHP 8.0+.
 - **v0.2.1** — Aggiunta sezione 6.2 sul modulo universale `PointNetMusicPlayer` (`assets/js/pointnet-music-player.js`) con seek bar, durate playlist, card volume e fallback automatico 404

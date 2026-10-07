@@ -15,35 +15,34 @@ Design document for the vanilla JavaScript engine. Written from scratch, inspire
 ```
 games/mahjong/
 ├── index.html          ← shell HTML (markup + script/css loads)
-├── style.css           ← all CSS (tiles, 3D, responsive, staging, jukebox)
-├── layouts.js          ← 39 layout figure builders (including classic_144)
-├── solvable-levels.js  ← precomputed deterministic solvable seeds & layouts
-├── data.js             ← symbols (144 tiles + wildcards), progression (330 levels)
-├── engine.js           ← board model, solver, geometry math, wildcard matching
+├── style.css           ← all CSS (tiles, 3D, responsive, staging, jukebox, shields)
+├── layouts.js          ← 46 layout figure builders (including classic_144, conveyor & shields)
+├── engine.js           ← board model, native constructive generator, geometry math, wildcard matching
+├── data.js             ← symbols (144 tiles + wildcards), progression (330 levels + dev demo 345)
 ├── app.js              ← constants, DOM refs, shared state, flow (startGame, splash)
-├── ui.js               ← tile DOM creation, board rebuild, fitting, particle bursts
+├── ui.js               ← tile DOM creation, board rebuild, fitting, particle bursts, shield HUD
 ├── input.js            ← staging box / direct classic match, undo/hint, shuffle, drag
 ├── progress.js         ← star rating, persistence, cumulative scores, WP bridge, boot
 ├── player.js           ← PointNetMusicPlayer (modular jukebox, seek bar, time, volume)
-├── audio.js            ← Web Audio synthesized SFX (bamboo, water drop) + playlist bridge
+├── audio.js            ← Web Audio synthesized SFX + acoustic stems + playlist bridge
 ├── manifest.json       ← plugin registration
 ├── ARCHITECTURE.md     ← this document
-├── README.md           ← roadmap + changelog
-└── tests/              ← automated permanent test suite (6 test runners)
+├── README.md           ← documentation + milestone changelog
+├── CHANGELOG.md        ← detailed dev notes, coordinates guide, test instructions
+└── tests/              ← automated permanent test suite (8 test runners)
 ```
 
 Since v1.0.0+ the engine supports dual **Arcade & Classic Modes**:
-- **layouts.js** — 39 layout builders plus `evenTrim()`/`dedupePts()` helpers (loaded first)
-- **solvable-levels.js** — precomputed seed database for instant (<25ms) loading of guaranteed solvable boards
-- **data.js** — symbols, `SYMBOL_SETS`, traditional 144-tile set (Flowers & Seasons wildcards), progression (330 progressive levels)
-- **engine.js** — DOM-free logic: board, solver, wildcard matching, pixel geometry
+- **layouts.js** — 46 layout builders plus `evenTrim()`/`dedupePts()` helpers (loaded first)
+- **engine.js** — DOM-free logic: board model, solver, constructive reverse generation (`generateConstructiveLevel`), wildcard matching, pixel geometry, vertical collision guards
+- **data.js** — symbols, `SYMBOL_SETS`, traditional 144-tile set (Flowers & Seasons wildcards), progression (330 progressive levels), level configs
 - **app.js** — constants, DOM refs, `app` state, `startGame`, fullscreen/splash
-- **ui.js** — `createTileEl`, `rebuildBoard`, `updateStates`, `fitBoard`/`refitUntilStable`, particle celebration
+- **ui.js** — `createTileEl`, `rebuildBoard`, `updateStates`, `fitBoard`/`refitUntilStable`, shield visuals, particle celebration
 - **input.js** — staging box (Arcade) / direct matching (Classic), deadlock detection, undo/hint, shuffle, drag-to-peek
 - **progress.js** — star rating, arcade/WP persistence, cumulative scores with $\times 1.5$ classic multiplier, boot sequence
 - **player.js** — `PointNetMusicPlayer`: modular media player with interactive seek scrubbing, real-time $m:ss$ time display, playlist duration calculation, and volume control card
-- **audio.js** — procedural Web Audio synthesized Zen sound effects (Shishi-odoshi bamboo, Suikinkutsu water drops, combo streams, wind chimes) and playlist bridge
-- Load order: `layouts.js` → `solvable-levels.js` → `data.js` → `engine.js` → `app.js` → `ui.js` → `input.js` → `progress.js` → `player.js` → `audio.js` (dependencies flow downward)
+- **audio.js** — procedural Web Audio synthesized Zen sound effects (Shishi-odoshi bamboo, Suikinkutsu water drops, shield deflect/shatter, combo streams) and playlist bridge
+- Load order: `layouts.js` → `engine.js` → `data.js` → `app.js` → `ui.js` → `input.js` → `progress.js` → `player.js` → `audio.js` (dependencies flow downward)
 
 ## Core Data Model
 

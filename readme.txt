@@ -1,4 +1,4 @@
-=== PointNet Games ===
+=== PointNet Games ===
 Contributors: pointnet
 Donate link: https://www.pointnet.it/
 Tags: games, arcade, leaderboard, highscore, puzzle
@@ -18,17 +18,19 @@ Arcade game platform for WordPress with scores, leaderboards and a standardized 
 = Key Features =
 
 * ✅ **Score system** — highscores and progression saved for registered users
-* ✅ **Leaderboards** — per-game and global rankings
-* ✅ **REST API** — standardized endpoints for third-party developers
-* ✅ **JavaScript API** — `pointnetGamesAPI` bridge to integrate games easily
-* ✅ **Shortcodes** — `[pointnet_game]`, `[pointnet_game_leaderboard]`, `[pointnet_games_list]`
+* ✅ **Leaderboards** — per-game, difficulty-specific and global multi-game rankings
+* ✅ **User Profiles & Author Pages** — personal arcade records and KPI stats cards automatically embedded on author pages (/author/...) and via shortcode
+* ✅ **REST API** — standardized endpoints for third-party developers and games
+* ✅ **JavaScript API** — `pointnetGamesAPI` bridge with Promise support to integrate games easily
+* ✅ **Shortcodes** — `[pointnet_game]`, `[pointnet_game_leaderboard]`, `[pointnet_games_leaderboard]`, `[pointnet_games_list]`, `[pointnet_user_records]`
 * ✅ **Auto-registration** — games in the `games/` folder are registered automatically
-* ✅ **Anti-cheat** — nonces, rate limiting, optional validation, IP hashing
+* ✅ **Anti-cheat** — nonces, rate limiting, session tokens, score bounds validation, IP hashing
 * ✅ **Security** — output escaping, input sanitization, capability checks, prepared SQL statements
-* ✅ **Bundled games** — Minesweeper Arcade (15 levels) & Mahjong Arcade (330 levels, 144 tiles, Jukebox player)
-* ✅ **Splash screen** — intro screen with a PLAY button
+* ✅ **Bundled games** — Minesweeper (Classic 4 presets & Scalata 18 levels) & Mahjong Arcade (330 levels, Shield Wards, Conveyor Ring, 144 tiles, Jukebox player)
+* ✅ **Splash screen** — intro screen with a PLAY button and version badge
 * ✅ **Immersive fullscreen CSS** — the game expands to fullscreen when pressing PLAY
-* ✅ **Mobile touch support** — optimized responsive gameplay
+* ✅ **Mobile touch support** — hardware-accelerated pan & pinch-to-zoom (Minesweeper) and responsive touch staging (Mahjong)
+* ✅ **1-Click Native Auto-Updater** — direct updates and core notifications from GitHub releases and tags matching PointNet MailGuard architecture
 
 = Security =
 
@@ -45,8 +47,8 @@ PointNet Games follows official WordPress security recommendations:
 
 = Included Games =
 
-* **Minesweeper Arcade** — progressive levels: clear the field and advance to the next level. One mistake and you restart from Level 1. Mobile friendly.
-* **Mahjong Arcade** — tile-matching with 330 progressive levels, dual Arcade & Classic Challenge modes, 144-tile deck with wildcards, and standalone Jukebox Zen music player.
+* **Minesweeper** — Dual modes: Classic mode with 4 presets (Easy, Medium, Hard, Extreme) inspired by *The Clean One*, and progressive Scalata mode spanning 18 levels. Features hardware-accelerated Pan & Pinch-to-zoom engine, smart chording, organic tactile audio, and high-contrast OLED outdoor legibility.
+* **Mahjong Arcade** — 330 progressive levels with dual Arcade & Classic Challenge modes, 144-tile deck with flower and season wildcards, dynamic Conveyor Ring stages, Shield Wards (mystic shields & guardian tiles), standalone PointNetMusicPlayer Jukebox, and 100% mathematically guaranteed solvability.
 
 == Installation ==
 
@@ -90,15 +92,37 @@ The plugin uses WordPress nonces, IP rate limiting, IP hashing and optional manu
 
 Absolutely! Full developer documentation is in `docs/developer-guide.md`. Each game is a folder with `manifest.json` + `index.html` that uses the global `pointnetGamesAPI` object.
 
-= How does Minesweeper Arcade scoring work? =
+= How does Minesweeper scoring work? =
 
-The score is based on the game level reached at the moment of clearing the field. Saved meta includes the level, time and field size.
+Minesweeper features two distinct scoring mechanics:
+1. **Classic Mode** (Speedrun): Players choose among Easy, Medium, Hard, and Extreme. Score = Base Points + Completion Speed Bonus. Faster clears earn higher scores.
+2. **Scalata Mode** (18 Progressive Levels): Cumulative score across all 18 levels. Completing a level adds points and time bonus with progressive multipliers. Scores are submitted instantly to the leaderboard upon each completed level.
+
+= How do personal arcade records work on author pages? =
+
+The plugin automatically embeds a modern arcade statistics showcase (KPI pills, game cards, personal ranks, best scores, mode badges) directly on WordPress author pages (`/author/username`). It provides universal compatibility out-of-the-box with popular themes including GeneratePress, Astra, Kadence, OceanWP, Genesis and classic themes. You can easily toggle this feature in **PointNet Games → Impostazioni** or embed records on any post or page with the `[pointnet_user_records]` shortcode.
+
+= What shortcodes are available? =
+
+* `[pointnet_game slug="game-slug"]` — Embeds the game with iframe, splash screen, and drawer.
+* `[pointnet_game_leaderboard slug="game-slug" difficulty="easy" limit="10"]` — Leaderboard for a specific game or mode, with automatic tabbed navigation.
+* `[pointnet_games_leaderboard limit="20"]` — Global multi-game leaderboard across all games.
+* `[pointnet_games_list columns="3"]` — Responsive grid displaying all installed games.
+* `[pointnet_user_records user_id="" columns="2"]` — Personal arcade records and statistics showcase.
+
+== Roadmap ==
+
+* 🎯 **Additional Arcade Games** — classic favorites (Snake Arcade, Block Puzzle, Solitaire Klondike).
+* 🎯 **Player Achievements & Badges** — unlockable achievements ("Speedrunner", "Minesweeper Master", "Shield Breaker").
+* 🎯 **Timeframe Leaderboard Filters** — All-Time, Monthly, and Weekly highscore views.
+* 🎯 **Discord & Webhook Notifications** — optional automated notifications when highscores are beaten.
 
 == Screenshots ==
 
 1. PointNet Games dashboard with statistics and installed games
 2. Minesweeper Arcade page with leaderboard
-3. Settings panel
+3. Author profile page with personal arcade records and KPI stats
+4. Settings panel
 
 == Changelog ==
 
@@ -246,6 +270,24 @@ The score is based on the game level reached at the moment of clearing the field
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.3.8 =
+Recommended update: adds standard Update URI header, tag pagination (up to 100 tags) and automatic force-refresh during WordPress update checks for seamless 1-click updates.
+
+= 1.3.7 =
+Recommended update: adds universal theme compatibility for personal arcade records on user profile pages (/author/...), preserving theme header and layout.
+
+= 1.3.6 =
+Enhances auto-updater with instant cache invalidation on core recheck and dynamic badge updates.
+
+= 1.3.5 =
+Adds personal arcade records cards and statistics pills to author profile pages and introduces the [pointnet_user_records] shortcode.
+
+= 1.3.0 =
+Major update: adds dual-mode Minesweeper (The Clean One Classic presets + 18-level Scalata with Pan & Zoom), Mahjong Conveyor stages, multi-difficulty leaderboards, and native GitHub auto-updater.
+
+= 1.2.5 =
+Requires WordPress 7.0+ and PHP 8.0+. Enforces registered users for score saving and leaderboards to eliminate anonymous clutter.
 
 = 0.1.4 =
 Now requires WordPress 6.2 or newer because SQL table identifiers are quoted with `$wpdb->prepare( '%i' )`.

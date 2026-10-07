@@ -204,10 +204,18 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full engine design document: data
 - [x] **v1.5.1**: Transizione morbida elastica a 480ms con glow ciano, regole covered/direct-match a step calibrati e player audio resiliente a spazi e subpath WordPress.
 - [x] **v1.5.2**: 5 Nuove Figure Sagomate Conveyor con livelli demo 336+, prevenzione auto-blocco verticale e traccia Safri Duo.
 - [x] **v1.6.0**: **Generazione a Ritroso Nativa (*Native Reverse Generation Engine*)** — Algoritmo costruttivo che popola il tabellone partendo da tessere contemporaneamente libere e procedendo verso l'interno, garantendo matematicamente il 100% di solvibilità e 0 collisioni verticali in 0.5ms senza dipendere da tabelle statiche.
+- [x] **v1.7.0**: **Meccanica Sigilli & Scudi Protettivi (Shield Wards)** sui livelli 7 (7, 17, 27... 327), tessere Guardiane 🛡️, varianti conveyor scalabili per layout intermedi e traccia "Mahjong Synco (Mashup)".
 
 ## Changelog
 
-### v1.6.0 — Generazione a Ritroso Nativa (Native Reverse Generation Engine) & Rimozione Tabelle Statiche (current)
+### v1.7.0 — Meccanica Sigilli & Scudi Protettivi (Shield Wards) & Varianti Conveyor Scalabili (current)
+- **Meccanica Sigilli & Scudi Protettivi (`Shield Wards`)**: attiva sui livelli che terminano per 7 (33 livelli su 330); barriera energetica trasparente centrale (`.tile.shielded`) protetta da 2 o 4 tessere Guardiane esterne (`.tile.guardian`); deflessione con SFX e pulsazione al tocco, infrangimento a scudo spezzato (`shield_shatter`) con scintille particellari e bonus +500 pt; piena compatibilità con `undo()`.
+- **Generatore Costruttivo Nativo con Rispetto Scudi**: `generateConstructiveLevel` garantisce matematicamente la solvibilità al 100% impedendo lo sblocco prematuro dei tile protetti prima dei guardiani.
+- **Varianti Conveyor Scalabili**: aggiunte varianti medium e large per `conveyor_temple`, `conveyor_fortress` e `conveyor_diamond` con rotazione round-robin per tutta la progressione.
+- **Nuova Traccia Musicale Arcade**: inserito "Mahjong Synco (Mashup)" nella playlist Jukebox.
+- **Suite di Test**: aggiunto `games/mahjong/tests/test-shields.js` permanente.
+
+### v1.6.0 — Generazione a Ritroso Nativa (Native Reverse Generation Engine) & Rimozione Tabelle Statiche
 - **Motore di Generazione a Ritroso Costruttiva (`generateConstructiveLevel`)**: implementato il generatore che popola il tabellone simulando a ritroso la rimozione delle tessere partendo da quelle contemporaneamente libere e procedendo verso l'interno. Ogni livello nasce matematicamente garantito al 100% risolvibile in meno di 1 millisecondo senza bisogno di risolutori esaustivi o backtracking lenti.
 - **Rimozione Tabelle Statiche (`solvable-levels.js`)**: eliminata la dipendenza dal file statico precalcolato; il gioco ora si autogenera dinamicamente e in modo autonomo per qualsiasi livello e configurazione, riducendo il payload di rete.
 - **Replayability Infinita**: ogni avvio o riavvio di livello genera una combinazione fresca e diversa di simboli pur mantenendo la struttura geometrica della figura.
