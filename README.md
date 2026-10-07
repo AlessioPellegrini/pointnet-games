@@ -65,7 +65,7 @@ Classic Mahjong Solitaire tile-matching with an arcade twist, dual modes, and 10
   - Strict capability verification (`manage_options`) on administrative actions.
   - IP rate limiting and privacy-first SHA-256 IP hashing (no plain IPs stored).
 - **🚀 1-Click Native GitHub Auto-Updater**:
-  - Native background updater following the PointNet MailGuard architecture.
+  - Native background updater querying official GitHub releases and tags.
   - Uses official `Update URI` header and queries GitHub releases/tags with full pagination (`?per_page=100`).
   - Seamless 1-click updates directly inside WordPress admin with safe folder renaming.
 

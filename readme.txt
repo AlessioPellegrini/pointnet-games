@@ -30,7 +30,7 @@ Arcade game platform for WordPress with scores, leaderboards and a standardized 
 * ✅ **Splash screen** — intro screen with a PLAY button and version badge
 * ✅ **Immersive fullscreen CSS** — the game expands to fullscreen when pressing PLAY
 * ✅ **Mobile touch support** — hardware-accelerated pan & pinch-to-zoom (Minesweeper) and responsive touch staging (Mahjong)
-* ✅ **1-Click Native Auto-Updater** — direct updates and core notifications from GitHub releases and tags matching PointNet MailGuard architecture
+* ✅ **1-Click Native Auto-Updater** — direct updates and core notifications from GitHub releases and tags
 
 = Security =
 
@@ -127,7 +127,7 @@ The plugin automatically embeds a modern arcade statistics showcase (KPI pills, 
 == Changelog ==
 
 = 1.3.8 =
-* Auto-Updater: added official Update URI plugin header matching PointNet MailGuard architecture.
+* Auto-Updater: added official Update URI plugin header.
 * Auto-Updater: enhanced GitHub API tags pagination (?per_page=100) to ensure newly pushed tags are never truncated.
 * Auto-Updater: hooked pre_set_site_transient_update_plugins with automatic force-refresh during WordPress update checks.
 * Author Page & User Profiles: universal theme compatibility (GeneratePress, Astra, Kadence, OceanWP, Genesis and standard WordPress themes) preserving avatar, username and bio.
@@ -169,7 +169,7 @@ The plugin automatically embeds a modern arcade statistics showcase (KPI pills, 
 * Shortcode: added [pointnet_games_leaderboard] plural alias with automatic global=1 default.
 
 = 1.3.0 =
-* GitHub Release Auto-Updater: integrated native GitHub releases updater (matching PointNet MailGuard architecture) for direct 1-click plugin updates and dashboard notifications within WordPress admin.
+* GitHub Release Auto-Updater: integrated native GitHub releases updater for direct 1-click plugin updates and dashboard notifications within WordPress admin.
 * Minesweeper v1.3.0: Dual modes (Classic mode with Easy, Medium, Hard, and Extreme 32x18 presets from The Clean One, and 18-level progressive Scalata mode), dedicated per-difficulty scoring & speedrun time-attack conversion, hardware-accelerated Pan & Pinch-to-zoom engine for mobile and desktop, multi-difficulty leaderboards (arcade, easy, medium, hard, extreme) with formatted metadata (time, level, outcome) and difficulty-aware player rank feedback, organic acoustic sound design, smart chording, and dual-mode pill toggle.
 * Mahjong Arcade v1.7.0: Shield Wards mechanic on levels ending in 7, scalable conveyor variants, and Synco Mashup audio track.
 * Security & Reliability: throttled session generation, post existence guards on REST routes, GMT/UTC timestamp standardization, and score boundary limits.
