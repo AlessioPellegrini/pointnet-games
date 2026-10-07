@@ -35,7 +35,6 @@ class PointNet_Games_Updater {
 	 * Invalidate GitHub cache when admin triggers a manual update recheck.
 	 */
 	public static function handle_admin_recheck(): void {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Checking standard core recheck trigger.
 		if ( ! empty( $_GET['force-check'] ) || ( isset( $_GET['action'] ) && 'do-core-recheck' === $_GET['action'] ) ) {
 			delete_site_transient( self::TRANSIENT_KEY );
 		}
@@ -49,7 +48,6 @@ class PointNet_Games_Updater {
 	 */
 	public static function get_latest_release( bool $force_refresh = false ): ?array {
 		if ( ! $force_refresh ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing -- Passive cache invalidation check during WP updates check.
 			$is_recheck = ! empty( $_GET['force-check'] )
 				|| ( isset( $_GET['action'] ) && 'do-core-recheck' === $_GET['action'] )
 				|| ( isset( $_POST['action'] ) && 'do-core-recheck' === $_POST['action'] );

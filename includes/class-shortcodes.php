@@ -288,7 +288,6 @@ class PointNet_Games_Shortcodes {
 		);
 
 		if ( ! empty( $atts['category'] ) ) {
-			// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Intentional category filter for shortcode.
 			$query_args['tax_query'] = array(
 				array(
 					'taxonomy' => 'pointnet_game_category',
