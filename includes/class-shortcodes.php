@@ -192,11 +192,25 @@ class PointNet_Games_Shortcodes {
 		$html .= '<th>' . esc_html__( 'Score', 'pointnet-games' ) . '</th>';
 		$html .= '</tr></thead><tbody>';
 
+		$settings      = get_option( 'pointnet_games_settings', array() );
+		$link_profiles = ! empty( $settings['link_author_profiles'] ) && is_user_logged_in();
+
 		foreach ( $entries as $entry ) {
 			$row_class = 1 === (int) $entry['position'] ? ' class="pointnet-games-first"' : '';
 			$html     .= '<tr' . $row_class . '>';
 			$html     .= '<td>' . esc_html( $entry['position'] ) . '</td>';
-			$html     .= '<td>' . esc_html( $entry['nickname'] ) . '</td>';
+
+			if ( $link_profiles && ! empty( $entry['user_id'] ) ) {
+				$author_url = get_author_posts_url( (int) $entry['user_id'] );
+				if ( ! empty( $author_url ) ) {
+					$player_cell = '<a href="' . esc_url( $author_url ) . '" class="pointnet-games-player-link">' . esc_html( $entry['nickname'] ) . '</a>';
+				} else {
+					$player_cell = esc_html( $entry['nickname'] );
+				}
+			} else {
+				$player_cell = esc_html( $entry['nickname'] );
+			}
+			$html .= '<td>' . $player_cell . '</td>';
 
 			if ( $is_global ) {
 				$mode_key   = $entry['meta']['difficulty'] ?? '';

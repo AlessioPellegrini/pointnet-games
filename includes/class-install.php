@@ -72,8 +72,10 @@ class PointNet_Games_Install {
 	 */
 	public static function seed_default_settings() {
 		$defaults = array(
-			'rate_limit'         => 5,
-			'require_validation' => 0,
+			'rate_limit'           => 5,
+			'require_validation'   => 0,
+			'show_author_records'  => 1,
+			'link_author_profiles' => 0,
 		);
 
 		if ( false === get_option( 'pointnet_games_settings' ) ) {

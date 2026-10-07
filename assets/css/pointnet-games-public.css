@@ -260,6 +260,19 @@
 	color: #b8860b;
 }
 
+.pointnet-games-player-link {
+	color: inherit;
+	text-decoration: underline;
+	text-decoration-color: #cbd5e1;
+	text-underline-offset: 3px;
+	transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.pointnet-games-player-link:hover {
+	color: #2563eb;
+	text-decoration-color: #2563eb;
+}
+
 .pointnet-games-meta-cell {
 	font-size: 0.88em;
 	color: #4b5563;

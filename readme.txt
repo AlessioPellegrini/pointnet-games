@@ -102,6 +102,10 @@ Minesweeper features two distinct scoring mechanics:
 
 The plugin automatically embeds a modern arcade statistics showcase (KPI pills, game cards, personal ranks, best scores, mode badges) directly on WordPress author pages (`/author/username`). It provides universal compatibility out-of-the-box with popular themes including GeneratePress, Astra, Kadence, OceanWP, Genesis and classic themes. You can easily toggle this feature in **PointNet Games → Impostazioni** or embed records on any post or page with the `[pointnet_user_records]` shortcode.
 
+= Can player names in leaderboards link to user profile pages? =
+
+Yes! By default, player nicknames are displayed as static plain text for privacy and GDPR safety. Administrators can optionally enable "Link Player Profiles" in **PointNet Games → Impostazioni**. When enabled, links to player author profiles (`/author/username`) are rendered exclusively for logged-in registered users, while anonymous visitors and search engines always see plain text.
+
 = What shortcodes are available? =
 
 * `[pointnet_game slug="game-slug"]` — Embeds the game with iframe, splash screen, and drawer.

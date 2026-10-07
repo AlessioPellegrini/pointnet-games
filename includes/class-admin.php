@@ -285,6 +285,18 @@ class PointNet_Games_Admin {
 							<p class="description"><?php esc_html_e( 'Automatically injects modern player cards on user profile pages. Can also be manually placed anywhere using the [pointnet_user_records] shortcode.', 'pointnet-games' ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row">
+							<label for="pointnet_games_link_author_profiles"><?php esc_html_e( 'Link Player Profiles', 'pointnet-games' ); ?></label>
+						</th>
+						<td>
+							<label>
+								<input type="checkbox" name="pointnet_games_settings[link_author_profiles]" id="pointnet_games_link_author_profiles" value="1" <?php checked( (int) ( $settings['link_author_profiles'] ?? 0 ), 1 ); ?>>
+								<?php esc_html_e( 'Make player nicknames clickable in leaderboards, linking to their public author profile.', 'pointnet-games' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Disabled by default for privacy. When enabled, links are only visible to logged-in registered users (anonymous visitors and search engines always see plain text names).', 'pointnet-games' ); ?></p>
+						</td>
+					</tr>
 				</table>
 				<?php submit_button(); ?>
 			</form>
@@ -301,16 +313,18 @@ class PointNet_Games_Admin {
 	 */
 	public function sanitize_settings( $input ) {
 		$defaults = array(
-			'rate_limit'          => 5,
-			'require_validation'  => 0,
-			'show_author_records' => 1,
+			'rate_limit'           => 5,
+			'require_validation'   => 0,
+			'show_author_records'  => 1,
+			'link_author_profiles' => 0,
 		);
 
 		$clean = wp_parse_args( $input, $defaults );
 
-		$clean['require_validation']  = isset( $input['require_validation'] ) ? 1 : 0;
-		$clean['show_author_records'] = isset( $input['show_author_records'] ) ? 1 : 0;
-		$clean['rate_limit']          = (int) $input['rate_limit'];
+		$clean['require_validation']   = isset( $input['require_validation'] ) ? 1 : 0;
+		$clean['show_author_records']  = isset( $input['show_author_records'] ) ? 1 : 0;
+		$clean['link_author_profiles'] = isset( $input['link_author_profiles'] ) ? 1 : 0;
+		$clean['rate_limit']           = (int) $input['rate_limit'];
 
 		return $clean;
 	}
