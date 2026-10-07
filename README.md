@@ -53,7 +53,7 @@ Classic Mahjong Solitaire tile-matching with an arcade twist, dual modes, and 10
 - **🏆 Leaderboards & Score Tracking**:
   - Global multi-game leaderboard isolating each player's personal best per game.
   - Game-specific leaderboards with dynamic tabbed navigation across declared difficulty modes.
-  - Registered user validation (`user_login`) guaranteeing unique rankings without exposing admin credentials.
+  - Registered user validation with privacy-safe display names (`display_name`) and sequential duplicate resolution (`#2`, `#3`), never exposing login credentials or database user IDs.
 - **👤 Personal Records on Author Pages**:
   - Automatic injection of arcade records between profile header and post loops on `/author/username`.
   - Modern KPI stats pills (Total Score, Games Played, Personal Bests, Podiums).

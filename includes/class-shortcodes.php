@@ -435,7 +435,7 @@ class PointNet_Games_Shortcodes {
 				$header_title = esc_html__( '🎮 I tuoi Record Arcade', 'pointnet-games' );
 			} else {
 				/* translators: %s: player display name */
-				$header_title = sprintf( esc_html__( '🎮 Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) );
+				$header_title = sprintf( esc_html__( '🎮 Record Arcade di %s', 'pointnet-games' ), esc_html( PointNet_Games_Leaderboard::get_player_display_name( $user->ID ) ) );
 			}
 			$html .= '<h3 class="pointnet-games-user-records-title">' . $header_title . '</h3>';
 			$html .= '</div>';
@@ -467,7 +467,7 @@ class PointNet_Games_Shortcodes {
 			$title = esc_html__( 'I tuoi Record Arcade', 'pointnet-games' );
 		} else {
 			/* translators: %s: player display name */
-			$title = sprintf( esc_html__( 'Record Arcade di %s', 'pointnet-games' ), esc_html( $user->display_name ?: $user->user_login ) );
+			$title = sprintf( esc_html__( 'Record Arcade di %s', 'pointnet-games' ), esc_html( PointNet_Games_Leaderboard::get_player_display_name( $user->ID ) ) );
 		}
 
 		$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';

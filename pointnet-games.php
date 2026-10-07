@@ -171,11 +171,13 @@ add_action( 'wp_enqueue_scripts', 'pointnet_games_enqueue_public_assets' );
 function pointnet_games_current_nickname() {
 	if ( is_user_logged_in() ) {
 		$user = wp_get_current_user();
-		return $user->user_login;
+		return PointNet_Games_Leaderboard::get_player_display_name( $user->ID );
 	}
 
 	return '';
 }
+add_action( 'user_register', array( 'PointNet_Games_Leaderboard', 'on_user_register' ), 10, 1 );
+add_action( 'profile_update', array( 'PointNet_Games_Leaderboard', 'on_profile_update' ), 10, 2 );
 
 /**
  * Helper to get full custom table name.

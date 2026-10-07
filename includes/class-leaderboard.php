@@ -269,8 +269,114 @@ class PointNet_Games_Leaderboard {
 	}
 
 	/**
-	 * Replace the stored nickname with the current WordPress user_login
-	 * for registered users (guaranteed unique by WordPress).
+	 * Get the persistent public arcade display name for a given user ID.
+	 *
+	 * Uses display_name with sequential numbering for duplicates (#2, #3...).
+	 * The name is cached in user meta 'pointnet_games_player_name'.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 *
+	 * @return string
+	 */
+	public static function get_player_display_name( $user_id ) {
+		$user_id = absint( $user_id );
+		if ( ! $user_id ) {
+			return __( 'Anonymous', 'pointnet-games' );
+		}
+
+		$cached = get_user_meta( $user_id, 'pointnet_games_player_name', true );
+		if ( ! empty( $cached ) ) {
+			return $cached;
+		}
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return __( 'Anonymous', 'pointnet-games' );
+		}
+
+		$display_name = ! empty( $user->display_name ) ? $user->display_name : $user->user_login;
+		self::sync_display_name_group( $display_name );
+
+		$fresh = get_user_meta( $user_id, 'pointnet_games_player_name', true );
+		return ! empty( $fresh ) ? $fresh : $display_name;
+	}
+
+	/**
+	 * Synchronize persistent arcade player names for all users sharing a given display name.
+	 *
+	 * Assigns:
+	 * - 1st user (by user_registered ASC, ID ASC): "DisplayName"
+	 * - 2nd user: "DisplayName #2"
+	 * - 3rd user: "DisplayName #3"
+	 *
+	 * @param string $display_name The display name to synchronize.
+	 */
+	public static function sync_display_name_group( $display_name ) {
+		global $wpdb;
+
+		$display_name = trim( (string) $display_name );
+		if ( '' === $display_name ) {
+			return;
+		}
+
+		$users = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->users} WHERE display_name = %s ORDER BY user_registered ASC, ID ASC",
+				$display_name
+			)
+		);
+
+		if ( empty( $users ) ) {
+			return;
+		}
+
+		foreach ( $users as $index => $u ) {
+			$uid         = (int) $u->ID;
+			$player_name = 0 === $index ? $display_name : $display_name . ' #' . ( $index + 1 );
+			update_user_meta( $uid, 'pointnet_games_player_name', $player_name );
+		}
+	}
+
+	/**
+	 * Hook listener for 'user_register'.
+	 *
+	 * @param int $user_id Newly registered user ID.
+	 */
+	public static function on_user_register( $user_id ) {
+		$user = get_userdata( $user_id );
+		if ( $user ) {
+			$display_name = ! empty( $user->display_name ) ? $user->display_name : $user->user_login;
+			self::sync_display_name_group( $display_name );
+		}
+	}
+
+	/**
+	 * Hook listener for 'profile_update'.
+	 *
+	 * @param int          $user_id       User ID being updated.
+	 * @param WP_User|null $old_user_data Object containing user data prior to update.
+	 */
+	public static function on_profile_update( $user_id, $old_user_data = null ) {
+		$new_user = get_userdata( $user_id );
+		if ( ! $new_user ) {
+			return;
+		}
+
+		$new_name = ! empty( $new_user->display_name ) ? $new_user->display_name : $new_user->user_login;
+		$old_name = ( $old_user_data && ! empty( $old_user_data->display_name ) ) ? $old_user_data->display_name : '';
+
+		// If display_name changed, re-sync users remaining under the old name.
+		if ( $old_name && $old_name !== $new_name ) {
+			self::sync_display_name_group( $old_name );
+		}
+
+		// Sync the group under the new name.
+		self::sync_display_name_group( $new_name );
+	}
+
+	/**
+	 * Replace the stored nickname with the current persistent arcade player name
+	 * for registered users (safe from login disclosure, deduplicated with #2, #3...).
 	 * Anonymous entries keep their stored nickname ("Anonymous").
 	 *
 	 * @param array $rows Leaderboard rows (ARRAY_A).
@@ -291,22 +397,15 @@ class PointNet_Games_Leaderboard {
 
 		$user_ids = array_values( array_unique( $user_ids ) );
 
-		$users = get_users(
-			array(
-				'include' => $user_ids,
-				'fields'  => array( 'ID', 'user_login' ),
-			)
-		);
-
-		$user_logins = array();
-		foreach ( $users as $user ) {
-			$user_logins[ (int) $user->ID ] = $user->user_login;
+		$player_names = array();
+		foreach ( $user_ids as $uid ) {
+			$player_names[ $uid ] = self::get_player_display_name( $uid );
 		}
 
 		foreach ( $rows as $index => $row ) {
 			$uid = (int) ( $row['user_id'] ?? 0 );
-			if ( $uid && isset( $user_logins[ $uid ] ) ) {
-				$rows[ $index ]['nickname'] = $user_logins[ $uid ];
+			if ( $uid && isset( $player_names[ $uid ] ) ) {
+				$rows[ $index ]['nickname'] = $player_names[ $uid ];
 			}
 		}
 
