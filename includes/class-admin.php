@@ -295,6 +295,10 @@ class PointNet_Games_Admin {
 								<?php esc_html_e( 'Make player nicknames clickable in leaderboards, linking to their public author profile.', 'pointnet-games' ); ?>
 							</label>
 							<p class="description"><?php esc_html_e( 'Disabled by default for privacy. When enabled, links are only visible to logged-in registered users (anonymous visitors and search engines always see plain text names).', 'pointnet-games' ); ?></p>
+							<p class="description" style="margin-top: 6px; color: #b32d2e;">
+								<strong><?php esc_html_e( 'Security Note:', 'pointnet-games' ); ?></strong>
+								<?php esc_html_e( 'In WordPress, author profile URLs can reveal registered usernames. When usernames are known publicly, automated bots might attempt brute-force login attacks. We recommend using security measures such as Two-Factor Authentication (2FA), login attempt limits, and strong passwords.', 'pointnet-games' ); ?>
+							</p>
 						</td>
 					</tr>
 				</table>
