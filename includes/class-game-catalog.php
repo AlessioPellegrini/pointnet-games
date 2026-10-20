@@ -96,10 +96,10 @@ class PointNet_Games_Game_Catalog {
 			$games_by_slug[ $k['slug'] ] = $k;
 		}
 
-		// 1. Check Git Tags from GitHub API.
-		$tags_url  = 'https://api.github.com/repos/' . $repo . '/tags?per_page=100';
-		$tags_res  = wp_remote_get(
-			$tags_url,
+		// 1. Check official formal GitHub Releases.
+		$rel_url  = 'https://api.github.com/repos/' . $repo . '/releases?per_page=100';
+		$rel_res  = wp_remote_get(
+			$rel_url,
 			array(
 				'timeout'    => 12,
 				'user-agent' => $user_agent,
@@ -107,19 +107,45 @@ class PointNet_Games_Game_Catalog {
 			)
 		);
 
-		if ( ! is_wp_error( $tags_res ) && 200 === wp_remote_retrieve_response_code( $tags_res ) ) {
-			$tags = json_decode( wp_remote_retrieve_body( $tags_res ), true );
-			if ( is_array( $tags ) ) {
-				foreach ( $tags as $tag_item ) {
-					$tag_name = $tag_item['name'] ?? '';
+		if ( ! is_wp_error( $rel_res ) && 200 === wp_remote_retrieve_response_code( $rel_res ) ) {
+			$releases = json_decode( wp_remote_retrieve_body( $rel_res ), true );
+			if ( is_array( $releases ) ) {
+				foreach ( $releases as $rel ) {
+					// Discard drafts and pre-releases.
+					if ( ! empty( $rel['draft'] ) || ! empty( $rel['prerelease'] ) ) {
+						continue;
+					}
 
-					// Tag pattern: {slug}-v{version} (e.g. minesweeper-arcade-v1.3.5 or mahjong-v1.8.0).
+					$tag_name = $rel['tag_name'] ?? '';
+
+					// Tag pattern on the release: {slug}-v{version} (e.g. minesweeper-arcade-v1.3.5 or mahjong-v1.8.0).
 					if ( preg_match( '/^([a-z0-9\-_]+)-v?([0-9]+\.[0-9]+(?:\.[0-9]+)?.*)$/i', $tag_name, $m ) ) {
 						$slug    = sanitize_title( $m[1] );
 						$version = $m[2];
 
-						// GitHub auto-generates zip archive on the fly for every tag!
-						$zip_url = 'https://github.com/' . $repo . '/archive/refs/tags/' . rawurlencode( $tag_name ) . '.zip';
+						// Check if an explicit asset zip was attached to the release.
+						$zip_url = '';
+						if ( ! empty( $rel['assets'] ) && is_array( $rel['assets'] ) ) {
+							foreach ( $rel['assets'] as $asset ) {
+								if ( preg_match( '/' . preg_quote( $slug, '/' ) . '.*\.zip$/i', $asset['name'] ) ) {
+									$zip_url = $asset['browser_download_url'];
+									break;
+								}
+							}
+						}
+
+						// Fallback to auto-generated zipball if no custom asset was uploaded.
+						if ( empty( $zip_url ) ) {
+							$zip_url = 'https://github.com/' . $repo . '/archive/refs/tags/' . rawurlencode( $tag_name ) . '.zip';
+						}
+
+						$description = ! empty( $rel['body'] )
+							? wp_strip_all_tags( $rel['body'] )
+							: sprintf(
+								/* translators: %s: game name */
+								__( 'Arcade game "%s" from official PointNet Games GitHub catalog.', 'pointnet-games' ),
+								ucwords( str_replace( array( '-', '_' ), ' ', $slug ) )
+							);
 
 						if ( ! isset( $games_by_slug[ $slug ] ) ) {
 							$games_by_slug[ $slug ] = array(
@@ -127,16 +153,11 @@ class PointNet_Games_Game_Catalog {
 								'name'         => ucwords( str_replace( array( '-', '_' ), ' ', $slug ) ),
 								'version'      => $version,
 								'author'       => 'PointNet Games',
-								'description'  => sprintf(
-									/* translators: %s: game name */
-									__( 'Arcade game "%s" from official PointNet Games GitHub catalog.', 'pointnet-games' ),
-									ucwords( str_replace( array( '-', '_' ), ' ', $slug ) )
-								),
+								'description'  => $description,
 								'download_url' => $zip_url,
 								'badge'        => 'Release',
 							);
 						} else {
-							// Check if this tag represents a newer version.
 							if ( version_compare( $version, $games_by_slug[ $slug ]['version'], '>=' ) ) {
 								$games_by_slug[ $slug ]['version']      = $version;
 								$games_by_slug[ $slug ]['download_url'] = $zip_url;
