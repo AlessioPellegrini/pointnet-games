@@ -423,8 +423,11 @@ class PointNet_Games_Admin {
 			echo '<label style="display:block;margin-bottom:6px;font-weight:400;cursor:pointer;">';
 			echo '<input type="checkbox" name="pointnet_games_delete_scores" value="1" checked> ';
 			if ( $score_count > 0 ) {
-				/* translators: %d: number of scores for this game */
-				printf( esc_html__( 'Also delete the %d scores', 'pointnet-games' ), esc_html( $score_count ) );
+				printf(
+					/* translators: %d: number of scores for this game */
+					esc_html__( 'Also delete the %d scores', 'pointnet-games' ),
+					absint( $score_count )
+				);
 			} else {
 				esc_html_e( 'Delete scores (none present)', 'pointnet-games' );
 			}

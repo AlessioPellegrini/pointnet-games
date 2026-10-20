@@ -55,7 +55,7 @@
 		button.className = 'pointnet-games-fullscreen-btn';
 		button.type = 'button';
 		button.title = 'Schermo intero';
-		button.innerHTML = '⛶';
+		button.textContent = '⛶';
 		button.style.setProperty('top', '56px', 'important');
 		button.style.setProperty('right', '16px', 'important');
 		button.style.setProperty('bottom', 'auto', 'important');

@@ -91,7 +91,7 @@ class PointNet_Games_Game_Loader {
 		// Mark injected immediately to prevent any concurrent or secondary hook from firing.
 		self::$author_records_injected = true;
 
-		echo PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) );
+		echo wp_kses_post( PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) ) );
 	}
 
 	/**

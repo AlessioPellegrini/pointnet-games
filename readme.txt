@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.9
+Stable tag: 1.3.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,6 +129,14 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.3.10 =
+* Security & Output Escaping: enforced `wp_kses_post` on automatic author records injection in Game Loader, satisfying Plugin Check security rules.
+* Client-Side Hardening: replaced DOM `innerHTML` with `textContent` for the fullscreen toggle button icon, eliminating DOM XSS vectors.
+* i18n & Translators Comments: placed translator placeholder notes immediately adjacent to translation functions in admin tables.
+* Input Sanitization: strictly sanitized core update recheck query parameters in GitHub updater with `sanitize_key(wp_unslash())`.
+* Code Quality: removed error-suppression operator `@` across filesystem timestamp scans in favor of explicit `file_exists` validations.
+* Codebase Standards: cleared arbitrary phpcs annotation suppressions for full auditability.
 
 = 1.3.9 =
 * Privacy & Security: leaderboards and user cards now use WordPress `display_name` instead of revealing private `user_login` credentials.
@@ -282,6 +290,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.3.10 =
+Recommended security & quality update: enforces output escaping on user records, hardens client-side DOM manipulation, cleans filesystem scanning operators, and aligns translation placeholder notes.
 
 = 1.3.9 =
 Recommended update: enhances player privacy by adopting WordPress display names with sequential duplicate resolution, adds optional author profile linking for logged-in users, and introduces performance caching on profile hooks.

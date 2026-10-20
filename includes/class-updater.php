@@ -35,7 +35,7 @@ class PointNet_Games_Updater {
 	 * Invalidate GitHub cache when admin triggers a manual update recheck.
 	 */
 	public static function handle_admin_recheck(): void {
-		if ( ! empty( $_GET['force-check'] ) || ( isset( $_GET['action'] ) && 'do-core-recheck' === $_GET['action'] ) ) {
+		if ( ! empty( $_GET['force-check'] ) || ( isset( $_GET['action'] ) && 'do-core-recheck' === sanitize_key( wp_unslash( $_GET['action'] ) ) ) ) {
 			delete_site_transient( self::TRANSIENT_KEY );
 		}
 	}
@@ -49,8 +49,8 @@ class PointNet_Games_Updater {
 	public static function get_latest_release( bool $force_refresh = false ): ?array {
 		if ( ! $force_refresh ) {
 			$is_recheck = ! empty( $_GET['force-check'] )
-				|| ( isset( $_GET['action'] ) && 'do-core-recheck' === $_GET['action'] )
-				|| ( isset( $_POST['action'] ) && 'do-core-recheck' === $_POST['action'] );
+				|| ( isset( $_GET['action'] ) && 'do-core-recheck' === sanitize_key( wp_unslash( $_GET['action'] ) ) )
+				|| ( isset( $_POST['action'] ) && 'do-core-recheck' === sanitize_key( wp_unslash( $_POST['action'] ) ) );
 			if ( $is_recheck ) {
 				$force_refresh = true;
 			}

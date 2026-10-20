@@ -154,7 +154,8 @@ class PointNet_Games_Game_Registry {
 		$hash_parts = array();
 
 		foreach ( $manifests as $manifest_path ) {
-			$hash_parts[] = basename( dirname( $manifest_path ) ) . ':' . ( is_file( $manifest_path ) ? (string) @filemtime( $manifest_path ) : '' );
+			$mtime = ( is_file( $manifest_path ) && file_exists( $manifest_path ) ) ? (string) filemtime( $manifest_path ) : '';
+			$hash_parts[] = basename( dirname( $manifest_path ) ) . ':' . $mtime;
 		}
 
 		sort( $hash_parts );
