@@ -278,7 +278,15 @@ class PointNet_Games_Game_Catalog {
 		}
 		WP_Filesystem();
 
-		$deleted = $wp_filesystem->delete( $target_dir, true );
+		$deleted = false;
+		if ( ! empty( $wp_filesystem ) ) {
+			$deleted = $wp_filesystem->delete( $target_dir, true );
+		}
+
+		if ( ! $deleted && is_dir( $target_dir ) ) {
+			self::delete_dir_recursive( $target_dir );
+			$deleted = ! is_dir( $target_dir );
+		}
 
 		if ( ! $deleted ) {
 			wp_send_json_error( array( 'message' => __( 'Could not delete game files.', 'pointnet-games' ) ) );
@@ -367,7 +375,37 @@ class PointNet_Games_Game_Catalog {
 			}
 		}
 
+		// Initialize WP_Filesystem before unzipping.
+		global $wp_filesystem;
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		if ( ! function_exists( 'request_filesystem_credentials' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		// Initialize filesystem with direct access context if needed.
+		if ( empty( $wp_filesystem ) ) {
+			ob_start();
+			$credentials = request_filesystem_credentials( admin_url(), '', false, false, array() );
+			ob_end_clean();
+			WP_Filesystem( $credentials );
+		}
+
 		$unzip_result = unzip_file( $temp_file, $temp_extract_dir );
+
+		if ( is_wp_error( $unzip_result ) ) {
+			// Fallback extraction via ZipArchive if WordPress filesystem method failed.
+			if ( class_exists( 'ZipArchive' ) ) {
+				$zip = new ZipArchive();
+				if ( true === $zip->open( $temp_file ) ) {
+					$zip->extractTo( $temp_extract_dir );
+					$zip->close();
+					$unzip_result = true;
+				}
+			}
+		}
+
 		@unlink( $temp_file );
 
 		if ( is_wp_error( $unzip_result ) ) {
@@ -412,24 +450,99 @@ class PointNet_Games_Game_Catalog {
 		// Destination path: wp-content/uploads/pointnet-games/{slug}/.
 		$target_dir = trailingslashit( PointNet_Games_Game_Registry::get_installed_games_dir() ) . $slug;
 
-		global $wp_filesystem;
-		if ( ! function_exists( 'WP_Filesystem' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-		}
-		WP_Filesystem();
-
+		// Clean old installation if exists.
 		if ( is_dir( $target_dir ) ) {
-			$wp_filesystem->delete( $target_dir, true );
+			if ( ! empty( $wp_filesystem ) ) {
+				$wp_filesystem->delete( $target_dir, true );
+			}
+			if ( is_dir( $target_dir ) ) {
+				self::delete_dir_recursive( $target_dir );
+			}
 		}
+
 		wp_mkdir_p( $target_dir );
 
 		// Copy files from game source to target destination.
-		copy_dir( $game_source_dir, $target_dir );
+		$copied = false;
+		if ( function_exists( 'copy_dir' ) && ! empty( $wp_filesystem ) ) {
+			$copy_result = copy_dir( $game_source_dir, $target_dir );
+			if ( ! is_wp_error( $copy_result ) ) {
+				$copied = true;
+			}
+		}
+
+		// Direct PHP fallback copy if copy_dir had filesystem issues.
+		if ( ! $copied ) {
+			self::copy_dir_recursive( $game_source_dir, $target_dir );
+		}
 
 		// Delete temporary extract directory.
-		$wp_filesystem->delete( $temp_extract_dir, true );
+		if ( ! empty( $wp_filesystem ) ) {
+			$wp_filesystem->delete( $temp_extract_dir, true );
+		}
+		if ( is_dir( $temp_extract_dir ) ) {
+			self::delete_dir_recursive( $temp_extract_dir );
+		}
 
 		return true;
+	}
+
+	/**
+	 * Recursive directory copy fallback.
+	 *
+	 * @param string $source Source directory.
+	 * @param string $dest   Destination directory.
+	 */
+	private static function copy_dir_recursive( $source, $dest ) {
+		$source = trailingslashit( $source );
+		$dest   = trailingslashit( $dest );
+		wp_mkdir_p( $dest );
+
+		$iterator = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $source, FilesystemIterator::SKIP_DOTS ),
+			RecursiveIteratorIterator::SELF_FIRST
+		);
+
+		foreach ( $iterator as $item ) {
+			$sub_path = substr( $item->getPathname(), strlen( $source ) );
+			$target   = $dest . $sub_path;
+
+			if ( $item->isDir() ) {
+				wp_mkdir_p( $target );
+			} else {
+				$parent = dirname( $target );
+				if ( ! is_dir( $parent ) ) {
+					wp_mkdir_p( $parent );
+				}
+				copy( $item->getPathname(), $target );
+			}
+		}
+	}
+
+	/**
+	 * Recursive directory deletion fallback.
+	 *
+	 * @param string $dir Directory to delete.
+	 */
+	private static function delete_dir_recursive( $dir ) {
+		if ( ! is_dir( $dir ) ) {
+			return;
+		}
+
+		$iterator = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ),
+			RecursiveIteratorIterator::CHILD_FIRST
+		);
+
+		foreach ( $iterator as $item ) {
+			if ( $item->isDir() ) {
+				@rmdir( $item->getPathname() );
+			} else {
+				@unlink( $item->getPathname() );
+			}
+		}
+
+		@rmdir( $dir );
 	}
 
 }
