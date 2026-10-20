@@ -307,13 +307,25 @@ class PointNet_Games_Updater {
 	public static function fix_folder_name( $source, string $remote_source, $upgrader, array $hook_extra = array() ) {
 		global $wp_filesystem;
 
-		$plugin_file = plugin_basename( POINTNET_GAMES_PLUGIN_FILE );
-		if ( empty( $hook_extra['plugin'] ) || $hook_extra['plugin'] !== $plugin_file ) {
+		$plugin_file      = plugin_basename( POINTNET_GAMES_PLUGIN_FILE );
+		$correct_dir_name = dirname( $plugin_file );
+		$is_our_plugin    = false;
+
+		// 1. Check if identified via hook_extra (standard WordPress update).
+		if ( ! empty( $hook_extra['plugin'] ) && $hook_extra['plugin'] === $plugin_file ) {
+			$is_our_plugin = true;
+		}
+
+		// 2. Check if identified via manual zip upload or action check.
+		if ( ! $is_our_plugin && file_exists( trailingslashit( $source ) . 'pointnet-games.php' ) ) {
+			$is_our_plugin = true;
+		}
+
+		if ( ! $is_our_plugin ) {
 			return $source;
 		}
 
-		$correct_dir_name = dirname( $plugin_file );
-		$target           = trailingslashit( $remote_source ) . $correct_dir_name;
+		$target = trailingslashit( $remote_source ) . $correct_dir_name;
 
 		if ( untrailingslashit( $source ) === untrailingslashit( $target ) ) {
 			return $source;
