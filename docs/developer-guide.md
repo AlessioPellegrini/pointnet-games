@@ -4,19 +4,25 @@ Questa guida spiega come creare un gioco compatibile con il plugin **PointNet Ga
 
 ---
 
-## 1. Struttura di un Gioco
+## 1. Architettura e Struttura di un Gioco
 
-Ogni gioco è una **cartella autonoma** dentro la directory `games/` del plugin:
+I giochi per **PointNet Games** funzionano in modo modulare:
+1. Possono essere sviluppati in un repository dedicato (come `pointnet-games-catalog`).
+2. Vengono installati automaticamente via **1-Click Game Catalog** nella directory protetta:
+   `wp-content/uploads/pointnet-games/{slug}/` (preservata da qualsiasi aggiornamento del plugin core).
+3. Possono essere testati localmente inserendoli direttamente in `wp-content/uploads/pointnet-games/{slug}/` o nella cartella `pointnet-games-catalog/games/{slug}/`.
+
+Ogni gioco è una **web app autonoma client-side** (HTML5, JS, WebAssembly, Godot/Unity Web export) isolata in sandbox iframe:
 
 ```
 games/
 └── mio-gioco/
     ├── manifest.json       # ✅ OBBLIGATORIO — metadati del gioco
-    ├── index.html          # ✅ OBBLIGATORIO — entry point
-    ├── game.js             # Logica del gioco (puoi usare più file JS, es. engine.js, ui.js)
-    ├── style.css           # Stili
-    ├── audio/              # (opzionale) file audio
-    └── assets/             # (opzionale) sprite, immagini
+    ├── index.html          # ✅ OBBLIGATORIO — entry point HTML5
+    ├── game.js             # Logica del gioco (JS, canvas, WebGL o WASM loader)
+    ├── style.css           # Stili responsive
+    ├── audio/              # (opzionale) audio, SFX
+    └── assets/             # (opzionale) sprite, immagini, modelli
 ```
 
 ---

@@ -1,10 +1,12 @@
 <?php
 /**
- * Remote game catalog management, 1-click installer and GitHub Release auto-sync.
+ * Remote game catalog management, 1-click installer and automatic GitHub Release/Tag sync.
  *
- * Automatically inspects GitHub Releases and Tags (e.g. mahjong-v1.8.0, minesweeper-v1.3.5),
- * detects when new games or updates are published, and allows administrators to
- * install or update games with 1-click directly from GitHub assets.
+ * Automatically inspects GitHub Tags and Releases (e.g. minesweeper-arcade-v1.3.5, mahjong-v1.8.0),
+ * detects when new games or updates are published, downloads GitHub's auto-generated release zip,
+ * and extracts the corresponding game folder into wp-content/uploads/pointnet-games/{slug}/.
+ *
+ * No manual zipping or packages folder required!
  *
  * @package PointNet Games
  */
@@ -53,12 +55,7 @@ class PointNet_Games_Game_Catalog {
 	}
 
 	/**
-	 * Fetch all available games by inspecting GitHub Releases and fallback manifest.
-	 *
-	 * Matches tags like:
-	 *   - mahjong-v1.8.0 or mahjong-1.8.0
-	 *   - minesweeper-arcade-v1.3.5
-	 * Or releases containing asset zips like mahjong.zip or minesweeper-arcade.zip.
+	 * Fetch all available games by inspecting GitHub Tags, Releases and fallback catalog.
 	 *
 	 * @param bool $force_refresh Skip cache when true.
 	 * @return array Array of game objects.
@@ -83,17 +80,26 @@ class PointNet_Games_Game_Catalog {
 	}
 
 	/**
-	 * Query GitHub Releases API to discover games and versions.
+	 * Query GitHub Tags & Releases API to discover games, versions and auto-generated zips.
 	 *
 	 * @return array
 	 */
 	private static function fetch_games_from_github() {
 		$repo       = self::get_repo();
-		$api_url    = 'https://api.github.com/repos/' . $repo . '/releases';
 		$user_agent = 'WordPress/' . get_bloginfo( 'version' ) . '; PointNetGames/' . POINTNET_GAMES_VERSION;
 
-		$response = wp_remote_get(
-			$api_url,
+		$games_by_slug = array();
+
+		// Start with known starter definitions so descriptions and names are complete.
+		$known = self::get_fallback_catalog();
+		foreach ( $known as $k ) {
+			$games_by_slug[ $k['slug'] ] = $k;
+		}
+
+		// 1. Check Git Tags from GitHub API.
+		$tags_url  = 'https://api.github.com/repos/' . $repo . '/tags?per_page=100';
+		$tags_res  = wp_remote_get(
+			$tags_url,
 			array(
 				'timeout'    => 12,
 				'user-agent' => $user_agent,
@@ -101,43 +107,19 @@ class PointNet_Games_Game_Catalog {
 			)
 		);
 
-		$games_by_slug = array();
+		if ( ! is_wp_error( $tags_res ) && 200 === wp_remote_retrieve_response_code( $tags_res ) ) {
+			$tags = json_decode( wp_remote_retrieve_body( $tags_res ), true );
+			if ( is_array( $tags ) ) {
+				foreach ( $tags as $tag_item ) {
+					$tag_name = $tag_item['name'] ?? '';
 
-		// Start with known starter definitions so descriptions and names are beautiful.
-		$known = self::get_fallback_catalog();
-		foreach ( $known as $k ) {
-			$games_by_slug[ $k['slug'] ] = $k;
-		}
-
-		if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
-			$releases = json_decode( wp_remote_retrieve_body( $response ), true );
-			if ( is_array( $releases ) ) {
-				foreach ( $releases as $rel ) {
-					if ( ! empty( $rel['draft'] ) ) {
-						continue;
-					}
-
-					$tag = $rel['tag_name'] ?? '';
-
-					// Case 1: Tag formatted as {slug}-v{version} (e.g. mahjong-v1.8.0)
-					if ( preg_match( '/^([a-z0-9\-_]+)-v?([0-9]+\.[0-9]+(?:\.[0-9]+)?.*)$/i', $tag, $m ) ) {
+					// Tag pattern: {slug}-v{version} (e.g. minesweeper-arcade-v1.3.5 or mahjong-v1.8.0).
+					if ( preg_match( '/^([a-z0-9\-_]+)-v?([0-9]+\.[0-9]+(?:\.[0-9]+)?.*)$/i', $tag_name, $m ) ) {
 						$slug    = sanitize_title( $m[1] );
 						$version = $m[2];
 
-						// Find zip asset matching the slug.
-						$download_url = '';
-						if ( ! empty( $rel['assets'] ) && is_array( $rel['assets'] ) ) {
-							foreach ( $rel['assets'] as $asset ) {
-								if ( preg_match( '/' . preg_quote( $slug, '/' ) . '.*\.zip$/i', $asset['name'] ) ) {
-									$download_url = $asset['browser_download_url'];
-									break;
-								}
-							}
-						}
-
-						if ( empty( $download_url ) && ! empty( $rel['zipball_url'] ) ) {
-							$download_url = $rel['zipball_url'];
-						}
+						// GitHub auto-generates zip archive on the fly for every tag!
+						$zip_url = 'https://github.com/' . $repo . '/archive/refs/tags/' . rawurlencode( $tag_name ) . '.zip';
 
 						if ( ! isset( $games_by_slug[ $slug ] ) ) {
 							$games_by_slug[ $slug ] = array(
@@ -145,30 +127,19 @@ class PointNet_Games_Game_Catalog {
 								'name'         => ucwords( str_replace( array( '-', '_' ), ' ', $slug ) ),
 								'version'      => $version,
 								'author'       => 'PointNet Games',
-								'description'  => $rel['body'] ? wp_strip_all_tags( $rel['body'] ) : __( 'Arcade game available on GitHub.', 'pointnet-games' ),
-								'download_url' => $download_url,
+								'description'  => sprintf(
+									/* translators: %s: game name */
+									__( 'Arcade game "%s" from official PointNet Games GitHub catalog.', 'pointnet-games' ),
+									ucwords( str_replace( array( '-', '_' ), ' ', $slug ) )
+								),
+								'download_url' => $zip_url,
 								'badge'        => 'Release',
 							);
 						} else {
-							// Check if this release is newer.
-							if ( version_compare( $version, $games_by_slug[ $slug ]['version'], '>' ) ) {
-								$games_by_slug[ $slug ]['version'] = $version;
-								if ( ! empty( $download_url ) ) {
-									$games_by_slug[ $slug ]['download_url'] = $download_url;
-								}
-							}
-						}
-					}
-
-					// Case 2: Release contains asset zips matching games (e.g. mahjong.zip or minesweeper-arcade.zip)
-					if ( ! empty( $rel['assets'] ) && is_array( $rel['assets'] ) ) {
-						foreach ( $rel['assets'] as $asset ) {
-							$asset_name = $asset['name'];
-							if ( preg_match( '/^([a-z0-9\-_]+)\.zip$/i', $asset_name, $am ) ) {
-								$asset_slug = sanitize_title( $am[1] );
-								if ( isset( $games_by_slug[ $asset_slug ] ) ) {
-									$games_by_slug[ $asset_slug ]['download_url'] = $asset['browser_download_url'];
-								}
+							// Check if this tag represents a newer version.
+							if ( version_compare( $version, $games_by_slug[ $slug ]['version'], '>=' ) ) {
+								$games_by_slug[ $slug ]['version']      = $version;
+								$games_by_slug[ $slug ]['download_url'] = $zip_url;
 							}
 						}
 					}
@@ -185,6 +156,7 @@ class PointNet_Games_Game_Catalog {
 	 * @return array
 	 */
 	private static function get_fallback_catalog() {
+		$repo = self::get_repo();
 		return array(
 			array(
 				'slug'         => 'minesweeper-arcade',
@@ -193,7 +165,7 @@ class PointNet_Games_Game_Catalog {
 				'author'       => 'PointNet Games',
 				'description'  => 'Minesweeper with dual modes: Classic (Easy, Medium, Hard, Extreme) and progressive Scalata reaching Extreme 32x18. Minimalist Clean One aesthetics, smart chording, pan & pinch-to-zoom, and organic tactile sound.',
 				'categories'   => array( 'puzzle', 'classic', 'logic', 'arcade' ),
-				'download_url' => 'https://raw.githubusercontent.com/' . self::get_repo() . '/main/packages/minesweeper-arcade.zip',
+				'download_url' => 'https://github.com/' . $repo . '/archive/refs/tags/minesweeper-arcade-v1.3.5.zip',
 				'badge'        => 'Popular',
 			),
 		);
@@ -352,10 +324,14 @@ class PointNet_Games_Game_Catalog {
 	}
 
 	/**
-	 * Download, validate and extract a game zip package.
+	 * Download, validate and extract a game zip package from GitHub.
+	 *
+	 * GitHub tag archives contain an outer folder (e.g. repo-tag/games/{slug}/).
+	 * This method intelligently locates the game folder inside the archive
+	 * and places its contents directly into wp-content/uploads/pointnet-games/{slug}/.
 	 *
 	 * Security validations:
-	 * - Zip must contain manifest.json and index.html.
+	 * - Target directory must contain manifest.json and index.html.
 	 * - Zip must NOT contain any executable PHP/Phar/Shell scripts.
 	 *
 	 * @param string $zip_url URL to the zip archive.
@@ -373,13 +349,14 @@ class PointNet_Games_Game_Catalog {
 			return $temp_file;
 		}
 
-		// Inspect zip contents with ZipArchive before extracting.
+		// Temporary extraction directory.
+		$temp_extract_dir = get_temp_dir() . 'pointnet_extract_' . uniqid() . '/';
+		wp_mkdir_p( $temp_extract_dir );
+
+		// Security scan and extraction.
 		if ( class_exists( 'ZipArchive' ) ) {
 			$zip = new ZipArchive();
 			if ( true === $zip->open( $temp_file ) ) {
-				$has_manifest = false;
-				$has_index    = false;
-
 				for ( $i = 0; $i < $zip->numFiles; $i++ ) {
 					$filename = $zip->getNameIndex( $i );
 					$ext      = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
@@ -393,39 +370,72 @@ class PointNet_Games_Game_Catalog {
 							__( 'Security violation: The package contains server-executable scripts and was rejected.', 'pointnet-games' )
 						);
 					}
-
-					if ( basename( $filename ) === 'manifest.json' ) {
-						$has_manifest = true;
-					}
-					if ( basename( $filename ) === 'index.html' ) {
-						$has_index = true;
-					}
 				}
 				$zip->close();
-
-				if ( ! $has_manifest || ! $has_index ) {
-					@unlink( $temp_file );
-					return new WP_Error(
-						'invalid_game_structure',
-						__( 'Invalid package: The game must contain manifest.json and index.html.', 'pointnet-games' )
-					);
-				}
 			}
 		}
 
-		// Destination path: wp-content/uploads/pointnet-games/{slug}/
-		$target_dir = trailingslashit( PointNet_Games_Game_Registry::get_installed_games_dir() ) . $slug;
-
-		if ( ! file_exists( $target_dir ) ) {
-			wp_mkdir_p( $target_dir );
-		}
-
-		$unzip_result = unzip_file( $temp_file, $target_dir );
+		$unzip_result = unzip_file( $temp_file, $temp_extract_dir );
 		@unlink( $temp_file );
 
 		if ( is_wp_error( $unzip_result ) ) {
 			return $unzip_result;
 		}
+
+		// Find the game folder inside the extracted structure.
+		// It could be either at root, or inside {outer_folder}/games/{slug}/, or {outer_folder}/{slug}/.
+		$game_source_dir = null;
+		$iterator = new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator( $temp_extract_dir, FilesystemIterator::SKIP_DOTS ),
+			RecursiveIteratorIterator::SELF_FIRST
+		);
+
+		foreach ( $iterator as $item ) {
+			if ( $item->isDir() && ( basename( $item->getPathname() ) === $slug ) ) {
+				if ( file_exists( $item->getPathname() . '/manifest.json' ) && file_exists( $item->getPathname() . '/index.html' ) ) {
+					$game_source_dir = $item->getPathname();
+					break;
+				}
+			}
+		}
+
+		// If not found in a named subfolder, check if the root itself is the game.
+		if ( ! $game_source_dir ) {
+			if ( file_exists( $temp_extract_dir . 'manifest.json' ) && file_exists( $temp_extract_dir . 'index.html' ) ) {
+				$game_source_dir = $temp_extract_dir;
+			}
+		}
+
+		if ( ! $game_source_dir ) {
+			// Cleanup temp dir.
+			global $wp_filesystem;
+			WP_Filesystem();
+			$wp_filesystem->delete( $temp_extract_dir, true );
+			return new WP_Error(
+				'invalid_game_structure',
+				__( 'Invalid package: Could not locate game folder containing manifest.json and index.html.', 'pointnet-games' )
+			);
+		}
+
+		// Destination path: wp-content/uploads/pointnet-games/{slug}/.
+		$target_dir = trailingslashit( PointNet_Games_Game_Registry::get_installed_games_dir() ) . $slug;
+
+		global $wp_filesystem;
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+		WP_Filesystem();
+
+		if ( is_dir( $target_dir ) ) {
+			$wp_filesystem->delete( $target_dir, true );
+		}
+		wp_mkdir_p( $target_dir );
+
+		// Copy files from game source to target destination.
+		copy_dir( $game_source_dir, $target_dir );
+
+		// Delete temporary extract directory.
+		$wp_filesystem->delete( $temp_extract_dir, true );
 
 		return true;
 	}
