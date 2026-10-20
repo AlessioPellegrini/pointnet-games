@@ -270,58 +270,66 @@ class PointNet_Games_Admin {
 
 			<?php self::render_donation_box(); ?>
 
-			<div class="pointnet-games-catalog-grid">
-				<?php foreach ( $catalog as $game ) :
-					$slug          = sanitize_title( $game['slug'] );
-					$is_installed  = isset( $installed[ $slug ] );
-					$local_version = $is_installed ? $installed[ $slug ]['version'] : '';
-					$has_update    = $is_installed && version_compare( $game['version'], $local_version, '>' );
-					$badge_label   = isset( $game['badge'] ) ? $game['badge'] : '';
-				?>
-					<div class="pointnet-game-card">
-						<div class="pointnet-game-card-header">
-							<div>
-								<h3 class="pointnet-game-card-title"><?php echo esc_html( $game['name'] ); ?></h3>
-								<span style="font-size:12px; color:#646970;"><?php echo esc_html( $game['author'] ); ?></span>
-							</div>
-							<?php if ( $has_update ) : ?>
-								<span class="pointnet-game-badge update"><?php esc_html_e( 'Aggiornamento', 'pointnet-games' ); ?></span>
-							<?php elseif ( $is_installed ) : ?>
-								<span class="pointnet-game-badge installed"><?php esc_html_e( 'Installato', 'pointnet-games' ); ?></span>
-							<?php elseif ( ! empty( $badge_label ) ) : ?>
-								<span class="pointnet-game-badge popular"><?php echo esc_html( $badge_label ); ?></span>
-							<?php endif; ?>
-						</div>
-						<div class="pointnet-game-card-body">
-							<p class="pointnet-game-card-desc"><?php echo esc_html( $game['description'] ); ?></p>
-							<div class="pointnet-game-meta-row">
-								<span><strong><?php esc_html_e( 'Versione:', 'pointnet-games' ); ?></strong> v<?php echo esc_html( $game['version'] ); ?></span>
-								<?php if ( $is_installed ) : ?>
-									<span><strong><?php esc_html_e( 'Attuale:', 'pointnet-games' ); ?></strong> v<?php echo esc_html( $local_version ); ?></span>
-								<?php endif; ?>
-							</div>
-						</div>
-						<div class="pointnet-game-card-footer">
-							<span style="font-size:12px; color:#646970;"><code><?php echo esc_html( $slug ); ?></code></span>
-							<div class="actions">
+			<?php if ( empty( $catalog ) ) : ?>
+				<div class="notice notice-info" style="margin-top:20px; padding:15px;">
+					<p style="font-size:14px; margin:0;">
+						<?php esc_html_e( 'Nessuna release di giochi trovata su GitHub. Pubblica una release nel repository del catalogo per farla comparire qui automaticamente.', 'pointnet-games' ); ?>
+					</p>
+				</div>
+			<?php else : ?>
+				<div class="pointnet-games-catalog-grid">
+					<?php foreach ( $catalog as $game ) :
+						$slug          = sanitize_title( $game['slug'] );
+						$is_installed  = isset( $installed[ $slug ] );
+						$local_version = $is_installed ? $installed[ $slug ]['version'] : '';
+						$has_update    = $is_installed && version_compare( $game['version'], $local_version, '>' );
+						$badge_label   = isset( $game['badge'] ) ? $game['badge'] : '';
+					?>
+						<div class="pointnet-game-card">
+							<div class="pointnet-game-card-header">
+								<div>
+									<h3 class="pointnet-game-card-title"><?php echo esc_html( $game['name'] ); ?></h3>
+									<span style="font-size:12px; color:#646970;"><?php echo esc_html( $game['author'] ); ?></span>
+								</div>
 								<?php if ( $has_update ) : ?>
-									<button type="button" class="button button-primary pointnet-game-update-btn" data-slug="<?php echo esc_attr( $slug ); ?>">
-										🔄 <?php esc_html_e( 'Aggiorna', 'pointnet-games' ); ?>
-									</button>
+									<span class="pointnet-game-badge update"><?php esc_html_e( 'Aggiornamento', 'pointnet-games' ); ?></span>
 								<?php elseif ( $is_installed ) : ?>
-									<button type="button" class="button button-secondary pointnet-game-uninstall-btn" data-slug="<?php echo esc_attr( $slug ); ?>">
-										🗑️ <?php esc_html_e( 'Disinstalla', 'pointnet-games' ); ?>
-									</button>
-								<?php else : ?>
-									<button type="button" class="button button-primary pointnet-game-install-btn" data-slug="<?php echo esc_attr( $slug ); ?>">
-										⬇️ <?php esc_html_e( 'Installa (1-Click)', 'pointnet-games' ); ?>
-									</button>
+									<span class="pointnet-game-badge installed"><?php esc_html_e( 'Installato', 'pointnet-games' ); ?></span>
+								<?php elseif ( ! empty( $badge_label ) ) : ?>
+									<span class="pointnet-game-badge popular"><?php echo esc_html( $badge_label ); ?></span>
 								<?php endif; ?>
 							</div>
+							<div class="pointnet-game-card-body">
+								<p class="pointnet-game-card-desc"><?php echo esc_html( $game['description'] ); ?></p>
+								<div class="pointnet-game-meta-row">
+									<span><strong><?php esc_html_e( 'Versione:', 'pointnet-games' ); ?></strong> v<?php echo esc_html( $game['version'] ); ?></span>
+									<?php if ( $is_installed ) : ?>
+										<span><strong><?php esc_html_e( 'Attuale:', 'pointnet-games' ); ?></strong> v<?php echo esc_html( $local_version ); ?></span>
+									<?php endif; ?>
+								</div>
+							</div>
+							<div class="pointnet-game-card-footer">
+								<span style="font-size:12px; color:#646970;"><code><?php echo esc_html( $slug ); ?></code></span>
+								<div class="actions">
+									<?php if ( $has_update ) : ?>
+										<button type="button" class="button button-primary pointnet-game-update-btn" data-slug="<?php echo esc_attr( $slug ); ?>">
+											🔄 <?php esc_html_e( 'Aggiorna', 'pointnet-games' ); ?>
+										</button>
+									<?php elseif ( $is_installed ) : ?>
+										<button type="button" class="button button-secondary pointnet-game-uninstall-btn" data-slug="<?php echo esc_attr( $slug ); ?>">
+											🗑️ <?php esc_html_e( 'Disinstalla', 'pointnet-games' ); ?>
+										</button>
+									<?php else : ?>
+										<button type="button" class="button button-primary pointnet-game-install-btn" data-slug="<?php echo esc_attr( $slug ); ?>">
+											⬇️ <?php esc_html_e( 'Installa (1-Click)', 'pointnet-games' ); ?>
+										</button>
+									<?php endif; ?>
+								</div>
+							</div>
 						</div>
-					</div>
-				<?php endforeach; ?>
-			</div>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 	}

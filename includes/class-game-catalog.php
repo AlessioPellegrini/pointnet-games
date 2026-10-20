@@ -70,17 +70,15 @@ class PointNet_Games_Game_Catalog {
 
 		$games = self::fetch_games_from_github();
 
-		if ( empty( $games ) ) {
-			$games = self::get_fallback_catalog();
-		}
-
 		set_transient( self::TRANSIENT_KEY, $games, self::CACHE_TTL );
 
 		return $games;
 	}
 
 	/**
-	 * Query GitHub Tags & Releases API to discover games, versions and auto-generated zips.
+	 * Query GitHub Releases API to discover games and versions.
+	 *
+	 * Shows games ONLY if a formal GitHub Release is published!
 	 *
 	 * @return array
 	 */
@@ -89,12 +87,6 @@ class PointNet_Games_Game_Catalog {
 		$user_agent = 'WordPress/' . get_bloginfo( 'version' ) . '; PointNetGames/' . POINTNET_GAMES_VERSION;
 
 		$games_by_slug = array();
-
-		// Start with known starter definitions so descriptions and names are complete.
-		$known = self::get_fallback_catalog();
-		foreach ( $known as $k ) {
-			$games_by_slug[ $k['slug'] ] = $k;
-		}
 
 		// 1. Check official formal GitHub Releases.
 		$rel_url  = 'https://api.github.com/repos/' . $repo . '/releases?per_page=100';
@@ -169,27 +161,6 @@ class PointNet_Games_Game_Catalog {
 		}
 
 		return array_values( $games_by_slug );
-	}
-
-	/**
-	 * Fallback starter catalog when GitHub API is unreachable or rate-limited.
-	 *
-	 * @return array
-	 */
-	private static function get_fallback_catalog() {
-		$repo = self::get_repo();
-		return array(
-			array(
-				'slug'         => 'minesweeper-arcade',
-				'name'         => 'Minesweeper',
-				'version'      => '1.3.5',
-				'author'       => 'PointNet Games',
-				'description'  => 'Minesweeper with dual modes: Classic (Easy, Medium, Hard, Extreme) and progressive Scalata reaching Extreme 32x18. Minimalist Clean One aesthetics, smart chording, pan & pinch-to-zoom, and organic tactile sound.',
-				'categories'   => array( 'puzzle', 'classic', 'logic', 'arcade' ),
-				'download_url' => 'https://github.com/' . $repo . '/archive/refs/tags/minesweeper-arcade-v1.3.5.zip',
-				'badge'        => 'Popular',
-			),
-		);
 	}
 
 	/**
