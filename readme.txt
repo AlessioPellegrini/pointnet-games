@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,10 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.4.2 =
+* Catalog Engine: enhanced GitHub Release synchronization and game extraction handling for external catalog repositories.
+* Maintenance: documentation updates and catalog compatibility verification.
 
 = 1.4.1 =
 * Release-Only Discovery: catalog now filters games strictly by published official GitHub Releases (drafts and untagged commits are safely ignored).
@@ -312,6 +316,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.4.2 =
+Recommended update: incorporates enhanced GitHub Release synchronization and game extraction handling for the external catalog.
 
 = 1.4.1 =
 Recommended update: connects to official GitHub Releases for games catalog, introduces zero-manual-zip extraction and provides granular uninstall data protection options.

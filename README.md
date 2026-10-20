@@ -6,7 +6,7 @@ Arcade gaming platform & 1-Click Game Catalog for WordPress with scores for regi
 **Tags:** games, arcade, leaderboard, highscore, puzzle  
 **Requires at least:** WordPress 6.2  
 **Tested up to:** 7.1  
-**Stable tag:** 1.4.1  
+**Stable tag:** 1.4.2  
 **Requires PHP:** 8.0+  
 **Donate link:** [https://ko-fi.com/pointnet](https://ko-fi.com/pointnet)  
 **License:** GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)  
