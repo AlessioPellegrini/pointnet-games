@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.2
 Requires PHP: 8.0
-Stable tag: 1.3.10
+Stable tag: 1.3.11
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,6 +129,10 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.3.11 =
+* Compatibility: dynamically match active WordPress version in the auto-updater payload and bump "Tested up to" to 7.2 to eliminate false-positive compatibility warnings on WordPress 7.1+.
+* Requirements: set "Requires at least" to WordPress 6.2+.
 
 = 1.3.10 =
 * Security & Output Escaping: enforced `wp_kses_post` on automatic author records injection in Game Loader, satisfying Plugin Check security rules.
@@ -290,6 +294,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.3.11 =
+Recommended update: eliminates the false-positive "This plugin has not been tested with your current version of WordPress" warning.
 
 = 1.3.10 =
 Recommended security & quality update: enforces output escaping on user records, hardens client-side DOM manipulation, cleans filesystem scanning operators, and aligns translation placeholder notes.
