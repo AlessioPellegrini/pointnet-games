@@ -353,7 +353,7 @@ class PointNet_Games_Game_Catalog {
 		$temp_extract_dir = get_temp_dir() . 'pointnet_extract_' . uniqid() . '/';
 		wp_mkdir_p( $temp_extract_dir );
 
-		// Security scan and extraction.
+		// Security scan: inspect files within the target game directory.
 		if ( class_exists( 'ZipArchive' ) ) {
 			$zip = new ZipArchive();
 			if ( true === $zip->open( $temp_file ) ) {
@@ -361,13 +361,19 @@ class PointNet_Games_Game_Catalog {
 					$filename = $zip->getNameIndex( $i );
 					$ext      = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
 
-					// Security check: reject any server-executable code.
-					if ( in_array( $ext, array( 'php', 'phtml', 'phar', 'sh', 'py', 'pl', 'cgi', 'exe' ), true ) ) {
+					// Only inspect files belonging to the target game directory.
+					$is_in_game_dir = false;
+					if ( false !== strpos( $filename, '/' . $slug . '/' ) || 0 === strpos( $filename, $slug . '/' ) ) {
+						$is_in_game_dir = true;
+					}
+
+					// Reject any server-executable script inside the game folder.
+					if ( $is_in_game_dir && in_array( $ext, array( 'php', 'phtml', 'phar', 'sh', 'py', 'pl', 'cgi', 'exe' ), true ) ) {
 						$zip->close();
 						@unlink( $temp_file );
 						return new WP_Error(
 							'unsafe_file_detected',
-							__( 'Security violation: The package contains server-executable scripts and was rejected.', 'pointnet-games' )
+							__( 'Security violation: The game package contains server-executable scripts and was rejected.', 'pointnet-games' )
 						);
 					}
 				}
