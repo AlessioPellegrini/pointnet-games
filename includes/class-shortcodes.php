@@ -81,6 +81,7 @@ class PointNet_Games_Shortcodes {
 		$atts           = shortcode_atts(
 			array(
 				'game_id'    => 0,
+				'slug'       => '',
 				'limit'      => 10,
 				'global'     => $default_global,
 				'show_meta'  => 1,
@@ -101,8 +102,15 @@ class PointNet_Games_Shortcodes {
 		}
 
 		$game_id = absint( $atts['game_id'] );
+		if ( ! $game_id && ! empty( $atts['slug'] ) ) {
+			$found = PointNet_Games_Game_Registry::get_game_by_slug( sanitize_title( $atts['slug'] ) );
+			if ( $found ) {
+				$game_id = $found->ID;
+			}
+		}
+
 		if ( ! $game_id ) {
-			return '<p class="pointnet-games-error">' . esc_html__( 'Specify a game_id for the leaderboard.', 'pointnet-games' ) . '</p>';
+			return '<p class="pointnet-games-error">' . esc_html__( 'Specify a game_id or slug for the leaderboard.', 'pointnet-games' ) . '</p>';
 		}
 
 		// Retrieve game manifest to inspect available difficulties.
@@ -240,23 +248,41 @@ class PointNet_Games_Shortcodes {
 				$meta_cell = '';
 				if ( ! empty( $entry['meta'] ) && is_array( $entry['meta'] ) ) {
 					$meta_parts    = array();
-					$excluded_keys = array( 'difficulty', 'label', 'session_token', 'time_seconds', 'level_time_seconds', 'level_reached', 'won' );
+					$meta          = $entry['meta'];
+					$diff          = $meta['difficulty'] ?? '';
 
-					foreach ( $entry['meta'] as $meta_key => $meta_value ) {
-						if ( in_array( strtolower( (string) $meta_key ), $excluded_keys, true ) ) {
-							continue;
-						}
-						if ( is_scalar( $meta_value ) ) {
-							$label        = ucfirst( str_replace( '_', ' ', (string) $meta_key ) );
-							$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html( $label ) . ':</strong> ' . esc_html( (string) $meta_value ) . '</span>';
-						}
+					// 1. Level formatting (support 'level', 'livello', or 'level_reached').
+					$lvl = $meta['level'] ?? ( $meta['livello'] ?? ( $meta['level_reached'] ?? '' ) );
+					if ( '' !== (string) $lvl ) {
+						$lvl_str = is_numeric( $lvl ) && 'arcade' === $diff ? $lvl . ' / 18' : (string) $lvl;
+						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Livello', 'pointnet-games' ) . ':</strong> ' . esc_html( $lvl_str ) . '</span>';
 					}
 
-					if ( empty( $meta_parts ) ) {
-						foreach ( $entry['meta'] as $meta_key => $meta_value ) {
-							if ( is_scalar( $meta_value ) && ! in_array( strtolower( (string) $meta_key ), array( 'session_token' ), true ) ) {
-								$meta_parts[] = '<span class="png-meta-item">' . esc_html( (string) $meta_key ) . ': ' . esc_html( (string) $meta_value ) . '</span>';
-							}
+					// 2. Time formatting (support 'time', 'tempo', or format 'time_seconds').
+					$time_val = $meta['time'] ?? ( $meta['tempo'] ?? '' );
+					if ( empty( $time_val ) && isset( $meta['time_seconds'] ) && is_numeric( $meta['time_seconds'] ) ) {
+						$sec      = (int) $meta['time_seconds'];
+						$time_val = sprintf( '%02d:%02d', floor( $sec / 60 ), $sec % 60 );
+					}
+					if ( ! empty( $time_val ) ) {
+						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Tempo', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $time_val ) . '</span>';
+					}
+
+					// 3. Outcome / Esito (if present).
+					$outcome = $meta['outcome'] ?? ( $meta['esito'] ?? '' );
+					if ( ! empty( $outcome ) ) {
+						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Esito', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $outcome ) . '</span>';
+					}
+
+					// 4. Other extra keys.
+					$handled_keys = array( 'difficulty', 'label', 'session_token', 'level', 'livello', 'level_reached', 'time', 'tempo', 'time_seconds', 'level_time_seconds', 'outcome', 'esito', 'won' );
+					foreach ( $meta as $k => $v ) {
+						if ( in_array( strtolower( (string) $k ), $handled_keys, true ) ) {
+							continue;
+						}
+						if ( is_scalar( $v ) && '' !== (string) $v ) {
+							$label        = ucfirst( str_replace( '_', ' ', (string) $k ) );
+							$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html( $label ) . ':</strong> ' . esc_html( (string) $v ) . '</span>';
 						}
 					}
 

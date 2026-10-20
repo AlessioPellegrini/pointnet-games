@@ -611,7 +611,7 @@ class PointNet_Games_API {
 	 * @return array
 	 */
 	private function sanitize_meta( $meta ) {
-		$allowed_keys = array( 'difficulty', 'level', 'time_seconds', 'time', 'moves', 'combo', 'hints', 'shuffle' );
+		$allowed_keys = array( 'difficulty', 'level', 'livello', 'level_reached', 'time_seconds', 'time', 'tempo', 'moves', 'combo', 'hints', 'shuffle', 'outcome', 'esito', 'won' );
 		$clean        = array();
 
 		foreach ( $meta as $key => $value ) {
