@@ -4,7 +4,7 @@
  * Plugin URI:        https://wpgames.pointnet.it/
  * Description:       Arcade games platform for WordPress with scores for registered users, global leaderboards and a standardized API for game developers.
  * Version:           1.3.10
- * Requires at least: 7.0
+ * Requires at least: 6.2
  * Requires PHP:      8.0
  * Author:            PointNet
  * Author URI:        https://www.pointnet.it/

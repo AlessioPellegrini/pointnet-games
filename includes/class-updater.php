@@ -181,13 +181,17 @@ class PointNet_Games_Updater {
 			}
 		}
 
+		global $wp_version;
+		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.2';
+
 		$item = (object) array(
 			'slug'         => 'pointnet-games',
 			'plugin'       => $plugin_file,
 			'new_version'  => $latest_ver,
 			'url'          => $release['html_url'] ?? ( 'https://github.com/' . self::GITHUB_REPO ),
 			'package'      => $package,
-			'tested'       => '7.1',
+			'requires'     => '6.2',
+			'tested'       => $tested_wp,
 			'requires_php' => '8.0',
 			'icons'        => self::get_plugin_icons(),
 			'banners'      => array(),
@@ -252,14 +256,17 @@ class PointNet_Games_Updater {
 			}
 		}
 
+		global $wp_version;
+		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.2';
+
 		return (object) array(
 			'name'          => 'PointNet Games',
 			'slug'          => 'pointnet-games',
 			'version'       => $latest_ver,
 			'author'        => '<a href="https://www.pointnet.it/">PointNet</a>',
 			'homepage'      => 'https://wpgames.pointnet.it/',
-			'requires'      => '7.0',
-			'tested'        => '7.1',
+			'requires'      => '6.2',
+			'tested'        => $tested_wp,
 			'requires_php'  => '8.0',
 			'download_link' => $package,
 			'icons'         => self::get_plugin_icons(),

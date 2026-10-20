@@ -2,8 +2,8 @@
 Contributors: pointnet
 Donate link: https://www.pointnet.it/
 Tags: games, arcade, leaderboard, highscore, puzzle
-Requires at least: 7.0
-Tested up to: 7.1
+Requires at least: 6.2
+Tested up to: 7.2
 Requires PHP: 8.0
 Stable tag: 1.3.10
 License: GPLv2 or later
