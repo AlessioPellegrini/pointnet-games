@@ -267,24 +267,41 @@ class PointNet_Games_Game_Loader {
 	 * @return string
 	 */
 	public static function get_game_iframe_url( $game_id, $game_slug ) {
-		// Prefer the registered relative dir from the registry.
-		$registered_dir = get_post_meta( $game_id, '_pointnet_games_dir', true );
-		if ( $registered_dir ) {
-			$direct_file = POINTNET_GAMES_PLUGIN_DIR . $registered_dir . 'index.html';
-			if ( file_exists( $direct_file ) ) {
-				$version = self::get_game_dir_mtime( POINTNET_GAMES_PLUGIN_DIR . $registered_dir );
-				return POINTNET_GAMES_PLUGIN_URL . $registered_dir . 'index.html?v=' . $version;
+		// 1. Check stored absolute path meta from registry.
+		$abs_path = get_post_meta( $game_id, '_pointnet_games_abs_path', true );
+		if ( ! empty( $abs_path ) && file_exists( trailingslashit( $abs_path ) . 'index.html' ) ) {
+			$upload_dir = wp_upload_dir();
+			$version    = self::get_game_dir_mtime( $abs_path );
+
+			// Check if inside uploads directory.
+			if ( strpos( $abs_path, $upload_dir['basedir'] ) === 0 ) {
+				$rel = str_replace( trailingslashit( $upload_dir['basedir'] ), '', trailingslashit( $abs_path ) );
+				return trailingslashit( $upload_dir['baseurl'] ) . $rel . 'index.html?v=' . $version;
+			}
+
+			// Check if inside plugin directory.
+			if ( strpos( $abs_path, POINTNET_GAMES_PLUGIN_DIR ) === 0 ) {
+				$rel = str_replace( trailingslashit( POINTNET_GAMES_PLUGIN_DIR ), '', trailingslashit( $abs_path ) );
+				return trailingslashit( POINTNET_GAMES_PLUGIN_URL ) . $rel . 'index.html?v=' . $version;
 			}
 		}
 
-		// Try direct file first (games/{slug}/index.html).
+		// 2. Check default uploads location: uploads/pointnet-games/{slug}/index.html.
+		$upload_dir   = wp_upload_dir();
+		$uploads_game = trailingslashit( $upload_dir['basedir'] ) . 'pointnet-games/' . $game_slug . '/index.html';
+		if ( file_exists( $uploads_game ) ) {
+			$version = self::get_game_dir_mtime( dirname( $uploads_game ) );
+			return trailingslashit( $upload_dir['baseurl'] ) . 'pointnet-games/' . $game_slug . '/index.html?v=' . $version;
+		}
+
+		// 3. Fallback to plugin directory (if bundled).
 		$direct_file = POINTNET_GAMES_PLUGIN_DIR . 'games/' . $game_slug . '/index.html';
 		if ( file_exists( $direct_file ) ) {
 			$version = self::get_game_dir_mtime( POINTNET_GAMES_PLUGIN_DIR . 'games/' . $game_slug );
 			return POINTNET_GAMES_PLUGIN_URL . 'games/' . $game_slug . '/index.html?v=' . $version;
 		}
 
-		// Fallback to REST endpoint that serves the game HTML.
+		// 4. Fallback to REST endpoint that serves the game HTML.
 		return rest_url( POINTNET_GAMES_REST_NAMESPACE . '/game-iframe/' . $game_id );
 	}
 }

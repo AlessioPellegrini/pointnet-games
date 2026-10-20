@@ -36,12 +36,12 @@ Inspired by the minimalist aesthetics and tactile responsiveness of *Minesweeper
 - **🎶 Organic Sound Design**: Acoustic drop/wood clicks, pentatonic kalimba chords for numbers, snap for flags, and sub-bass boom thuds.
 - **☀️ High-Contrast OLED Outdoors**: 1px perimetral edge definition with double inset highlight for flawless sunlight legibility.
 
-### 2. 🀄 Mahjong Arcade (v1.7.0)
+### 2. 🀄 Mahjong Arcade (v1.8.0)
 Classic Mahjong Solitaire tile-matching with an arcade twist, dual modes, and 100% mathematically guaranteed solvability:
-- **330 Progressive Levels**: Curated progression spanning 46 unique layout figures (dragon, turtle, pagoda, butterfly, temple, etc.).
-- **Dual Gameplay Modes**:
-  - **Arcade Mode**: 4-slot staging box, face-down memory tiles, drag-to-peek, and blackout challenge levels.
-  - **Classic Mode (Boss Challenges every 10 levels)**: Traditional pair-matching with 144 Riichi SVG tiles and flower/season wildcards.
+- **Dual Gameplay Modes & Standalone Free Play**:
+  - **🏆 Scalata Arcade (330 Progressive Levels)**: 4-slot staging box, memory face-down tiles, drag-to-peek, blackout challenge levels, Shield Wards (levels ending in 7), Conveyor Rings (levels ending in 5), and rotating 144-tile Classic Boss Challenges (levels ending in 0).
+  - **🀄 Free Classic Mode (144-tile Traditional Standalone)**: instant single-game play on the 4 grand traditional 144-tile layouts (Turtle, Ziggurat, Imperial Fortress, Spider) with speedrun clock and dedicated leaderboard.
+- **4 Iconic 144-Tile Traditional Layouts**: Turtle (Shanghai), Grand Ziggurat (5-tier pyramid), Imperial Fortress (4 towers & central keep), and The Spider (dorsal carapace with 8 articulated legs).
 - **🛡️ Shield Wards Mechanic (Levels ending in 7)**: Mystic central energy barrier defended by perimeter Guardian 🛡️ tiles. Deflection SFX, visual alerts, and shattering animations with bonus points.
 - **🔄 Conveyor Ring Stages (Levels ending in 5)**: Rotating conveyor ribbon boards advancing clockwise with every match.
 - **🎵 PointNetMusicPlayer Jukebox**: Standalone audio player with interactive scrubber seek bar, time indicators, volume card, and dual Zen/Arcade playlists.

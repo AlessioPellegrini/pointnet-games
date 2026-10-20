@@ -1,54 +1,53 @@
 === PointNet Games ===
 Contributors: pointnet
-Donate link: https://www.pointnet.it/
+Donate link: https://ko-fi.com/pointnet
 Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.12
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Arcade game platform for WordPress with scores, leaderboards and a standardized API for game developers.
+Arcade gaming engine for WordPress with highscores, leaderboards, standardized API and a 1-Click Game Catalog.
 
 == Description ==
 
-**PointNet Games** turns your WordPress site into an arcade game platform. Games run in HTML5, Canvas or iframe, and scores are saved to the leaderboard for registered users (using their unique WordPress username). Anonymous players can play freely in casual mode, while registered users can save records and compete in global rankings.
+**PointNet Games** turns your WordPress site into a complete arcade game platform. It provides a lightweight gaming engine with highscores, leaderboards, user arcade records and a **1-Click Game Catalog** to install free games (such as Minesweeper and Mahjong Arcade) directly to your server.
+
+Games run in HTML5, WebAssembly or Canvas inside an isolated sandbox iframe. Scores are safely saved to the leaderboard for registered users (using their WordPress username), while casual visitors can play freely.
 
 = Key Features =
 
+* ✅ **1-Click Game Catalog** — browse, install and update free arcade games with a single tap from the admin dashboard
+* ✅ **Zero-Bloat Core** — ultra-lightweight plugin (<150 KB); install only the games your audience actually plays
+* ✅ **Safe Uploads Storage** — installed games live safely in `wp-content/uploads/pointnet-games/` and are never wiped when WordPress updates the plugin
 * ✅ **Score system** — highscores and progression saved for registered users
 * ✅ **Leaderboards** — per-game, difficulty-specific and global multi-game rankings
 * ✅ **User Profiles & Author Pages** — personal arcade records and KPI stats cards automatically embedded on author pages (/author/...) and via shortcode
-* ✅ **REST API** — standardized endpoints for third-party developers and games
-* ✅ **JavaScript API** — `pointnetGamesAPI` bridge with Promise support to integrate games easily
+* ✅ **REST API & JS API** — standardized `pointnetGamesAPI` bridge for HTML5, WebAssembly, Godot or Unity web exports
 * ✅ **Shortcodes** — `[pointnet_game]`, `[pointnet_game_leaderboard]`, `[pointnet_games_leaderboard]`, `[pointnet_games_list]`, `[pointnet_user_records]`
-* ✅ **Auto-registration** — games in the `games/` folder are registered automatically
 * ✅ **Anti-cheat** — nonces, rate limiting, session tokens, score bounds validation, IP hashing
 * ✅ **Security** — output escaping, input sanitization, capability checks, prepared SQL statements
-* ✅ **Bundled games** — Minesweeper (Classic 4 presets & Scalata 18 levels) & Mahjong Arcade (330 levels, Shield Wards, Conveyor Ring, 144 tiles, Jukebox player)
-* ✅ **Splash screen** — intro screen with a PLAY button and version badge
-* ✅ **Immersive fullscreen CSS** — the game expands to fullscreen when pressing PLAY
-* ✅ **Mobile touch support** — hardware-accelerated pan & pinch-to-zoom (Minesweeper) and responsive touch staging (Mahjong)
-* ✅ **1-Click Native Auto-Updater** — direct updates and core notifications from GitHub releases and tags
+* ✅ **Immersive fullscreen CSS & Mobile Touch** — responsive touch controls and auto-fullscreen
 
 = Security =
 
-PointNet Games follows official WordPress security recommendations:
+PointNet Games strictly follows official WordPress security and plugin guidelines:
 
+* **No server-executable code downloaded** — games are pure client-side HTML5/WASM/JS served in sandboxed iframes
 * **Output escaping** — every output is sanitized with `esc_html()`, `esc_attr()`, `esc_url()`, `esc_attr_e()`
 * **Input sanitization** — all inputs pass through `sanitize_*()`, `absint()`, `sanitize_text_field()`
 * **Nonces** — every write action is protected by a WordPress nonce
 * **Capability checks** — admin operations require `manage_options`
 * **SQL injection** — all queries use `$wpdb->prepare()` with typed placeholders
 * **CSRF** — full protection on admin forms and REST endpoints
-* **Rate limiting** — max N score submissions per minute per player/game
 * **Privacy** — IPs are stored as SHA-256 hashes, never in plain text
 
-= Included Games =
+= Featured Free Games (Available via Catalog) =
 
-* **Minesweeper** — Dual modes: Classic mode with 4 presets (Easy, Medium, Hard, Extreme) inspired by *The Clean One*, and progressive Scalata mode spanning 18 levels. Features hardware-accelerated Pan & Pinch-to-zoom engine, smart chording, organic tactile audio, and high-contrast OLED outdoor legibility.
-* **Mahjong Arcade** — 330 progressive levels with dual Arcade & Classic Challenge modes, 144-tile deck with flower and season wildcards, dynamic Conveyor Ring stages, Shield Wards (mystic shields & guardian tiles), standalone PointNetMusicPlayer Jukebox, and 100% mathematically guaranteed solvability.
+* **Minesweeper** — Classic mode with 4 presets (Easy, Medium, Hard, Extreme) and progressive Scalata mode spanning 18 levels. Features hardware-accelerated Pan & Pinch-to-zoom engine, smart chording, organic tactile audio, and high-contrast OLED legibility.
+* **Mahjong Arcade** — 330 progressive levels with dual Arcade & Classic Challenge modes, 144-tile deck with flower and season wildcards, dynamic Conveyor Ring stages, Shield Wards, standalone PointNetMusicPlayer Jukebox, and 100% guaranteed solvability.
 
 == Installation ==
 

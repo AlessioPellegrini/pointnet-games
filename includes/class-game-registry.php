@@ -1,9 +1,9 @@
 <?php
 /**
- * Auto-register games from the /games directory.
+ * Auto-register games from the uploads and plugin directories.
  *
- * Scans the plugin's games/ folder, reads each manifest.json and
- * creates or updates the corresponding pointnet_game custom post.
+ * Scans registered games folders (primary: wp-content/uploads/pointnet-games/),
+ * reads each manifest.json and creates or updates the corresponding pointnet_game custom post.
  *
  * @package PointNet Games
  */
@@ -19,28 +19,88 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PointNet_Games_Game_Registry {
 
 	/**
-	 * Scan the games directory and sync all found games as CPT posts.
+	 * Get the primary directory path where installed games reside.
 	 *
+	 * @return string Absolute path with trailing slash.
+	 */
+	public static function get_installed_games_dir() {
+		$upload_dir = wp_upload_dir();
+		$games_dir  = trailingslashit( $upload_dir['basedir'] ) . 'pointnet-games/';
+
+		if ( ! file_exists( $games_dir ) ) {
+			wp_mkdir_p( $games_dir );
+			// Add an empty index.php to prevent directory listing.
+			$index_file = $games_dir . 'index.php';
+			if ( ! file_exists( $index_file ) ) {
+				file_put_contents( $index_file, '<?php // Silence is golden.' );
+			}
+		}
+
+		return $games_dir;
+	}
+
+	/**
+	 * Get all directories to scan for games.
+	 *
+	 * Allows custom add-on folders or developer directories via filter.
+	 *
+	 * @return array List of directory paths with trailing slashes.
+	 */
+	public static function get_scan_roots() {
+		$roots = array(
+			'uploads' => self::get_installed_games_dir(),
+		);
+
+		// Also check bundled games/ folder if it exists in plugin (backward compat).
+		$plugin_games = trailingslashit( POINTNET_GAMES_PLUGIN_DIR ) . 'games/';
+		if ( is_dir( $plugin_games ) ) {
+			$roots['bundled'] = $plugin_games;
+		}
+
+		/**
+		 * Filter the root directories to scan for games.
+		 *
+		 * @param array $roots Associative array of root directories.
+		 */
+		return apply_filters( 'pointnet_games_scan_roots', $roots );
+	}
+
+	/**
+	 * Scan the games directories and sync all found games as CPT posts.
+	 *
+	 * @param bool $force_sync When true, bypasses the fingerprint check.
 	 * @return int Number of games processed.
 	 */
-	public static function sync_all_games() {
+	public static function sync_all_games( $force_sync = false ) {
 		// Guard: ensure the post type class is loaded.
 		if ( ! class_exists( 'PointNet_Games_Post_Types' ) ) {
 			return 0;
 		}
 
-		// Guard: only sync when the game folder manifest changed.
+		// Guard: only sync when game manifests changed unless forced.
 		$fingerprint = self::get_games_fingerprint();
 		$last_sync   = get_option( 'pointnet_games_sync_fingerprint', '' );
 
-		if ( $last_sync === $fingerprint ) {
+		if ( ! $force_sync && $last_sync === $fingerprint ) {
 			return 0;
 		}
 
 		self::ensure_post_type();
 
-		$games_dir = POINTNET_GAMES_PLUGIN_DIR . 'games/*/manifest.json';
-		$manifests = (array) glob( $games_dir );
+		$scan_roots = self::get_scan_roots();
+		$manifests  = array();
+
+		foreach ( $scan_roots as $source_key => $root_dir ) {
+			if ( ! is_dir( $root_dir ) ) {
+				continue;
+			}
+			$found = glob( trailingslashit( $root_dir ) . '*/manifest.json' );
+			if ( ! empty( $found ) ) {
+				foreach ( $found as $path ) {
+					$manifests[ $path ] = $source_key;
+				}
+			}
+		}
 
 		if ( empty( $manifests ) ) {
 			// All games removed — clean up orphaned posts too.
@@ -51,17 +111,16 @@ class PointNet_Games_Game_Registry {
 
 		$processed = 0;
 
-		$games_root = trailingslashit( POINTNET_GAMES_PLUGIN_DIR ) . 'games';
-
-		foreach ( $manifests as $manifest_path ) {
-			// Guard: ensure file is readable and inside the games directory.
+		foreach ( $manifests as $manifest_path => $source_key ) {
 			if ( ! is_file( $manifest_path ) || ! is_readable( $manifest_path ) ) {
 				continue;
 			}
 
-			// Path traversal protection: the manifest must be inside games/.
+			// Validate path containment inside its registered root.
 			$real_path = realpath( $manifest_path );
-			$real_root = realpath( $games_root );
+			$root_dir  = $scan_roots[ $source_key ];
+			$real_root = realpath( $root_dir );
+
 			if ( false === $real_path || false === $real_root || strpos( $real_path, $real_root ) !== 0 ) {
 				continue;
 			}
@@ -77,22 +136,21 @@ class PointNet_Games_Game_Registry {
 				continue;
 			}
 
-			self::sync_game( $manifest, $manifest_path );
+			self::sync_game( $manifest, $manifest_path, $source_key );
 			$processed++;
 		}
 
-		// Remove any game posts whose games/ folder no longer exists
-		// (e.g. a bundled game deleted from the plugin).
+		// Remove any game posts whose game folders no longer exist in any scanned root.
 		self::cleanup_removed_games();
 
-		// Remember that we synced — avoids running again until a manifest changes.
+		// Remember that we synced.
 		update_option( 'pointnet_games_sync_fingerprint', $fingerprint );
 
 		return $processed;
 	}
 
 	/**
-	 * Delete game CPT posts whose games/{slug}/ directory is no longer present.
+	 * Delete game CPT posts whose directory is no longer present.
 	 * Also removes their scores from the leaderboard table.
 	 *
 	 * @return int Number of posts removed.
@@ -112,22 +170,32 @@ class PointNet_Games_Game_Registry {
 		}
 
 		$removed    = 0;
-		$games_root = trailingslashit( POINTNET_GAMES_PLUGIN_DIR ) . 'games';
+		$scan_roots = self::get_scan_roots();
 
 		foreach ( $posts as $post ) {
-			$relative_dir = get_post_meta( $post->ID, '_pointnet_games_dir', true );
+			$game_path_abs = get_post_meta( $post->ID, '_pointnet_games_abs_path', true );
+			$exists        = false;
 
-			// Build the absolute path to the game directory.
-			if ( ! empty( $relative_dir ) ) {
-				$game_dir_abs = realpath( POINTNET_GAMES_PLUGIN_DIR . $relative_dir );
+			if ( ! empty( $game_path_abs ) && is_dir( $game_path_abs ) && file_exists( trailingslashit( $game_path_abs ) . 'manifest.json' ) ) {
+				$exists = true;
 			} else {
-				// Fallback: use the slug meta.
-				$slug         = get_post_meta( $post->ID, '_pointnet_games_slug', true );
-				$game_dir_abs = $slug ? realpath( $games_root . '/' . $slug ) : false;
+				// Fallback verification across all scan roots using slug.
+				$slug = get_post_meta( $post->ID, '_pointnet_games_slug', true );
+				if ( ! empty( $slug ) ) {
+					foreach ( $scan_roots as $root ) {
+						$check_dir = trailingslashit( $root ) . $slug;
+						if ( is_dir( $check_dir ) && file_exists( $check_dir . '/manifest.json' ) ) {
+							$exists = true;
+							// Update stored absolute path.
+							update_post_meta( $post->ID, '_pointnet_games_abs_path', $check_dir );
+							break;
+						}
+					}
+				}
 			}
 
-			// If the folder is missing, remove the post and its scores.
-			if ( false === $game_dir_abs || ! is_dir( $game_dir_abs ) ) {
+			// If the folder is missing from all roots, remove the post and its scores.
+			if ( ! $exists ) {
 				global $wpdb;
 				$wpdb->delete( pointnet_games_scores_table(), array( 'game_id' => $post->ID ), array( '%d' ) );
 				wp_delete_post( $post->ID, true );
@@ -139,30 +207,32 @@ class PointNet_Games_Game_Registry {
 	}
 
 	/**
-	 * Build a fingerprint of all manifests to detect changes.
+	 * Build a fingerprint of all manifests across scan roots to detect changes.
 	 *
 	 * @return string
 	 */
 	private static function get_games_fingerprint() {
-		$games_dir = POINTNET_GAMES_PLUGIN_DIR . 'games/*/manifest.json';
-		$manifests = (array) glob( $games_dir );
-
-		if ( empty( $manifests ) ) {
-			return 'none';
-		}
-
+		$scan_roots = self::get_scan_roots();
 		$hash_parts = array();
 
-		foreach ( $manifests as $manifest_path ) {
-			$mtime = ( is_file( $manifest_path ) && file_exists( $manifest_path ) ) ? (string) filemtime( $manifest_path ) : '';
-			$hash_parts[] = basename( dirname( $manifest_path ) ) . ':' . $mtime;
+		foreach ( $scan_roots as $source_key => $root ) {
+			if ( ! is_dir( $root ) ) {
+				continue;
+			}
+			$manifests = (array) glob( trailingslashit( $root ) . '*/manifest.json' );
+			foreach ( $manifests as $manifest_path ) {
+				$mtime        = ( is_file( $manifest_path ) && file_exists( $manifest_path ) ) ? (string) filemtime( $manifest_path ) : '';
+				$hash_parts[] = $source_key . ':' . basename( dirname( $manifest_path ) ) . ':' . $mtime;
+			}
+		}
+
+		if ( empty( $hash_parts ) ) {
+			return 'none';
 		}
 
 		sort( $hash_parts );
 
-		// Include a sync version so that code changes (new features)
-		// trigger a re-sync even when manifests are unchanged.
-		return md5( 'v3:' . implode( '|', $hash_parts ) );
+		return md5( 'v4-modular:' . implode( '|', $hash_parts ) );
 	}
 
 	/**
@@ -180,16 +250,16 @@ class PointNet_Games_Game_Registry {
 	 *
 	 * @param array  $manifest      Manifest data.
 	 * @param string $manifest_path Absolute path to the manifest file.
+	 * @param string $source_key    Source root key ('uploads' or 'bundled').
 	 */
-	private static function sync_game( $manifest, $manifest_path ) {
+	private static function sync_game( $manifest, $manifest_path, $source_key ) {
 		$slug = sanitize_title( $manifest['slug'] );
 
-		// Slug must be a valid game folder name.
+		// Slug must be a valid folder name.
 		if ( empty( $slug ) || preg_match( '/[^a-z0-9\-_]/', $slug ) ) {
 			return;
 		}
 
-		// Look up existing game by our custom slug meta (reliable).
 		$existing = get_posts(
 			array(
 				'post_type'      => PointNet_Games_Post_Types::GAME_CPT,
@@ -202,9 +272,9 @@ class PointNet_Games_Game_Registry {
 
 		$post_id = $existing ? $existing[0]->ID : 0;
 
-		$description = isset( $manifest['description'] ) ? $manifest['description'] : '';
+		$description  = isset( $manifest['description'] ) ? $manifest['description'] : '';
 		$instructions = isset( $manifest['instructions'] ) ? $manifest['instructions'] : '';
-		$version     = isset( $manifest['version'] ) ? $manifest['version'] : '1.0.0';
+		$version      = isset( $manifest['version'] ) ? $manifest['version'] : '1.0.0';
 
 		$postarr = array(
 			'post_type'    => PointNet_Games_Post_Types::GAME_CPT,
@@ -225,28 +295,20 @@ class PointNet_Games_Game_Registry {
 			return;
 		}
 
-		// Store the relative games/ subfolder, safe for URL building.
-		$game_dir     = dirname( $manifest_path );
-		$relative_dir = str_replace(
-			trailingslashit( POINTNET_GAMES_PLUGIN_DIR ),
-			'',
-			trailingslashit( $game_dir )
-		);
+		$game_dir_abs = trailingslashit( dirname( $manifest_path ) );
 
 		update_post_meta( $new_id, '_pointnet_games_slug', $slug );
-		update_post_meta( $new_id, '_pointnet_games_dir', $relative_dir );
 		update_post_meta( $new_id, '_pointnet_games_version', $version );
 		update_post_meta( $new_id, '_pointnet_games_manifest', $manifest );
+		update_post_meta( $new_id, '_pointnet_games_abs_path', $game_dir_abs );
+		update_post_meta( $new_id, '_pointnet_games_source', $source_key );
 
-		// Clean up any auto-generated pages from older plugin versions.
-		// The canonical URL for a game is now the CPT permalink only.
+		// Legacy cleanup.
 		self::cleanup_legacy_pages( $new_id );
 	}
 
 	/**
-	 * Delete any legacy auto-generated "page" posts that were created by
-	 * PointNet Games v0.1.0-beta (ensure_game_page). These pages were the source
-	 * of duplicate URLs like /minesweeper-arcade/ vs /games/minesweeper-arcade/.
+	 * Delete any legacy auto-generated "page" posts.
 	 *
 	 * @param int $game_id The pointnet_game post ID.
 	 */

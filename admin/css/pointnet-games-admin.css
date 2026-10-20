@@ -1,0 +1,165 @@
+/* PointNet Games Admin & Game Catalog Styles */
+.pointnet-games-catalog-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+.pointnet-games-donation-box {
+	background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+	color: #fff;
+	padding: 16px 20px;
+	border-radius: 8px;
+	margin: 20px 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	flex-wrap: wrap;
+	gap: 15px;
+}
+.pointnet-games-donation-content h3 {
+	margin: 0 0 6px 0;
+	color: #f8fafc;
+	font-size: 16px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.pointnet-games-donation-content p {
+	margin: 0;
+	color: #94a3b8;
+	font-size: 13px;
+}
+.pointnet-games-btn-kofi {
+	background: #ff5e5b;
+	color: #fff !important;
+	text-decoration: none;
+	font-weight: 600;
+	padding: 9px 18px;
+	border-radius: 6px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	transition: background 0.2s, transform 0.1s;
+}
+.pointnet-games-btn-kofi:hover {
+	background: #e04845;
+	transform: translateY(-1px);
+}
+
+/* Onboarding Hero */
+.pointnet-games-onboarding-hero {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-left: 4px solid #2271b1;
+	padding: 24px;
+	margin: 20px 0;
+	border-radius: 4px;
+}
+.pointnet-games-onboarding-hero h2 {
+	margin-top: 0;
+	font-size: 20px;
+}
+.pointnet-games-onboarding-hero p {
+	font-size: 14px;
+	color: #50575e;
+	max-width: 800px;
+}
+.pointnet-games-onboarding-actions {
+	margin-top: 18px;
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+/* Game Catalog Grid */
+.pointnet-games-catalog-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 20px;
+	margin-top: 20px;
+}
+.pointnet-game-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+	transition: transform 0.2s, box-shadow 0.2s;
+}
+.pointnet-game-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+.pointnet-game-card-header {
+	padding: 16px 20px 10px;
+	border-bottom: 1px solid #f0f0f1;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+}
+.pointnet-game-card-title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: #1d2327;
+}
+.pointnet-game-badge {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	padding: 3px 8px;
+	border-radius: 12px;
+	letter-spacing: 0.5px;
+}
+.pointnet-game-badge.popular {
+	background: #e0f2fe;
+	color: #0369a1;
+}
+.pointnet-game-badge.featured {
+	background: #fef3c7;
+	color: #b45309;
+}
+.pointnet-game-badge.installed {
+	background: #dcfce7;
+	color: #15803d;
+}
+.pointnet-game-badge.update {
+	background: #fee2e2;
+	color: #b91c1c;
+}
+.pointnet-game-card-body {
+	padding: 16px 20px;
+	flex: 1;
+}
+.pointnet-game-card-desc {
+	margin: 0 0 14px 0;
+	color: #646970;
+	font-size: 13px;
+	line-height: 1.5;
+}
+.pointnet-game-meta-row {
+	font-size: 12px;
+	color: #8c8f94;
+	display: flex;
+	gap: 15px;
+}
+.pointnet-game-card-footer {
+	padding: 14px 20px;
+	background: #f8fafc;
+	border-top: 1px solid #f0f0f1;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+.pointnet-game-card-footer .actions {
+	display: flex;
+	gap: 8px;
+}
