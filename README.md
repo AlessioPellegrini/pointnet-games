@@ -6,7 +6,7 @@ Arcade games platform for WordPress with scores for registered users, global lea
 **Tags:** games, arcade, leaderboard, highscore, puzzle, minesweeper, mahjong  
 **Requires at least:** WordPress 6.2  
 **Tested up to:** 7.1  
-**Stable tag:** 1.3.11  
+**Stable tag:** 1.3.12  
 **Requires PHP:** 8.0+  
 **License:** GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)  
 

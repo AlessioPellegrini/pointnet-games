@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.3.11
+Stable tag: 1.3.12
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -129,6 +129,10 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.3.12 =
+* Compatibility: aligned "Tested up to" to 7.1 to strictly follow WordPress.org major.minor validation standards (resolving invalid_tested_upto_minor).
+* Auto-Updater: integrated native automatic changelog extraction and HTML formatting directly from readme.txt for update details modals.
 
 = 1.3.11 =
 * Compatibility: dynamically match active WordPress version in the auto-updater payload and set "Tested up to" to 7.1 to follow WordPress.org major.minor standard.
