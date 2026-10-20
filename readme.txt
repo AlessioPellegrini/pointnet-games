@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,12 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.4.3 =
+* Leaderboard Shortcode: added `slug` attribute support to `[pointnet_game_leaderboard slug="..."]` for friendly game resolution.
+* Leaderboard Details: formatted levels (e.g. `Livello: 5 / 18`) and times (`mm:ss`) cleanly in table metadata.
+* Catalog Security Scoping: scoped executable security scans strictly to the extracted game directory, preventing false positives from repository root development scripts.
+* API Metadata Whitelist: expanded allowed game metadata to accept `livello`, `level`, `tempo`, `time`, and `esito`.
 
 = 1.4.2 =
 * Catalog Engine: enhanced GitHub Release synchronization and game extraction handling for external catalog repositories.
@@ -316,6 +322,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.4.3 =
+Recommended update: fixes catalog security scoping for game zip archives, formats level/time details in leaderboards, and supports the slug attribute in leaderboard shortcodes.
 
 = 1.4.2 =
 Recommended update: incorporates enhanced GitHub Release synchronization and game extraction handling for the external catalog.
