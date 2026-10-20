@@ -193,7 +193,7 @@ class PointNet_Games_Game_Catalog {
 				'author'       => 'PointNet Games',
 				'description'  => 'Minesweeper with dual modes: Classic (Easy, Medium, Hard, Extreme) and progressive Scalata reaching Extreme 32x18. Minimalist Clean One aesthetics, smart chording, pan & pinch-to-zoom, and organic tactile sound.',
 				'categories'   => array( 'puzzle', 'classic', 'logic', 'arcade' ),
-				'download_url' => 'https://github.com/' . self::get_repo() . '/releases/download/minesweeper-arcade-v1.3.5/minesweeper-arcade.zip',
+				'download_url' => 'https://raw.githubusercontent.com/' . self::get_repo() . '/packages/packages/minesweeper-arcade.zip',
 				'badge'        => 'Popular',
 			),
 		);
