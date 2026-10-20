@@ -182,7 +182,7 @@ class PointNet_Games_Updater {
 		}
 
 		global $wp_version;
-		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.2';
+		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.1.3';
 
 		$item = (object) array(
 			'slug'         => 'pointnet-games',
@@ -257,7 +257,7 @@ class PointNet_Games_Updater {
 		}
 
 		global $wp_version;
-		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.2';
+		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.1.3';
 
 		return (object) array(
 			'name'          => 'PointNet Games',

@@ -535,7 +535,7 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
-- **v1.3.11** — Compatibilità WordPress: risoluzione dinamica della versione di WordPress testata (`$GLOBALS['wp_version']`) nell'auto-updater e aggiornamento di "Tested up to" a 7.2 / "Requires at least" a 6.2 per eliminare il falso positivo del warning "This plugin has not been tested with your current version of WordPress".
+- **v1.3.11** — Compatibilità WordPress: risoluzione dinamica della versione di WordPress testata (`$GLOBALS['wp_version']`) nell'auto-updater e aggiornamento di "Tested up to" a 7.1.3 / "Requires at least" a 6.2 per eliminare il falso positivo del warning "This plugin has not been tested with your current version of WordPress".
 - **v1.3.10** — Sicurezza & Code Review: sanificazione avanzata con `wp_kses_post` sull'output dei record utente in Game Loader (Plugin Check compliant), hardenening DOM XSS su pulsante fullscreen (`textContent`), posizionamento standard commenti gettext per traduttori i18n, e sanificazione stretta dei parametri di aggiornamento GitHub updater.
 - **v1.3.9** — Privacy e Sicurezza: le classifiche utilizzano il `display_name` pubblico di WordPress (con de-duplicazione progressiva `#2`, `#3` calcolata su hook `user_register`/`profile_update` e salvata in user meta) per proteggere i dati di login. Nuova impostazione opzionale "Link Player Profiles" in amministrazione per mostrare i link ai profili solo agli utenti autenticati.
 - **v1.3.8** — Auto-Updater: aggiunta documentazione header `Update URI: https://github.com/AlessioPellegrini/pointnet-games`, gestione paginazione tag GitHub (`?per_page=100`) e controllo forzato senza cache su `pre_set_site_transient_update_plugins`.
