@@ -74,20 +74,25 @@ function pointnet_games_uninstall() {
 		}
 	}
 
-	// 5. Delete the physical games/ directory (all bundled games).
+	// 5. Delete the physical games/ directory (if any legacy bundled games remain).
 	$plugin_dir = WP_PLUGIN_DIR . '/pointnet-games';
 	$games_root = trailingslashit( $plugin_dir ) . 'games';
 
-	if ( is_dir( $games_root ) ) {
-		// WP Filesystem is available during uninstall (WordPress admin context).
-		require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	if ( function_exists( 'WP_Filesystem' ) ) {
+		WP_Filesystem();
+		global $wp_filesystem;
 
-		if ( function_exists( 'WP_Filesystem' ) ) {
-			WP_Filesystem();
-			global $wp_filesystem;
-
-			if ( $wp_filesystem ) {
+		if ( $wp_filesystem ) {
+			if ( is_dir( $games_root ) ) {
 				$wp_filesystem->delete( $games_root, true, 'd' );
+			}
+
+			// Also clean up uploaded games directory: wp-content/uploads/pointnet-games/.
+			$upload_dir  = wp_upload_dir();
+			$uploads_games = trailingslashit( $upload_dir['basedir'] ) . 'pointnet-games';
+			if ( is_dir( $uploads_games ) ) {
+				$wp_filesystem->delete( $uploads_games, true, 'd' );
 			}
 		}
 	}
