@@ -243,7 +243,7 @@ class PointNet_Games_Updater {
 		$latest_ver = ltrim( $release['tag_name'], 'vV ' );
 		$changelog  = ! empty( $release['body'] )
 			? nl2br( esc_html( $release['body'] ) )
-			: self::get_readme_changelog( $release['tag_name'] ?? '' );
+			: self::get_readme_changelog();
 
 		if ( empty( $changelog ) ) {
 			$changelog = esc_html__( 'Consult GitHub releases for full changelog.', 'pointnet-games' );
@@ -335,34 +335,17 @@ class PointNet_Games_Updater {
 	}
 
 	/**
-	 * Parse changelog section from remote GitHub readme.txt or local readme.txt into HTML.
+	 * Parse changelog section from local readme.txt into HTML.
 	 *
-	 * @param string $tag Optional Git tag to fetch remote readme.txt for.
 	 * @return string HTML formatted changelog.
 	 */
-	public static function get_readme_changelog( string $tag = '' ): string {
-		$content = '';
-		if ( ! empty( $tag ) ) {
-			$remote_url = 'https://raw.githubusercontent.com/' . self::GITHUB_REPO . '/' . $tag . '/readme.txt';
-			$response   = wp_remote_get(
-				$remote_url,
-				array(
-					'timeout'    => 5,
-					'user-agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; PointNetGames/' . POINTNET_GAMES_VERSION,
-				)
-			);
-			if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
-				$content = wp_remote_retrieve_body( $response );
-			}
+	public static function get_readme_changelog(): string {
+		$readme_file = POINTNET_GAMES_PLUGIN_DIR . 'readme.txt';
+		if ( ! file_exists( $readme_file ) ) {
+			return '';
 		}
 
-		if ( empty( $content ) ) {
-			$readme_file = POINTNET_GAMES_PLUGIN_DIR . 'readme.txt';
-			if ( file_exists( $readme_file ) ) {
-				$content = (string) file_get_contents( $readme_file );
-			}
-		}
-
+		$content = (string) file_get_contents( $readme_file );
 		if ( empty( $content ) || ! preg_match( '/==\s*Changelog\s*==\s*(.*?)(?:==|$)/is', $content, $matches ) ) {
 			return '';
 		}
