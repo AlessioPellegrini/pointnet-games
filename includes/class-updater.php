@@ -182,7 +182,7 @@ class PointNet_Games_Updater {
 		}
 
 		global $wp_version;
-		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.1.3';
+		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.1';
 
 		$item = (object) array(
 			'slug'         => 'pointnet-games',
@@ -243,7 +243,11 @@ class PointNet_Games_Updater {
 		$latest_ver = ltrim( $release['tag_name'], 'vV ' );
 		$changelog  = ! empty( $release['body'] )
 			? nl2br( esc_html( $release['body'] ) )
-			: esc_html__( 'Consult GitHub releases for full changelog.', 'pointnet-games' );
+			: self::get_readme_changelog( $release['tag_name'] ?? '' );
+
+		if ( empty( $changelog ) ) {
+			$changelog = esc_html__( 'Consult GitHub releases for full changelog.', 'pointnet-games' );
+		}
 
 		// Package URL
 		$package = $release['zipball_url'] ?? '';
@@ -257,7 +261,7 @@ class PointNet_Games_Updater {
 		}
 
 		global $wp_version;
-		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.1.3';
+		$tested_wp = ! empty( $wp_version ) ? $wp_version : '7.1';
 
 		return (object) array(
 			'name'          => 'PointNet Games',
@@ -328,6 +332,78 @@ class PointNet_Games_Updater {
 			'pointnet_games_rename_failed',
 			esc_html__( 'Failed to rename plugin update folder to pointnet-games.', 'pointnet-games' )
 		);
+	}
+
+	/**
+	 * Parse changelog section from remote GitHub readme.txt or local readme.txt into HTML.
+	 *
+	 * @param string $tag Optional Git tag to fetch remote readme.txt for.
+	 * @return string HTML formatted changelog.
+	 */
+	public static function get_readme_changelog( string $tag = '' ): string {
+		$content = '';
+		if ( ! empty( $tag ) ) {
+			$remote_url = 'https://raw.githubusercontent.com/' . self::GITHUB_REPO . '/' . $tag . '/readme.txt';
+			$response   = wp_remote_get(
+				$remote_url,
+				array(
+					'timeout'    => 5,
+					'user-agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; PointNetGames/' . POINTNET_GAMES_VERSION,
+				)
+			);
+			if ( ! is_wp_error( $response ) && 200 === wp_remote_retrieve_response_code( $response ) ) {
+				$content = wp_remote_retrieve_body( $response );
+			}
+		}
+
+		if ( empty( $content ) ) {
+			$readme_file = POINTNET_GAMES_PLUGIN_DIR . 'readme.txt';
+			if ( file_exists( $readme_file ) ) {
+				$content = (string) file_get_contents( $readme_file );
+			}
+		}
+
+		if ( empty( $content ) || ! preg_match( '/==\s*Changelog\s*==\s*(.*?)(?:==|$)/is', $content, $matches ) ) {
+			return '';
+		}
+
+		$raw     = trim( $matches[1] );
+		$lines   = explode( "\n", $raw );
+		$html    = '';
+		$in_list = false;
+
+		foreach ( $lines as $line ) {
+			$line = trim( $line );
+			if ( '' === $line ) {
+				continue;
+			}
+			if ( preg_match( '/^=\s*([^=]+)\s*=$/', $line, $vm ) ) {
+				if ( $in_list ) {
+					$html .= '</ul>';
+					$in_list = false;
+				}
+				$html .= '<h4>' . esc_html( trim( $vm[1] ) ) . '</h4>';
+			} elseif ( str_starts_with( $line, '*' ) ) {
+				if ( ! $in_list ) {
+					$html .= '<ul>';
+					$in_list = true;
+				}
+				$item = trim( substr( $line, 1 ) );
+				$html .= '<li>' . esc_html( $item ) . '</li>';
+			} else {
+				if ( $in_list ) {
+					$html .= '</ul>';
+					$in_list = false;
+				}
+				$html .= '<p>' . esc_html( $line ) . '</p>';
+			}
+		}
+
+		if ( $in_list ) {
+			$html .= '</ul>';
+		}
+
+		return $html;
 	}
 
 	/**

@@ -3,7 +3,7 @@ Contributors: pointnet
 Donate link: https://www.pointnet.it/
 Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
-Tested up to: 7.1.3
+Tested up to: 7.1
 Requires PHP: 8.0
 Stable tag: 1.3.11
 License: GPLv2 or later
@@ -131,7 +131,7 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 == Changelog ==
 
 = 1.3.11 =
-* Compatibility: dynamically match active WordPress version in the auto-updater payload and set "Tested up to" to 7.1.3 to eliminate false-positive compatibility warnings on WordPress 7.1+.
+* Compatibility: dynamically match active WordPress version in the auto-updater payload and set "Tested up to" to 7.1 to follow WordPress.org major.minor standard.
 * Requirements: set "Requires at least" to WordPress 6.2+.
 
 = 1.3.10 =
