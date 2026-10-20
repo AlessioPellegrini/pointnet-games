@@ -129,6 +129,15 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 
 == Changelog ==
 
+= 1.4.0 =
+* 1-Click Game Catalog: added built-in Game Store in admin to browse, install and update free arcade games directly from GitHub releases.
+* Zero-Bloat Core: removed bundled games from plugin folder, reducing plugin size to under 150 KB for instant WordPress.org review and fast downloads.
+* Safe Uploads Storage: games installed from the catalog are stored in `wp-content/uploads/pointnet-games/` and are never wiped when WordPress updates the plugin.
+* GitHub Release Auto-Sync: automatically detects newly published game releases and tags on GitHub (e.g. `minesweeper-arcade-v1.3.5`) and notifies administrators with 1-click update buttons.
+* First-Time Onboarding: friendly welcome banner on dashboard when no games are installed with 1-click installation for Minesweeper.
+* Data Protection Best Practices: added configurable "Disinstallazione & Pulizia Dati" settings to protect highscores and downloaded games during accidental plugin uninstalls.
+* Community Support: integrated Ko-fi supporter box and official `Donate link` header.
+
 = 1.3.12 =
 * Compatibility: aligned "Tested up to" to 7.1 to strictly follow WordPress.org major.minor validation standards (resolving invalid_tested_upto_minor).
 * Auto-Updater: integrated native automatic changelog extraction and HTML formatting directly from readme.txt for update details modals.
@@ -297,6 +306,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+Major Architecture Update: introduces the 1-Click Game Catalog, zero-bloat lightweight core (<150 KB), safe uploads storage and configurable data protection.
 
 = 1.3.11 =
 Recommended update: eliminates the false-positive "This plugin has not been tested with your current version of WordPress" warning.

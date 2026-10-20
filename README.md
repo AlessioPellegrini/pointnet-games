@@ -1,20 +1,23 @@
 # PointNet Games
 
-Arcade games platform for WordPress with scores for registered users, global leaderboards, personal author profile records, and a standardized API for game developers.
+Arcade gaming platform & 1-Click Game Catalog for WordPress with scores for registered users, global leaderboards, personal author profile records, and a standardized API for game developers.
 
 **Contributors:** pointnet  
-**Tags:** games, arcade, leaderboard, highscore, puzzle, minesweeper, mahjong  
+**Tags:** games, arcade, leaderboard, highscore, puzzle  
 **Requires at least:** WordPress 6.2  
 **Tested up to:** 7.1  
-**Stable tag:** 1.3.12  
+**Stable tag:** 1.4.0  
 **Requires PHP:** 8.0+  
+**Donate link:** [https://ko-fi.com/pointnet](https://ko-fi.com/pointnet)  
 **License:** GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)  
 
 ---
 
 ## 🎮 Overview
 
-**PointNet Games** turns any WordPress installation into a modern arcade gaming platform. Games run inside responsive, isolated HTML5/Canvas/iframe environments. Registered users can compete for highscores, track level progression, and showcase their personal gaming records directly on their WordPress profile/author pages (`/author/username`).
+**PointNet Games** turns any WordPress installation into a modern arcade gaming platform. Built on a **Zero-Bloat Core** (<150 KB), it allows site administrators to browse, install and update games on-demand via the built-in **1-Click Game Catalog**.
+
+Games run inside responsive, isolated HTML5/Canvas/WASM sandboxed environments. Registered users can compete for highscores, track level progression, and showcase their personal gaming records directly on their WordPress profile/author pages (`/author/username`).
 
 Anonymous visitors can freely enjoy casual/practice mode, while authenticated users record verified highscores with built-in anti-cheat protections.
 
@@ -22,7 +25,9 @@ Developed by [PointNet](https://www.pointnet.it/).
 
 ---
 
-## 🕹️ Included Games
+## 🕹️ Game Catalog & Available Games
+
+Games are maintained in the modular catalog and installed safely to `wp-content/uploads/pointnet-games/` directly from the WordPress dashboard:
 
 ### 1. 💣 Minesweeper (v1.3.5)
 Inspired by the minimalist aesthetics and tactile responsiveness of *Minesweeper: The Clean One*, featuring **Dual Game Modes**:
@@ -36,15 +41,8 @@ Inspired by the minimalist aesthetics and tactile responsiveness of *Minesweeper
 - **🎶 Organic Sound Design**: Acoustic drop/wood clicks, pentatonic kalimba chords for numbers, snap for flags, and sub-bass boom thuds.
 - **☀️ High-Contrast OLED Outdoors**: 1px perimetral edge definition with double inset highlight for flawless sunlight legibility.
 
-### 2. 🀄 Mahjong Arcade (v1.8.0)
-Classic Mahjong Solitaire tile-matching with an arcade twist, dual modes, and 100% mathematically guaranteed solvability:
-- **Dual Gameplay Modes & Standalone Free Play**:
-  - **🏆 Scalata Arcade (330 Progressive Levels)**: 4-slot staging box, memory face-down tiles, drag-to-peek, blackout challenge levels, Shield Wards (levels ending in 7), Conveyor Rings (levels ending in 5), and rotating 144-tile Classic Boss Challenges (levels ending in 0).
-  - **🀄 Free Classic Mode (144-tile Traditional Standalone)**: instant single-game play on the 4 grand traditional 144-tile layouts (Turtle, Ziggurat, Imperial Fortress, Spider) with speedrun clock and dedicated leaderboard.
-- **4 Iconic 144-Tile Traditional Layouts**: Turtle (Shanghai), Grand Ziggurat (5-tier pyramid), Imperial Fortress (4 towers & central keep), and The Spider (dorsal carapace with 8 articulated legs).
-- **🛡️ Shield Wards Mechanic (Levels ending in 7)**: Mystic central energy barrier defended by perimeter Guardian 🛡️ tiles. Deflection SFX, visual alerts, and shattering animations with bonus points.
-- **🔄 Conveyor Ring Stages (Levels ending in 5)**: Rotating conveyor ribbon boards advancing clockwise with every match.
-- **🎵 PointNetMusicPlayer Jukebox**: Standalone audio player with interactive scrubber seek bar, time indicators, volume card, and dual Zen/Arcade playlists.
+### 2. 🀄 Mahjong Arcade (Coming Soon to Catalog)
+Classic Mahjong Solitaire tile-matching with an arcade twist, dual modes, 330 levels, 4 grand 144-tile traditional layouts (Turtle, Ziggurat, Imperial Fortress, Spider), Shield Wards, Conveyor Rings and standalone Zen Jukebox.
 
 ---
 
