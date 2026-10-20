@@ -333,4 +333,45 @@ class PointNet_Games_Game_Registry {
 		}
 	}
 
+	/**
+	 * Retrieve a game post by its slug.
+	 *
+	 * @param string $slug Game slug.
+	 * @return WP_Post|null
+	 */
+	public static function get_game_by_slug( $slug ) {
+		$slug = sanitize_title( $slug );
+		if ( empty( $slug ) ) {
+			return null;
+		}
+
+		$games = get_posts(
+			array(
+				'post_type'      => PointNet_Games_Post_Types::GAME_CPT,
+				'post_status'    => 'publish',
+				'name'           => $slug,
+				'posts_per_page' => 1,
+				'numberposts'    => 1,
+			)
+		);
+
+		if ( ! empty( $games ) ) {
+			return $games[0];
+		}
+
+		// Fallback: check post meta.
+		$games = get_posts(
+			array(
+				'post_type'      => PointNet_Games_Post_Types::GAME_CPT,
+				'post_status'    => 'publish',
+				'meta_key'       => '_pointnet_games_slug',
+				'meta_value'     => $slug,
+				'posts_per_page' => 1,
+				'numberposts'    => 1,
+			)
+		);
+
+		return ! empty( $games ) ? $games[0] : null;
+	}
+
 }
