@@ -465,6 +465,32 @@ class PointNet_Games_Admin {
 						</td>
 					</tr>
 				</table>
+
+				<h2><?php esc_html_e( 'Disinstallazione & Pulizia Dati', 'pointnet-games' ); ?></h2>
+				<p class="description">
+					<?php esc_html_e( 'Definisci il comportamento del plugin quando viene eliminato da "Plugin → Plugin installati". Di default i tuoi dati e i giochi vengono protetti in caso di reinstallazione o disattivazione accidentale.', 'pointnet-games' ); ?>
+				</p>
+				<table class="form-table">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Elimina Punteggi e Classifiche', 'pointnet-games' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="pointnet_games_settings[delete_data_on_uninstall]" value="1" <?php checked( ! empty( $settings['delete_data_on_uninstall'] ) ); ?>>
+								<span style="color:#d63638;"><?php esc_html_e( 'Cancella permanentemente tutte le tabelle dei punteggi e delle classifiche all\'eliminazione del plugin', 'pointnet-games' ); ?></span>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Elimina Giochi Scaricati', 'pointnet-games' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="pointnet_games_settings[delete_games_on_uninstall]" value="1" <?php checked( ! empty( $settings['delete_games_on_uninstall'] ) ); ?>>
+								<span style="color:#d63638;"><?php esc_html_e( 'Cancella la cartella uploads/pointnet-games/ contenente tutti i giochi scaricati dal catalogo', 'pointnet-games' ); ?></span>
+							</label>
+						</td>
+					</tr>
+				</table>
+
 				<?php submit_button(); ?>
 			</form>
 		</div>
@@ -479,20 +505,24 @@ class PointNet_Games_Admin {
 	 */
 	public function sanitize_settings( $input ) {
 		$defaults = array(
-			'rate_limit'           => 5,
-			'require_validation'   => 0,
-			'show_author_records'  => 1,
-			'link_author_profiles' => 0,
-			'kofi_url'             => 'https://ko-fi.com/pointnet',
+			'rate_limit'                 => 5,
+			'require_validation'         => 0,
+			'show_author_records'        => 1,
+			'link_author_profiles'       => 0,
+			'delete_data_on_uninstall'   => 0,
+			'delete_games_on_uninstall'  => 0,
+			'kofi_url'                   => 'https://ko-fi.com/pointnet',
 		);
 
 		$clean = wp_parse_args( $input, $defaults );
 
-		$clean['require_validation']   = isset( $input['require_validation'] ) ? 1 : 0;
-		$clean['show_author_records']  = isset( $input['show_author_records'] ) ? 1 : 0;
-		$clean['link_author_profiles'] = isset( $input['link_author_profiles'] ) ? 1 : 0;
-		$clean['rate_limit']           = (int) $input['rate_limit'];
-		$clean['kofi_url']             = esc_url_raw( $input['kofi_url'] );
+		$clean['require_validation']         = isset( $input['require_validation'] ) ? 1 : 0;
+		$clean['show_author_records']        = isset( $input['show_author_records'] ) ? 1 : 0;
+		$clean['link_author_profiles']       = isset( $input['link_author_profiles'] ) ? 1 : 0;
+		$clean['delete_data_on_uninstall']   = isset( $input['delete_data_on_uninstall'] ) ? 1 : 0;
+		$clean['delete_games_on_uninstall']  = isset( $input['delete_games_on_uninstall'] ) ? 1 : 0;
+		$clean['rate_limit']                 = (int) $input['rate_limit'];
+		$clean['kofi_url']                   = esc_url_raw( $input['kofi_url'] );
 
 		return $clean;
 	}
