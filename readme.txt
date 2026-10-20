@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,12 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.4.1 =
+* Release-Only Discovery: catalog now filters games strictly by published official GitHub Releases (drafts and untagged commits are safely ignored).
+* Zero Manual Zip: games are downloaded and extracted automatically on the fly from official GitHub tag archives.
+* Modular Architecture: catalog repository decoupled to dedicated `pointnet-games-catalog` with subfolder game extraction.
+* Data Protection Options: added granular controls in admin settings to choose whether to purge scores or uploaded games on uninstall.
 
 = 1.4.0 =
 * 1-Click Game Catalog: added built-in Game Store in admin to browse, install and update free arcade games directly from GitHub releases.
@@ -306,6 +312,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.4.1 =
+Recommended update: connects to official GitHub Releases for games catalog, introduces zero-manual-zip extraction and provides granular uninstall data protection options.
 
 = 1.4.0 =
 Major Architecture Update: introduces the 1-Click Game Catalog, zero-bloat lightweight core (<150 KB), safe uploads storage and configurable data protection.
