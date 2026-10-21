@@ -22,6 +22,7 @@ class PointNet_Games_Admin {
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'handle_uninstall_game' ) );
+		add_action( 'admin_init', array( $this, 'redirect_manual_game_creation' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 	}
 
@@ -592,6 +593,7 @@ class PointNet_Games_Admin {
 			echo '<td><a href="' . esc_url( $game_url ) . '" target="_blank">' . esc_html__( 'Open game', 'pointnet-games' ) . '</a></td>';
 
 			echo '<td>';
+			$edit_url    = get_edit_post_link( $game->ID );
 			$score_count = $this->count_game_scores( $game->ID );
 			$confirm_text = sprintf(
 				/* translators: 1: game title, 2: game slug */
@@ -599,6 +601,10 @@ class PointNet_Games_Admin {
 				$game->post_title,
 				$slug
 			);
+
+			if ( $edit_url ) {
+				echo '<a href="' . esc_url( $edit_url ) . '" class="button button-small" style="margin-bottom:6px; display:inline-block;">✏️ ' . esc_html__( 'Edit', 'pointnet-games' ) . '</a><br>';
+			}
 
 			echo '<form method="post" onsubmit="return confirm(\'' . esc_js( $confirm_text ) . '\');">';
 			wp_nonce_field( 'pointnet_games_uninstall_game' );
@@ -816,6 +822,17 @@ class PointNet_Games_Admin {
 		return (int) $wpdb->get_var(
 			$wpdb->prepare( "SELECT COUNT(*) FROM %i WHERE game_id = %d", $table, $game_id )
 		);
+	}
+
+	/**
+	 * Prevent manual post creation via post-new.php?post_type=pointnet_game and redirect to catalog.
+	 */
+	public function redirect_manual_game_creation() {
+		global $pagenow;
+		if ( 'post-new.php' === $pagenow && isset( $_GET['post_type'] ) && PointNet_Games_Post_Types::GAME_CPT === $_GET['post_type'] ) {
+			wp_safe_redirect( admin_url( 'admin.php?page=pointnet-games-catalog' ) );
+			exit;
+		}
 	}
 
 }

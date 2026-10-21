@@ -35,28 +35,29 @@ class PointNet_Games_Post_Types {
 		$labels = array(
 			'name'               => __( 'Games', 'pointnet-games' ),
 			'singular_name'      => __( 'Game', 'pointnet-games' ),
-			'menu_name'          => __( 'Games', 'pointnet-games' ),
-			'add_new'            => __( 'Add Game', 'pointnet-games' ),
-			'add_new_item'       => __( 'Add New Game', 'pointnet-games' ),
+			'menu_name'          => __( 'Installed Games', 'pointnet-games' ),
+			'all_items'          => __( 'Installed Games', 'pointnet-games' ),
 			'edit_item'          => __( 'Edit Game', 'pointnet-games' ),
-			'new_item'           => __( 'New Game', 'pointnet-games' ),
 			'view_item'          => __( 'View Game', 'pointnet-games' ),
 			'search_items'       => __( 'Search Games', 'pointnet-games' ),
 			'not_found'          => __( 'No games found', 'pointnet-games' ),
 			'not_found_in_trash' => __( 'No games found in trash', 'pointnet-games' ),
-			'all_items'          => __( 'All Games', 'pointnet-games' ),
 		);
 
 		$args = array(
-			'labels'       => $labels,
-			'public'       => true,
-			'show_in_rest' => true,
-			'menu_icon'    => 'dashicons-games',
-			'menu_position' => 25,
-			'supports'     => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
-			'has_archive'  => true,
-			'rewrite'      => array( 'slug' => 'games' ),
-			'taxonomies'   => array( 'pointnet_game_category' ),
+			'labels'              => $labels,
+			'public'              => true,
+			'show_in_rest'        => true,
+			'show_in_menu'        => 'pointnet-games',
+			'supports'            => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+			'has_archive'         => true,
+			'rewrite'             => array( 'slug' => 'games' ),
+			'taxonomies'          => array( 'pointnet_game_category' ),
+			'capability_type'     => 'post',
+			'map_meta_cap'        => true,
+			'capabilities'        => array(
+				'create_posts' => 'do_not_allow',
+			),
 		);
 
 		register_post_type( self::GAME_CPT, $args );

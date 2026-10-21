@@ -1,31 +1,27 @@
-# Copyright (C) 2026 PointNet Games
-# This file is distributed under the GPL-2.0-or-later license.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PointNet Games 1.4.4
-"
-"Report-Msgid-Bugs-To: https://wpgames.pointnet.it/
-"
-"POT-Creation-Date: 2026-10-21 12:25+0200
-"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE
-"
-"Last-Translator: PointNet <info@pointnet.it>
-"
-"Language-Team: PointNet Games <info@pointnet.it>
-"
-"Language: 
-"
-"MIME-Version: 1.0
-"
-"Content-Type: text/plain; charset=UTF-8
-"
-"Content-Transfer-Encoding: 8bit
-"
-"X-Domain: pointnet-games
-"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-21 15:34+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 
 #: pointnet-games/includes/class-admin.php:166
+msgid " Scores deleted."
+msgstr ""
+
+#: pointnet-games/includes/class-admin.php:167
 msgid " Scores kept in database."
 msgstr ""
 
@@ -48,42 +44,30 @@ msgstr ""
 msgid "A valid game session token is required to submit scores."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:217
-#: pointnet-games/includes/class-admin.php:370
+#: pointnet-games/includes/class-admin.php:218
+#: pointnet-games/includes/class-admin.php:371
 msgid "Actions"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:39
-msgid "Add Game"
-msgstr ""
-
-#: pointnet-games/includes/class-post-types.php:78
+#: pointnet-games/includes/class-post-types.php:79
 msgid "Add New Category"
-msgstr ""
-
-#: pointnet-games/includes/class-post-types.php:40
-msgid "Add New Game"
 msgstr ""
 
 #: pointnet-games/includes/class-shortcodes.php:128
 msgid "All"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:73
+#: pointnet-games/includes/class-post-types.php:74
 msgid "All Categories"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:47
-msgid "All Games"
-msgstr ""
-
-#: pointnet-games/includes/class-admin.php:134
+#: pointnet-games/includes/class-admin.php:135
 msgid ""
 "All games are open-source and free. Support development to fund new levels "
 "and games!"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:611
+#: pointnet-games/includes/class-admin.php:617
 #, php-format
 msgid "Also delete %d scores"
 msgstr ""
@@ -94,11 +78,11 @@ msgstr ""
 msgid "Anonymous"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:266
+#: pointnet-games/includes/class-admin.php:267
 msgid "Arcade Games Catalog"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:450
+#: pointnet-games/includes/class-admin.php:451
 msgid "Arcade Records on Author Profiles"
 msgstr ""
 
@@ -113,7 +97,7 @@ msgid ""
 "leaderboards and a standardized API for game developers."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:231
+#: pointnet-games/includes/class-admin.php:232
 msgid "Attributes"
 msgstr ""
 
@@ -121,13 +105,13 @@ msgstr ""
 msgid "Authentication required."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:454
+#: pointnet-games/includes/class-admin.php:455
 msgid ""
 "Automatically display the arcade statistics card on author pages (/"
 "author/...)"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:225
+#: pointnet-games/includes/class-admin.php:226
 msgid "Available Shortcodes"
 msgstr ""
 
@@ -135,11 +119,11 @@ msgstr ""
 msgid "Best Rank:"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:186
+#: pointnet-games/includes/class-admin.php:187
 msgid "Browse Game Catalog"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:272
+#: pointnet-games/includes/class-admin.php:273
 msgid ""
 "Browse free arcade games for PointNet Games. Each game is installed directly "
 "on your server with 1-click in a secure, protected directory."
@@ -149,7 +133,7 @@ msgstr ""
 msgid "Catalog refreshed from GitHub successfully."
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:80
+#: pointnet-games/includes/class-post-types.php:81
 msgid "Categories"
 msgstr ""
 
@@ -157,7 +141,7 @@ msgstr ""
 msgid "Challenge"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:268
+#: pointnet-games/includes/class-admin.php:269
 msgid "Check Catalog Updates"
 msgstr ""
 
@@ -169,48 +153,48 @@ msgstr ""
 msgid "Could not delete game files."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:310
+#: pointnet-games/includes/class-admin.php:311
 msgid "Current:"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:368
+#: pointnet-games/includes/class-admin.php:369
 msgid "Date"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:471
+#: pointnet-games/includes/class-admin.php:472
 msgid ""
 "Define plugin behavior when deleted via \"Plugins → Installed Plugins\". By "
 "default, your data and games are preserved in case of accidental "
 "deactivation or reinstallation."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:397
+#: pointnet-games/includes/class-admin.php:398
 msgid "Delete"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:484
+#: pointnet-games/includes/class-admin.php:485
 msgid "Delete Downloaded Games"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:475
+#: pointnet-games/includes/class-admin.php:476
 msgid "Delete Scores & Leaderboards"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:615
+#: pointnet-games/includes/class-admin.php:621
 msgid "Delete scores"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:488
+#: pointnet-games/includes/class-admin.php:489
 msgid ""
 "Delete the uploads/pointnet-games/ directory containing all downloaded "
 "catalog games"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:394
+#: pointnet-games/includes/class-admin.php:395
 msgid "Delete this score?"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:230
+#: pointnet-games/includes/class-admin.php:231
 msgid "Description"
 msgstr ""
 
@@ -218,35 +202,39 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:644
+#: pointnet-games/includes/class-admin.php:650
 msgid "Display a grid with all available games."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:638
+#: pointnet-games/includes/class-admin.php:644
 msgid "Display the leaderboard with filters and tabs for a game."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:133
+#: pointnet-games/includes/class-admin.php:134
 msgid "Do you enjoy PointNet Games? Support the project!"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:137
+#: pointnet-games/includes/class-admin.php:138
 msgid "Donate with PayPal"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:76
+#: pointnet-games/includes/class-admin.php:606
+msgid "Edit"
+msgstr ""
+
+#: pointnet-games/includes/class-post-types.php:77
 msgid "Edit Category"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:41
+#: pointnet-games/includes/class-post-types.php:40
 msgid "Edit Game"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:632
+#: pointnet-games/includes/class-admin.php:638
 msgid "Embed a specific game via slug or ID."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:232
+#: pointnet-games/includes/class-admin.php:233
 msgid "Example"
 msgstr ""
 
@@ -254,29 +242,29 @@ msgstr ""
 msgid "Failed to rename plugin update folder to pointnet-games."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:212
-#: pointnet-games/includes/class-admin.php:244
-#: pointnet-games/includes/class-admin.php:364
+#: pointnet-games/includes/class-admin.php:213
+#: pointnet-games/includes/class-admin.php:245
+#: pointnet-games/includes/class-admin.php:365
 #: pointnet-games/includes/class-post-types.php:37
 #: pointnet-games/includes/class-shortcodes.php:191
 msgid "Game"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:44
 #: pointnet-games/includes/class-admin.php:45
-#: pointnet-games/includes/class-admin.php:568
+#: pointnet-games/includes/class-admin.php:46
+#: pointnet-games/includes/class-admin.php:569
 msgid "Game Catalog"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:70
+#: pointnet-games/includes/class-post-types.php:71
 msgid "Game Categories"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:71
+#: pointnet-games/includes/class-post-types.php:72
 msgid "Game Category"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:216
+#: pointnet-games/includes/class-admin.php:217
 msgid "Game Page"
 msgstr ""
 
@@ -292,7 +280,7 @@ msgstr ""
 msgid "Game not found in catalog or download URL missing."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:745
+#: pointnet-games/includes/class-admin.php:751
 #: pointnet-games/includes/class-api.php:155
 #: pointnet-games/includes/class-api.php:191
 #: pointnet-games/includes/class-api.php:296
@@ -305,11 +293,11 @@ msgstr ""
 msgid "Game not specified."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:162
+#: pointnet-games/includes/class-admin.php:163
 msgid "Game removed from database."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:161
+#: pointnet-games/includes/class-admin.php:162
 msgid "Game successfully uninstalled."
 msgstr ""
 
@@ -318,11 +306,10 @@ msgid "Game uninstalled successfully."
 msgstr ""
 
 #: pointnet-games/includes/class-post-types.php:36
-#: pointnet-games/includes/class-post-types.php:38
 msgid "Games"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:245
+#: pointnet-games/includes/class-admin.php:246
 msgid "Games Played"
 msgstr ""
 
@@ -330,7 +317,7 @@ msgstr ""
 msgid "Games:"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:389
+#: pointnet-games/includes/class-admin.php:390
 msgid "Guest"
 msgstr ""
 
@@ -338,8 +325,8 @@ msgstr ""
 msgid "How to play"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:211
-#: pointnet-games/includes/class-admin.php:363
+#: pointnet-games/includes/class-admin.php:212
+#: pointnet-games/includes/class-admin.php:364
 msgid "ID"
 msgstr ""
 
@@ -347,19 +334,21 @@ msgstr ""
 msgid "Improve"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:327
+#: pointnet-games/includes/class-admin.php:328
 msgid "Install (1-Click)"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:183
+#: pointnet-games/includes/class-admin.php:184
 msgid "Install Minesweeper (Recommended)"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:300
+#: pointnet-games/includes/class-admin.php:301
 msgid "Installed"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:207
+#: pointnet-games/includes/class-admin.php:208
+#: pointnet-games/includes/class-post-types.php:38
+#: pointnet-games/includes/class-post-types.php:39
 msgid "Installed Games"
 msgstr ""
 
@@ -386,7 +375,7 @@ msgstr ""
 msgid "Invalid score."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:650
+#: pointnet-games/includes/class-admin.php:656
 msgid "KPI card with player's personal records and statistics."
 msgstr ""
 
@@ -398,7 +387,7 @@ msgstr ""
 msgid "Level"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:459
+#: pointnet-games/includes/class-admin.php:460
 msgid "Link Author Profiles on Leaderboards"
 msgstr ""
 
@@ -410,13 +399,13 @@ msgstr ""
 msgid "Log in to view your personal arcade records and climb the leaderboard!"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:463
+#: pointnet-games/includes/class-admin.php:464
 msgid ""
 "Make registered player names clickable on leaderboards with links to their "
 "author profile"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:436
+#: pointnet-games/includes/class-admin.php:437
 msgid ""
 "Maximum number of scores that can be submitted per minute by a single player."
 msgstr ""
@@ -429,23 +418,19 @@ msgstr ""
 msgid "Mode"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:380
+#: pointnet-games/includes/class-admin.php:381
 msgid "N/A"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:79
+#: pointnet-games/includes/class-post-types.php:80
 msgid "New Category Name"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:42
-msgid "New Game"
-msgstr ""
-
-#: pointnet-games/includes/class-admin.php:365
+#: pointnet-games/includes/class-admin.php:366
 msgid "Nickname"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:392
+#: pointnet-games/includes/class-admin.php:393
 msgid "No"
 msgstr ""
 
@@ -453,7 +438,7 @@ msgstr ""
 msgid "No arcade records recorded yet."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:279
+#: pointnet-games/includes/class-admin.php:280
 msgid ""
 "No game releases found on GitHub. Publish a release in the catalog "
 "repository to have it appear here automatically."
@@ -463,20 +448,20 @@ msgstr ""
 msgid "No games available."
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:45
+#: pointnet-games/includes/class-post-types.php:43
 msgid "No games found"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:46
+#: pointnet-games/includes/class-post-types.php:44
 msgid "No games found in trash"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:567
+#: pointnet-games/includes/class-admin.php:568
 #, php-format
 msgid "No games installed yet. Visit the %s to install one with 1-click."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:681
+#: pointnet-games/includes/class-admin.php:687
 msgid "No games played yet."
 msgstr ""
 
@@ -484,7 +469,7 @@ msgstr ""
 msgid "No scores yet."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:592
+#: pointnet-games/includes/class-admin.php:593
 msgid "Open game"
 msgstr ""
 
@@ -496,21 +481,21 @@ msgstr ""
 msgid "PLAY"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:74
+#: pointnet-games/includes/class-post-types.php:75
 msgid "Parent Category"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:75
+#: pointnet-games/includes/class-post-types.php:76
 msgid "Parent Category:"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:479
+#: pointnet-games/includes/class-admin.php:480
 msgid ""
 "Permanently delete all score and leaderboard database tables when "
 "uninstalling the plugin"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:737
+#: pointnet-games/includes/class-admin.php:743
 #: pointnet-games/includes/class-game-catalog.php:210
 #: pointnet-games/includes/class-game-catalog.php:261
 #: pointnet-games/includes/class-game-catalog.php:312
@@ -525,16 +510,16 @@ msgstr ""
 msgid "Player"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:33
 #: pointnet-games/includes/class-admin.php:34
+#: pointnet-games/includes/class-admin.php:35
 msgid "PointNet Games"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:173
+#: pointnet-games/includes/class-admin.php:174
 msgid "PointNet Games Dashboard"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:419
+#: pointnet-games/includes/class-admin.php:420
 msgid "PointNet Games Settings"
 msgstr ""
 
@@ -542,32 +527,32 @@ msgstr ""
 msgid "Pos."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:195
+#: pointnet-games/includes/class-admin.php:196
 msgid "Published Games"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:431
+#: pointnet-games/includes/class-admin.php:432
 msgid "Rate Limit (requests/min)"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:389
+#: pointnet-games/includes/class-admin.php:390
 msgid "Registered"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:445
+#: pointnet-games/includes/class-admin.php:446
 msgid "Require manual approval before showing scores on leaderboards"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:367
+#: pointnet-games/includes/class-admin.php:368
 #: pointnet-games/includes/class-shortcodes.php:200
 msgid "Score"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:441
+#: pointnet-games/includes/class-admin.php:442
 msgid "Score Validation"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:351
+#: pointnet-games/includes/class-admin.php:352
 msgid "Score deleted."
 msgstr ""
 
@@ -575,21 +560,21 @@ msgstr ""
 msgid "Score exceeds the maximum permitted for this game."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:53
 #: pointnet-games/includes/class-admin.php:54
-#: pointnet-games/includes/class-admin.php:359
+#: pointnet-games/includes/class-admin.php:55
+#: pointnet-games/includes/class-admin.php:360
 msgid "Scores"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:72
+#: pointnet-games/includes/class-post-types.php:73
 msgid "Search Categories"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:44
+#: pointnet-games/includes/class-post-types.php:42
 msgid "Search Games"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:733
+#: pointnet-games/includes/class-admin.php:739
 msgid "Security check failed."
 msgstr ""
 
@@ -600,17 +585,17 @@ msgid ""
 msgstr ""
 
 #: pointnet-games/pointnet-games.php:210
-#: pointnet-games/includes/class-admin.php:62
 #: pointnet-games/includes/class-admin.php:63
+#: pointnet-games/includes/class-admin.php:64
 msgid "Settings"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:215
-#: pointnet-games/includes/class-admin.php:229
+#: pointnet-games/includes/class-admin.php:216
+#: pointnet-games/includes/class-admin.php:230
 msgid "Shortcode"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:213
+#: pointnet-games/includes/class-admin.php:214
 msgid "Slug"
 msgstr ""
 
@@ -638,7 +623,7 @@ msgstr ""
 msgid "Too many submissions, try again in a minute."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:240
+#: pointnet-games/includes/class-admin.php:241
 msgid "Top Games Leaderboard"
 msgstr ""
 
@@ -646,7 +631,7 @@ msgstr ""
 msgid "Total Score:"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:199
+#: pointnet-games/includes/class-admin.php:200
 msgid "Total Scores"
 msgstr ""
 
@@ -654,71 +639,71 @@ msgstr ""
 msgid "Unable to save the score."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:323
-#: pointnet-games/includes/class-admin.php:618
+#: pointnet-games/includes/class-admin.php:324
+#: pointnet-games/includes/class-admin.php:624
 msgid "Uninstall"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:469
+#: pointnet-games/includes/class-admin.php:470
 msgid "Uninstall & Data Cleanup"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:598
+#: pointnet-games/includes/class-admin.php:600
 #, php-format
 msgid ""
 "Uninstall game \"%1$s\"? Files in uploads/pointnet-games/%2$s/ will be "
 "removed."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:203
+#: pointnet-games/includes/class-admin.php:204
 msgid "Unique Players"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:687
+#: pointnet-games/includes/class-admin.php:693
 msgid "Unknown Game"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:298
-#: pointnet-games/includes/class-admin.php:319
+#: pointnet-games/includes/class-admin.php:299
+#: pointnet-games/includes/class-admin.php:320
 msgid "Update"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:77
+#: pointnet-games/includes/class-post-types.php:78
 msgid "Update Category"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:366
+#: pointnet-games/includes/class-admin.php:367
 msgid "User"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:369
+#: pointnet-games/includes/class-admin.php:370
 msgid "Valid"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:214
+#: pointnet-games/includes/class-admin.php:215
 msgid "Version"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:308
+#: pointnet-games/includes/class-admin.php:309
 msgid "Version:"
 msgstr ""
 
-#: pointnet-games/includes/class-post-types.php:43
+#: pointnet-games/includes/class-post-types.php:41
 msgid "View Game"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:392
+#: pointnet-games/includes/class-admin.php:393
 msgid "Yes"
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:180
+#: pointnet-games/includes/class-admin.php:181
 msgid ""
 "You do not have any games installed yet. You can install Minesweeper with 1 "
 "click or browse the catalog to add games to your site."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:345
-#: pointnet-games/includes/class-admin.php:413
+#: pointnet-games/includes/class-admin.php:346
+#: pointnet-games/includes/class-admin.php:414
 msgid "You do not have permission to access this page."
 msgstr ""
 
@@ -733,7 +718,7 @@ msgstr ""
 msgid "You must be logged in."
 msgstr ""
 
-#: pointnet-games/includes/class-admin.php:179
+#: pointnet-games/includes/class-admin.php:180
 msgid "Your Arcade Platform is ready!"
 msgstr ""
 

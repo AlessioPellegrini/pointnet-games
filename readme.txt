@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.4.4
+Stable tag: 1.4.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -322,6 +322,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.4.5 =
+Recommended update: streamlines admin UX by nesting installed games under the PointNet Games menu, disallows manual empty post creation via Add New (redirects to Catalog), and adds a 1-click Edit button on installed games for SEO and media customization.
 
 = 1.4.4 =
 Recommended update: complete internationalization (i18n) standardization with English source strings, loads textdomain for custom translations, and includes 100% updated Italian (it_IT) translations.
