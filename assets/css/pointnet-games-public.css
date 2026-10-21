@@ -715,19 +715,46 @@ aside .pointnet-games-user-records,
 	color: #64748b;
 }
 
+.pointnet-games-user-empty-actions {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	margin-top: 12px;
+	flex-wrap: wrap;
+}
+
 .pointnet-games-btn-primary {
 	display: inline-block;
-	margin-top: 10px;
 	padding: 8px 18px;
 	border-radius: 6px;
 	background: #2563eb;
 	color: #ffffff !important;
 	font-weight: 600;
 	text-decoration: none;
+	transition: background 0.15s ease;
 }
 
 .pointnet-games-btn-primary:hover {
 	background: #1d4ed8;
+}
+
+.pointnet-games-btn-secondary {
+	display: inline-block;
+	padding: 8px 18px;
+	border-radius: 6px;
+	background: #ffffff;
+	border: 1px solid #cbd5e1;
+	color: #334155 !important;
+	font-weight: 600;
+	text-decoration: none;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.pointnet-games-btn-secondary:hover {
+	background: #f1f5f9;
+	border-color: #94a3b8;
+	color: #0f172a !important;
 }
 
 /* -------------------- Responsive -------------------- */

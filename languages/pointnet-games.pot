@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 18:12+0200\n"
+"POT-Creation-Date: 2026-10-21 18:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -671,15 +671,15 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
-#: includes/class-shortcodes.php:264 includes/class-shortcodes.php:599
+#: includes/class-shortcodes.php:264 includes/class-shortcodes.php:619
 msgid "Level"
 msgstr ""
 
-#: includes/class-shortcodes.php:274 includes/class-shortcodes.php:609
+#: includes/class-shortcodes.php:274 includes/class-shortcodes.php:629
 msgid "Time"
 msgstr ""
 
-#: includes/class-shortcodes.php:285 includes/class-shortcodes.php:619
+#: includes/class-shortcodes.php:285 includes/class-shortcodes.php:639
 msgid "Outcome"
 msgstr ""
 
@@ -687,85 +687,91 @@ msgstr ""
 msgid "No games available."
 msgstr ""
 
-#: includes/class-shortcodes.php:449
-msgid "Log in to view your personal arcade records and climb the leaderboard!"
+#: includes/class-shortcodes.php:457
+msgid ""
+"Log in or register to view your personal arcade records and climb the "
+"leaderboard!"
 msgstr ""
 
-#: includes/class-shortcodes.php:449
+#: includes/class-shortcodes.php:459
 msgid "Log In"
 msgstr ""
 
-#: includes/class-shortcodes.php:473
+#: includes/class-shortcodes.php:462
+msgid "Register"
+msgstr ""
+
+#: includes/class-shortcodes.php:493
 msgid "🎮 Your Arcade Records"
 msgstr ""
 
-#: includes/class-shortcodes.php:476
+#: includes/class-shortcodes.php:496
 #, php-format
 msgid "🎮 %s's Arcade Records"
 msgstr ""
 
-#: includes/class-shortcodes.php:482
+#: includes/class-shortcodes.php:502
 msgid ""
 "You have not saved any records yet. Choose an arcade game and climb the "
 "leaderboard!"
 msgstr ""
 
-#: includes/class-shortcodes.php:487
+#: includes/class-shortcodes.php:507
 msgid "Play now"
 msgstr ""
 
-#: includes/class-shortcodes.php:489
+#: includes/class-shortcodes.php:509
 msgid "No arcade records recorded yet."
 msgstr ""
 
-#: includes/class-shortcodes.php:505
+#: includes/class-shortcodes.php:525
 msgid "Your Arcade Records"
 msgstr ""
 
-#: includes/class-shortcodes.php:508
+#: includes/class-shortcodes.php:528
 #, php-format
 msgid "%s's Arcade Records"
 msgstr ""
 
-#: includes/class-shortcodes.php:517
+#: includes/class-shortcodes.php:537
 msgid "Total Score:"
 msgstr ""
 
-#: includes/class-shortcodes.php:518
+#: includes/class-shortcodes.php:538
 msgid "Games:"
 msgstr ""
 
-#: includes/class-shortcodes.php:521
+#: includes/class-shortcodes.php:541
 msgid "Best Rank:"
 msgstr ""
 
-#: includes/class-shortcodes.php:528
+#: includes/class-shortcodes.php:548
 msgid "Badges:"
 msgstr ""
 
-#: includes/class-shortcodes.php:538
+#: includes/class-shortcodes.php:558
 msgid "Achievements & Badges"
 msgstr ""
 
-#: includes/class-shortcodes.php:545
+#: includes/class-shortcodes.php:565
 #, php-format
 msgid "Unlocked on %s"
 msgstr ""
 
-#: includes/class-shortcodes.php:545
+#: includes/class-shortcodes.php:565
 msgid "Locked"
 msgstr ""
 
-#: includes/class-shortcodes.php:575
+#: includes/class-shortcodes.php:595
 #, php-format
 msgid "%d records registered"
 msgstr ""
 
-#: includes/class-shortcodes.php:654
+#: includes/class-shortcodes.php:674
 msgid "Improve"
 msgstr ""
 
-#: includes/class-shortcodes.php:654
+#: includes/class-shortcodes.php:674
 msgid "Challenge"
 msgstr ""
 

@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,10 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.6.1 =
+* UX & Registration: added dynamic "Register" action button alongside "Log In" in the guest/anonymous arcade records prompt (respecting WordPress `users_can_register` setting).
+* Navigation: preserved redirect destination URL (`redirect_to`) upon login so users land right back on the game page.
 
 = 1.6.0 =
 * Major Milestone (Phase 1 Gamification): introduces Player Achievements & Badges system (`includes/class-achievements.php`) with 6 distinct milestone badges saved safely to `wp_usermeta`.
@@ -359,6 +363,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.6.1 =
+Recommended update: adds "Register" action button alongside "Log In" for anonymous visitors and preserves return URL on login.
 
 = 1.6.0 =
 Major Phase 1 release: introduces Player Achievements & Badges, Periodic Leaderboard filters (week/month/all-time) and real-time Personal Best celebrations.
