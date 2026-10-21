@@ -119,18 +119,21 @@ class PointNet_Games_Admin {
 	}
 
 	/**
+	 * Official PayPal donation URL for PointNet Games.
+	 */
+	const DONATE_URL = 'https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J';
+
+	/**
 	 * Output donation supporter banner.
 	 */
 	public static function render_donation_box() {
-		$settings   = get_option( 'pointnet_games_settings', array() );
-		$donate_url = ! empty( $settings['kofi_url'] ) ? esc_url( $settings['kofi_url'] ) : 'https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J';
 		?>
 		<div class="pointnet-games-donation-box">
 			<div class="pointnet-games-donation-content">
 				<h3>💖 <?php esc_html_e( 'Ti piace PointNet Games? Sostieni il progetto!', 'pointnet-games' ); ?></h3>
 				<p><?php esc_html_e( 'Tutti i giochi sono open-source e gratuiti. Supporta lo sviluppo per finanziare nuovi livelli e nuovi giochi!', 'pointnet-games' ); ?></p>
 			</div>
-			<a href="<?php echo esc_url( $donate_url ); ?>" target="_blank" rel="noopener noreferrer" class="pointnet-games-btn-donate">
+			<a href="<?php echo esc_url( self::DONATE_URL ); ?>" target="_blank" rel="noopener noreferrer" class="pointnet-games-btn-donate">
 				💙 <?php esc_html_e( 'Dona con PayPal', 'pointnet-games' ); ?>
 			</a>
 		</div>
@@ -425,17 +428,6 @@ class PointNet_Games_Admin {
 				<table class="form-table">
 					<tr>
 						<th scope="row">
-							<label for="pointnet_games_kofi_url"><?php esc_html_e( 'Link Donazioni (PayPal / Sostenitori)', 'pointnet-games' ); ?></label>
-						</th>
-						<td>
-							<input type="url" id="pointnet_games_kofi_url" name="pointnet_games_settings[kofi_url]" value="<?php echo esc_attr( isset( $settings['kofi_url'] ) ? $settings['kofi_url'] : 'https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J' ); ?>" class="regular-text">
-							<p class="description">
-								<?php esc_html_e( 'Inserisci il link alla tua campagna PayPal o pagina donazioni visualizzato nei banner di supporto.', 'pointnet-games' ); ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
 							<label for="pointnet_games_rate_limit"><?php esc_html_e( 'Rate Limit (richieste/min)', 'pointnet-games' ); ?></label>
 						</th>
 						<td>
@@ -519,7 +511,6 @@ class PointNet_Games_Admin {
 			'link_author_profiles'       => 0,
 			'delete_data_on_uninstall'   => 0,
 			'delete_games_on_uninstall'  => 0,
-			'kofi_url'                   => 'https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J',
 		);
 
 		$clean = wp_parse_args( $input, $defaults );
@@ -530,7 +521,6 @@ class PointNet_Games_Admin {
 		$clean['delete_data_on_uninstall']   = isset( $input['delete_data_on_uninstall'] ) ? 1 : 0;
 		$clean['delete_games_on_uninstall']  = isset( $input['delete_games_on_uninstall'] ) ? 1 : 0;
 		$clean['rate_limit']                 = (int) $input['rate_limit'];
-		$clean['kofi_url']                   = esc_url_raw( $input['kofi_url'] );
 
 		return $clean;
 	}
