@@ -936,6 +936,12 @@ aside .pointnet-games-user-records,
 	background: #fdf2f8;
 }
 
+.png-badge-unlocked.png-badge-legendary {
+	border-color: #f59e0b;
+	background: linear-gradient(135deg, #fffbeb, #fef3c7);
+	box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+}
+
 .png-pill-badge {
 	background: #fdf4ff !important;
 	border-color: #f0abfc !important;

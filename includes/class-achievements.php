@@ -27,6 +27,7 @@ class PointNet_Games_Achievements {
 	 */
 	public static function get_definitions() {
 		return array(
+			// --- Starter Tier ---
 			'first_blood' => array(
 				'id'          => 'first_blood',
 				'title'       => __( 'First Blood', 'pointnet-games' ),
@@ -34,6 +35,15 @@ class PointNet_Games_Achievements {
 				'icon'        => '🎯',
 				'rarity'      => 'common',
 			),
+			'arcade_explorer' => array(
+				'id'          => 'arcade_explorer',
+				'title'       => __( 'Arcade Explorer', 'pointnet-games' ),
+				'description' => __( 'Play and record a score in at least 2 different arcade games.', 'pointnet-games' ),
+				'icon'        => '🕹️',
+				'rarity'      => 'uncommon',
+			),
+
+			// --- Podiums & Single Champions ---
 			'podium_finisher' => array(
 				'id'          => 'podium_finisher',
 				'title'       => __( 'Podium Finisher', 'pointnet-games' ),
@@ -48,13 +58,31 @@ class PointNet_Games_Achievements {
 				'icon'        => '👑',
 				'rarity'      => 'epic',
 			),
-			'arcade_explorer' => array(
-				'id'          => 'arcade_explorer',
-				'title'       => __( 'Arcade Explorer', 'pointnet-games' ),
-				'description' => __( 'Play and record a score in at least 2 different arcade games.', 'pointnet-games' ),
-				'icon'        => '🕹️',
-				'rarity'      => 'uncommon',
+
+			// --- Multi-Game Dominance (Hardcore & Elite) ---
+			'dual_champion' => array(
+				'id'          => 'dual_champion',
+				'title'       => __( 'Dual Champion', 'pointnet-games' ),
+				'description' => __( 'Hold the #1 spot on leaderboards across 2 different games simultaneously.', 'pointnet-games' ),
+				'icon'        => '⚔️',
+				'rarity'      => 'epic',
 			),
+			'triple_crown' => array(
+				'id'          => 'triple_crown',
+				'title'       => __( 'Triple Crown', 'pointnet-games' ),
+				'description' => __( 'Hold the #1 spot on leaderboards across 3 different games simultaneously.', 'pointnet-games' ),
+				'icon'        => '🔱',
+				'rarity'      => 'legendary',
+			),
+			'grand_master' => array(
+				'id'          => 'grand_master',
+				'title'       => __( 'Grand Master', 'pointnet-games' ),
+				'description' => __( 'Dominate the arcade by holding the #1 spot across 5 different games.', 'pointnet-games' ),
+				'icon'        => '🌌',
+				'rarity'      => 'legendary',
+			),
+
+			// --- Dedication & Grinding Milestones ---
 			'veteran_player' => array(
 				'id'          => 'veteran_player',
 				'title'       => __( 'Veteran Player', 'pointnet-games' ),
@@ -62,12 +90,28 @@ class PointNet_Games_Achievements {
 				'icon'        => '⚡',
 				'rarity'      => 'rare',
 			),
+			'centurion' => array(
+				'id'          => 'centurion',
+				'title'       => __( 'Centurion', 'pointnet-games' ),
+				'description' => __( 'Record 100 or more verified game scores.', 'pointnet-games' ),
+				'icon'        => '🛡️',
+				'rarity'      => 'legendary',
+			),
+
+			// --- High Scores & Score Milestones ---
 			'high_roller' => array(
 				'id'          => 'high_roller',
 				'title'       => __( 'High Roller', 'pointnet-games' ),
 				'description' => __( 'Score 10,000 points or more in a single game session.', 'pointnet-games' ),
 				'icon'        => '💎',
 				'rarity'      => 'epic',
+			),
+			'millionaire_club' => array(
+				'id'          => 'millionaire_club',
+				'title'       => __( 'Millionaire Club', 'pointnet-games' ),
+				'description' => __( 'Accumulate 1,000,000 total points across your arcade records.', 'pointnet-games' ),
+				'icon'        => '🌟',
+				'rarity'      => 'legendary',
 			),
 		);
 	}
@@ -187,14 +231,20 @@ class PointNet_Games_Achievements {
 			$newly_unlocked[] = $definitions['arcade_champion'];
 		}
 
-		// 5. Query user game statistics if multi-game or volume achievements are still locked.
-		$needs_stats = ( ! isset( $unlocked['arcade_explorer'] ) || ! isset( $unlocked['veteran_player'] ) );
-		if ( $needs_stats ) {
-			$table = pointnet_games_scores_table();
+		// 5. Query user game statistics if multi-game, grinding, or millionaire achievements are still locked.
+		$needs_stats = (
+			! isset( $unlocked['arcade_explorer'] ) ||
+			! isset( $unlocked['veteran_player'] ) ||
+			! isset( $unlocked['centurion'] ) ||
+			! isset( $unlocked['millionaire_club'] )
+		);
 
+		$table = pointnet_games_scores_table();
+
+		if ( $needs_stats ) {
 			$stats = $wpdb->get_row(
 				$wpdb->prepare(
-					"SELECT COUNT(id) as total_scores, COUNT(DISTINCT game_id) as distinct_games
+					"SELECT COUNT(id) as total_scores, COUNT(DISTINCT game_id) as distinct_games, SUM(score) as cumulative_score
 					 FROM %i
 					 WHERE user_id = %d AND validated = 1",
 					$table,
@@ -203,8 +253,9 @@ class PointNet_Games_Achievements {
 			);
 
 			if ( $stats ) {
-				$distinct_games = (int) $stats->distinct_games;
-				$total_scores   = (int) $stats->total_scores;
+				$distinct_games   = (int) $stats->distinct_games;
+				$total_scores     = (int) $stats->total_scores;
+				$cumulative_score = (int) $stats->cumulative_score;
 
 				// Arcade Explorer: played at least 2 distinct games.
 				if ( ! isset( $unlocked['arcade_explorer'] ) && $distinct_games >= 2 ) {
@@ -217,6 +268,66 @@ class PointNet_Games_Achievements {
 					self::unlock( $user_id, 'veteran_player', array( 'total_scores' => $total_scores ) );
 					$newly_unlocked[] = $definitions['veteran_player'];
 				}
+
+				// Centurion: recorded 100 or more scores.
+				if ( ! isset( $unlocked['centurion'] ) && $total_scores >= 100 ) {
+					self::unlock( $user_id, 'centurion', array( 'total_scores' => $total_scores ) );
+					$newly_unlocked[] = $definitions['centurion'];
+				}
+
+				// Millionaire Club: 1,000,000+ total cumulative points.
+				if ( ! isset( $unlocked['millionaire_club'] ) && $cumulative_score >= 1000000 ) {
+					self::unlock( $user_id, 'millionaire_club', array( 'cumulative_score' => $cumulative_score ) );
+					$newly_unlocked[] = $definitions['millionaire_club'];
+				}
+			}
+		}
+
+		// 6. Evaluate Multi-Game Champions (#1 spot across 2, 3, 5 games).
+		$needs_championship_check = (
+			! isset( $unlocked['dual_champion'] ) ||
+			! isset( $unlocked['triple_crown'] ) ||
+			! isset( $unlocked['grand_master'] )
+		);
+
+		if ( $needs_championship_check ) {
+			// Find how many games this user currently holds the #1 spot on.
+			$user_records = PointNet_Games_Leaderboard::get_user_records( $user_id );
+			$games_first  = 0;
+
+			if ( ! empty( $user_records['games'] ) ) {
+				foreach ( $user_records['games'] as $g ) {
+					$has_first = false;
+					if ( ! empty( $g['records'] ) ) {
+						foreach ( $g['records'] as $r ) {
+							if ( 1 === (int) ( $r['position'] ?? 0 ) ) {
+								$has_first = true;
+								break;
+							}
+						}
+					}
+					if ( $has_first ) {
+						$games_first++;
+					}
+				}
+			}
+
+			// Dual Champion: #1 in at least 2 games.
+			if ( ! isset( $unlocked['dual_champion'] ) && $games_first >= 2 ) {
+				self::unlock( $user_id, 'dual_champion', array( 'games_first' => $games_first ) );
+				$newly_unlocked[] = $definitions['dual_champion'];
+			}
+
+			// Triple Crown: #1 in at least 3 games.
+			if ( ! isset( $unlocked['triple_crown'] ) && $games_first >= 3 ) {
+				self::unlock( $user_id, 'triple_crown', array( 'games_first' => $games_first ) );
+				$newly_unlocked[] = $definitions['triple_crown'];
+			}
+
+			// Grand Master: #1 in at least 5 games.
+			if ( ! isset( $unlocked['grand_master'] ) && $games_first >= 5 ) {
+				self::unlock( $user_id, 'grand_master', array( 'games_first' => $games_first ) );
+				$newly_unlocked[] = $definitions['grand_master'];
 			}
 		}
 

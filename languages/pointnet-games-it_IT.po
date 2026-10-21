@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PointNet Games 1.4.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 19:17+0200\n"
+"POT-Creation-Date: 2026-10-21 19:21+0200\n"
 "PO-Revision-Date: 2026-10-21 15:35+0200\n"
 "Last-Translator: PointNet <info@pointnet.it>\n"
 "Language-Team: Italian <it@wp.org>\n"
@@ -40,53 +40,97 @@ msgstr ""
 "Impossibile rinominare la cartella di aggiornamento del plugin in pointnet-"
 "games."
 
-#: includes/class-achievements.php:32
+#: includes/class-achievements.php:33
 msgid "First Blood"
 msgstr "Primo Sangue"
 
-#: includes/class-achievements.php:33
+#: includes/class-achievements.php:34
 msgid "Submit your first verified score in any arcade game."
 msgstr "Invia il tuo primo punteggio verificato in qualsiasi gioco arcade."
 
-#: includes/class-achievements.php:39
-msgid "Podium Finisher"
-msgstr "Sul Podio"
-
 #: includes/class-achievements.php:40
-msgid "Reach the Top 3 on any game leaderboard."
-msgstr "Raggiungi la Top 3 nella classifica di qualsiasi gioco."
-
-#: includes/class-achievements.php:46
-msgid "Arcade Champion"
-msgstr "Campione Arcade"
-
-#: includes/class-achievements.php:47
-msgid "Claim the #1 spot on any game leaderboard."
-msgstr "Conquista il 1° posto nella classifica di un gioco."
-
-#: includes/class-achievements.php:53
 msgid "Arcade Explorer"
 msgstr "Esploratore Arcade"
 
-#: includes/class-achievements.php:54
+#: includes/class-achievements.php:41
 msgid "Play and record a score in at least 2 different arcade games."
 msgstr "Gioca e registra un punteggio in almeno 2 giochi diversi."
 
-#: includes/class-achievements.php:60
+#: includes/class-achievements.php:49
+msgid "Podium Finisher"
+msgstr "Sul Podio"
+
+#: includes/class-achievements.php:50
+msgid "Reach the Top 3 on any game leaderboard."
+msgstr "Raggiungi la Top 3 nella classifica di qualsiasi gioco."
+
+#: includes/class-achievements.php:56
+msgid "Arcade Champion"
+msgstr "Campione Arcade"
+
+#: includes/class-achievements.php:57
+msgid "Claim the #1 spot on any game leaderboard."
+msgstr "Conquista il 1° posto nella classifica di un gioco."
+
+#: includes/class-achievements.php:65
+msgid "Dual Champion"
+msgstr "Doppio Campione"
+
+#: includes/class-achievements.php:66
+msgid ""
+"Hold the #1 spot on leaderboards across 2 different games simultaneously."
+msgstr ""
+"Mantieni il 1° posto nelle classifiche di 2 giochi diversi contemporaneamente."
+
+#: includes/class-achievements.php:72
+msgid "Triple Crown"
+msgstr "Tripla Corona"
+
+#: includes/class-achievements.php:73
+msgid ""
+"Hold the #1 spot on leaderboards across 3 different games simultaneously."
+msgstr ""
+"Mantieni il 1° posto nelle classifiche di 3 giochi diversi contemporaneamente."
+
+#: includes/class-achievements.php:79
+msgid "Grand Master"
+msgstr "Gran Maestro"
+
+#: includes/class-achievements.php:80
+msgid "Dominate the arcade by holding the #1 spot across 5 different games."
+msgstr "Domina l'arcade mantenendo il 1° posto in 5 giochi diversi."
+
+#: includes/class-achievements.php:88
 msgid "Veteran Player"
 msgstr "Giocatore Veterano"
 
-#: includes/class-achievements.php:61
+#: includes/class-achievements.php:89
 msgid "Record 10 or more verified game scores."
 msgstr "Registra 10 o più punteggi di gioco verificati."
 
-#: includes/class-achievements.php:67
+#: includes/class-achievements.php:95
+msgid "Centurion"
+msgstr "Centurione"
+
+#: includes/class-achievements.php:96
+msgid "Record 100 or more verified game scores."
+msgstr "Registra 100 o più punteggi di gioco verificati."
+
+#: includes/class-achievements.php:104
 msgid "High Roller"
 msgstr "Grande Punteggio"
 
-#: includes/class-achievements.php:68
+#: includes/class-achievements.php:105
 msgid "Score 10,000 points or more in a single game session."
 msgstr "Ottieni 10.000 o più punti in una singola sessione di gioco."
+
+#: includes/class-achievements.php:111
+msgid "Millionaire Club"
+msgstr "Club dei Milionari"
+
+#: includes/class-achievements.php:112
+msgid "Accumulate 1,000,000 total points across your arcade records."
+msgstr "Accumula 1.000.000 di punti totali nei tuoi record arcade."
 
 #: includes/class-api.php:166 includes/class-api.php:202
 #: includes/class-api.php:333 includes/class-api.php:444

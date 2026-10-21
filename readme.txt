@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.3
+Stable tag: 1.6.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,10 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.6.4 =
+* Gamification & Retention: expanded badge ecosystem with progression tiers and hardcore/legendary challenges ("Dual Champion", "Triple Crown", "Grand Master", "Centurion", "Millionaire Club").
+* Visual Tiers: added glowing legendary badge styling (`.png-badge-legendary`) in achievements tray.
 
 = 1.6.3 =
 * Feature & Settings: added "Player Login & Registration Redirect" setting in PointNet Games → Settings, allowing administrators to configure where players (subscribers) land after logging in or registering (defaults to website home page).
