@@ -60,6 +60,15 @@ class PointNet_Games_Admin {
 
 		add_submenu_page(
 			'pointnet-games',
+			__( 'Shortcodes', 'pointnet-games' ),
+			__( 'Shortcodes', 'pointnet-games' ),
+			'manage_options',
+			'pointnet-games-shortcodes',
+			array( $this, 'render_shortcodes_page' )
+		);
+
+		add_submenu_page(
+			'pointnet-games',
 			__( 'Settings', 'pointnet-games' ),
 			__( 'Settings', 'pointnet-games' ),
 			'manage_options',
@@ -505,6 +514,185 @@ class PointNet_Games_Admin {
 				<?php submit_button(); ?>
 			</form>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Render the Shortcodes directory & interactive builder page.
+	 */
+	public function render_shortcodes_page() {
+		$games = get_posts(
+			array(
+				'post_type'      => PointNet_Games_Post_Types::GAME_CPT,
+				'post_status'    => 'publish',
+				'posts_per_page' => 100,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+			)
+		);
+		?>
+		<div class="wrap pointnet-games-shortcodes-wrap">
+			<h1><?php esc_html_e( 'PointNet Games — Shortcodes Reference', 'pointnet-games' ); ?></h1>
+			<p class="description">
+				<?php esc_html_e( 'Use these shortcodes to embed playable games, interactive leaderboards, catalogs, and personal player records anywhere in your pages, posts, or page builders (Gutenberg, Elementor, Divi).', 'pointnet-games' ); ?>
+			</p>
+
+			<div class="pointnet-shortcode-cards-grid">
+
+				<!-- 1. Playable Game Embed -->
+				<div class="pointnet-shortcode-card">
+					<div class="pointnet-shortcode-card-header">
+						<span class="pointnet-shortcode-badge">🎮 <?php esc_html_e( 'Core', 'pointnet-games' ); ?></span>
+						<h3><code>[pointnet_game]</code></h3>
+						<p><?php esc_html_e( 'Embeds the playable arcade game inside an isolated, secure canvas/iframe sandbox with fullscreen toggle.', 'pointnet-games' ); ?></p>
+					</div>
+					<div class="pointnet-shortcode-card-body">
+						<h4><?php esc_html_e( 'Supported Attributes:', 'pointnet-games' ); ?></h4>
+						<table class="widefat striped">
+							<thead><tr><th><?php esc_html_e( 'Attribute', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Default', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Description', 'pointnet-games' ); ?></th></tr></thead>
+							<tbody>
+								<tr><td><code>slug</code></td><td><em><?php esc_html_e( 'Required', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Slug of the game (e.g. minesweeper-arcade, mahjong)', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>width</code></td><td><code>100%</code></td><td><?php esc_html_e( 'CSS width (e.g. 100%, 800px)', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>height</code></td><td><em><?php esc_html_e( 'From manifest', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Custom container height (e.g. 750px)', 'pointnet-games' ); ?></td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="pointnet-shortcode-card-footer">
+						<div class="pointnet-code-copy-box">
+							<code id="code-game">[pointnet_game slug="minesweeper-arcade"]</code>
+							<button type="button" class="button pointnet-btn-copy" data-target="code-game"><?php esc_html_e( 'Copy', 'pointnet-games' ); ?></button>
+						</div>
+					</div>
+				</div>
+
+				<!-- 2. Single Game Leaderboard -->
+				<div class="pointnet-shortcode-card">
+					<div class="pointnet-shortcode-card-header">
+						<span class="pointnet-shortcode-badge">🏆 <?php esc_html_e( 'Rankings', 'pointnet-games' ); ?></span>
+						<h3><code>[pointnet_game_leaderboard]</code></h3>
+						<p><?php esc_html_e( 'Displays the highscore table for a single game with automatic difficulty tabs and periodic timeframe filtering.', 'pointnet-games' ); ?></p>
+					</div>
+					<div class="pointnet-shortcode-card-body">
+						<h4><?php esc_html_e( 'Supported Attributes:', 'pointnet-games' ); ?></h4>
+						<table class="widefat striped">
+							<thead><tr><th><?php esc_html_e( 'Attribute', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Default', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Description', 'pointnet-games' ); ?></th></tr></thead>
+							<tbody>
+								<tr><td><code>slug</code></td><td><em><?php esc_html_e( 'Required', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Slug of the game', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>limit</code></td><td><code>10</code></td><td><?php esc_html_e( 'Maximum number of positions shown (1 - 100)', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>period</code></td><td><code>all</code></td><td><?php esc_html_e( 'Timeframe filter: all, month, or week', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>difficulty</code></td><td><em><?php esc_html_e( 'All', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Specific difficulty preset (e.g. easy, medium, hard, arcade)', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>tabs</code></td><td><code>auto</code></td><td><?php esc_html_e( 'Render clickable difficulty tabs when multiple modes exist (auto or 0 to disable)', 'pointnet-games' ); ?></td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="pointnet-shortcode-card-footer">
+						<div class="pointnet-code-copy-box">
+							<code id="code-leaderboard">[pointnet_game_leaderboard slug="minesweeper-arcade" period="week" limit="10"]</code>
+							<button type="button" class="button pointnet-btn-copy" data-target="code-leaderboard"><?php esc_html_e( 'Copy', 'pointnet-games' ); ?></button>
+						</div>
+					</div>
+				</div>
+
+				<!-- 3. Global Multi-Game Leaderboard -->
+				<div class="pointnet-shortcode-card">
+					<div class="pointnet-shortcode-card-header">
+						<span class="pointnet-shortcode-badge">🌍 <?php esc_html_e( 'Hall of Fame', 'pointnet-games' ); ?></span>
+						<h3><code>[pointnet_games_leaderboard]</code></h3>
+						<p><?php esc_html_e( 'Displays the global arcade ranking across all installed games, isolating each player\'s personal best.', 'pointnet-games' ); ?></p>
+					</div>
+					<div class="pointnet-shortcode-card-body">
+						<h4><?php esc_html_e( 'Supported Attributes:', 'pointnet-games' ); ?></h4>
+						<table class="widefat striped">
+							<thead><tr><th><?php esc_html_e( 'Attribute', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Default', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Description', 'pointnet-games' ); ?></th></tr></thead>
+							<tbody>
+								<tr><td><code>limit</code></td><td><code>20</code></td><td><?php esc_html_e( 'Number of global ranking entries (1 - 100)', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>period</code></td><td><code>all</code></td><td><?php esc_html_e( 'Timeframe filter: all, month, or week', 'pointnet-games' ); ?></td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="pointnet-shortcode-card-footer">
+						<div class="pointnet-code-copy-box">
+							<code id="code-global">[pointnet_games_leaderboard limit="20" period="month"]</code>
+							<button type="button" class="button pointnet-btn-copy" data-target="code-global"><?php esc_html_e( 'Copy', 'pointnet-games' ); ?></button>
+						</div>
+					</div>
+				</div>
+
+				<!-- 4. User Arcade Records & Badges -->
+				<div class="pointnet-shortcode-card">
+					<div class="pointnet-shortcode-card-header">
+						<span class="pointnet-shortcode-badge">🎖️ <?php esc_html_e( 'Profile & Badges', 'pointnet-games' ); ?></span>
+						<h3><code>[pointnet_user_records]</code></h3>
+						<p><?php esc_html_e( 'Renders a player\'s personal arcade records showcase, stat KPI pills, game cards, and unlocked achievements tray.', 'pointnet-games' ); ?></p>
+					</div>
+					<div class="pointnet-shortcode-card-body">
+						<h4><?php esc_html_e( 'Supported Attributes:', 'pointnet-games' ); ?></h4>
+						<table class="widefat striped">
+							<thead><tr><th><?php esc_html_e( 'Attribute', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Default', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Description', 'pointnet-games' ); ?></th></tr></thead>
+							<tbody>
+								<tr><td><code>user_id</code></td><td><em><?php esc_html_e( 'Current User', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Specific WordPress user ID (optional; auto-detects author page)', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>username</code></td><td><em><?php esc_html_e( 'Current User', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Username or slug of the player', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>show_stats</code></td><td><code>1</code></td><td><?php esc_html_e( 'Show/hide top summary stat pills (1 or 0)', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>show_play_btn</code></td><td><code>1</code></td><td><?php esc_html_e( 'Show/hide "Improve / Challenge" full-width footer buttons (1 or 0)', 'pointnet-games' ); ?></td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="pointnet-shortcode-card-footer">
+						<div class="pointnet-code-copy-box">
+							<code id="code-user">[pointnet_user_records show_stats="1" show_play_btn="1"]</code>
+							<button type="button" class="button pointnet-btn-copy" data-target="code-user"><?php esc_html_e( 'Copy', 'pointnet-games' ); ?></button>
+						</div>
+					</div>
+				</div>
+
+				<!-- 5. Games Catalog Grid -->
+				<div class="pointnet-shortcode-card">
+					<div class="pointnet-shortcode-card-header">
+						<span class="pointnet-shortcode-badge">🕹️ <?php esc_html_e( 'Catalog Grid', 'pointnet-games' ); ?></span>
+						<h3><code>[pointnet_games_list]</code></h3>
+						<p><?php esc_html_e( 'Displays a responsive grid showcasing all installed arcade games with titles, thumbnails, tags, and PLAY buttons.', 'pointnet-games' ); ?></p>
+					</div>
+					<div class="pointnet-shortcode-card-body">
+						<h4><?php esc_html_e( 'Supported Attributes:', 'pointnet-games' ); ?></h4>
+						<table class="widefat striped">
+							<thead><tr><th><?php esc_html_e( 'Attribute', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Default', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Description', 'pointnet-games' ); ?></th></tr></thead>
+							<tbody>
+								<tr><td><code>columns</code></td><td><code>3</code></td><td><?php esc_html_e( 'Number of columns in responsive grid (2, 3, 4, or 5)', 'pointnet-games' ); ?></td></tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="pointnet-shortcode-card-footer">
+						<div class="pointnet-code-copy-box">
+							<code id="code-list">[pointnet_games_list columns="3"]</code>
+							<button type="button" class="button pointnet-btn-copy" data-target="code-list"><?php esc_html_e( 'Copy', 'pointnet-games' ); ?></button>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			document.querySelectorAll('.pointnet-btn-copy').forEach(function(btn) {
+				btn.addEventListener('click', function() {
+					var targetId = this.getAttribute('data-target');
+					var codeEl = document.getElementById(targetId);
+					if (!codeEl) return;
+					var text = codeEl.textContent;
+					navigator.clipboard.writeText(text).then(function() {
+						var oldText = btn.textContent;
+						btn.textContent = '✓ ' + <?php echo wp_json_encode( __( 'Copied!', 'pointnet-games' ) ); ?>;
+						btn.classList.add('button-primary');
+						setTimeout(function() {
+							btn.textContent = oldText;
+							btn.classList.remove('button-primary');
+						}, 2000);
+					});
+				});
+			});
+		});
+		</script>
 		<?php
 	}
 

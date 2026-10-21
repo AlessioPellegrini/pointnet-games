@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 19:21+0200\n"
+"POT-Creation-Date: 2026-10-21 19:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: pointnet-games.php:255 includes/class-admin.php:63
-#: includes/class-admin.php:64
+#: pointnet-games.php:255 includes/class-admin.php:72
+#: includes/class-admin.php:73
 msgid "Settings"
 msgstr ""
 
@@ -128,7 +128,7 @@ msgstr ""
 
 #: includes/class-api.php:166 includes/class-api.php:202
 #: includes/class-api.php:333 includes/class-api.php:444
-#: includes/class-api.php:492 includes/class-admin.php:763
+#: includes/class-api.php:492 includes/class-admin.php:951
 msgid "Game not found."
 msgstr ""
 
@@ -189,378 +189,547 @@ msgid "PointNet Games"
 msgstr ""
 
 #: includes/class-admin.php:45 includes/class-admin.php:46
-#: includes/class-admin.php:581
+#: includes/class-admin.php:769
 msgid "Game Catalog"
 msgstr ""
 
 #: includes/class-admin.php:54 includes/class-admin.php:55
-#: includes/class-admin.php:361
+#: includes/class-admin.php:370
 msgid "Scores"
 msgstr ""
 
-#: includes/class-admin.php:134
+#: includes/class-admin.php:63 includes/class-admin.php:64
+msgid "Shortcodes"
+msgstr ""
+
+#: includes/class-admin.php:143
 msgid "Do you enjoy PointNet Games? Support the project!"
 msgstr ""
 
-#: includes/class-admin.php:135
+#: includes/class-admin.php:144
 msgid ""
 "All games are open-source and free. Support development to fund new levels "
 "and games!"
 msgstr ""
 
-#: includes/class-admin.php:138
+#: includes/class-admin.php:147
 msgid "Donate with PayPal"
 msgstr ""
 
-#: includes/class-admin.php:162
+#: includes/class-admin.php:171
 msgid "Game successfully uninstalled."
 msgstr ""
 
-#: includes/class-admin.php:163
+#: includes/class-admin.php:172
 msgid "Game removed from database."
 msgstr ""
 
-#: includes/class-admin.php:166
+#: includes/class-admin.php:175
 msgid " Scores deleted."
 msgstr ""
 
-#: includes/class-admin.php:167
+#: includes/class-admin.php:176
 msgid " Scores kept in database."
 msgstr ""
 
-#: includes/class-admin.php:174
+#: includes/class-admin.php:183
 msgid "PointNet Games Dashboard"
 msgstr ""
 
-#: includes/class-admin.php:180
+#: includes/class-admin.php:189
 msgid "Your Arcade Platform is ready!"
 msgstr ""
 
-#: includes/class-admin.php:181
+#: includes/class-admin.php:190
 msgid ""
 "You do not have any games installed yet. You can install Minesweeper with 1 "
 "click or browse the catalog to add games to your site."
 msgstr ""
 
-#: includes/class-admin.php:184
+#: includes/class-admin.php:193
 msgid "Install Minesweeper (Recommended)"
 msgstr ""
 
-#: includes/class-admin.php:187
+#: includes/class-admin.php:196
 msgid "Browse Game Catalog"
 msgstr ""
 
-#: includes/class-admin.php:196
+#: includes/class-admin.php:205
 msgid "Published Games"
 msgstr ""
 
-#: includes/class-admin.php:200
+#: includes/class-admin.php:209
 msgid "Total Scores"
 msgstr ""
 
-#: includes/class-admin.php:204
+#: includes/class-admin.php:213
 msgid "Unique Players"
 msgstr ""
 
-#: includes/class-admin.php:208 includes/class-post-types.php:38
+#: includes/class-admin.php:217 includes/class-post-types.php:38
 #: includes/class-post-types.php:39
 msgid "Installed Games"
 msgstr ""
 
-#: includes/class-admin.php:212 includes/class-admin.php:365
+#: includes/class-admin.php:221 includes/class-admin.php:374
 msgid "ID"
 msgstr ""
 
-#: includes/class-admin.php:213 includes/class-admin.php:245
-#: includes/class-admin.php:366 includes/class-post-types.php:37
+#: includes/class-admin.php:222 includes/class-admin.php:254
+#: includes/class-admin.php:375 includes/class-post-types.php:37
 #: includes/class-shortcodes.php:197
 msgid "Game"
 msgstr ""
 
-#: includes/class-admin.php:214
+#: includes/class-admin.php:223
 msgid "Slug"
 msgstr ""
 
-#: includes/class-admin.php:215
+#: includes/class-admin.php:224
 msgid "Version"
 msgstr ""
 
-#: includes/class-admin.php:216 includes/class-admin.php:230
+#: includes/class-admin.php:225 includes/class-admin.php:239
 msgid "Shortcode"
 msgstr ""
 
-#: includes/class-admin.php:217
+#: includes/class-admin.php:226
 msgid "Game Page"
 msgstr ""
 
-#: includes/class-admin.php:218 includes/class-admin.php:372
+#: includes/class-admin.php:227 includes/class-admin.php:381
 msgid "Actions"
 msgstr ""
 
-#: includes/class-admin.php:226
+#: includes/class-admin.php:235
 msgid "Available Shortcodes"
 msgstr ""
 
-#: includes/class-admin.php:231
+#: includes/class-admin.php:240 includes/class-admin.php:552
+#: includes/class-admin.php:578 includes/class-admin.php:606
+#: includes/class-admin.php:631 includes/class-admin.php:658
 msgid "Description"
 msgstr ""
 
-#: includes/class-admin.php:232
+#: includes/class-admin.php:241
 msgid "Attributes"
 msgstr ""
 
-#: includes/class-admin.php:233
+#: includes/class-admin.php:242
 msgid "Example"
 msgstr ""
 
-#: includes/class-admin.php:241
+#: includes/class-admin.php:250
 msgid "Top Games Leaderboard"
 msgstr ""
 
-#: includes/class-admin.php:246
+#: includes/class-admin.php:255
 msgid "Games Played"
 msgstr ""
 
-#: includes/class-admin.php:268
+#: includes/class-admin.php:277
 msgid "Arcade Games Catalog"
 msgstr ""
 
-#: includes/class-admin.php:270
+#: includes/class-admin.php:279
 msgid "Check Updates"
 msgstr ""
 
-#: includes/class-admin.php:274
+#: includes/class-admin.php:283
 msgid ""
 "Browse free arcade games for PointNet Games. Each game is installed directly "
 "on your server with 1-click in a secure, protected directory."
 msgstr ""
 
-#: includes/class-admin.php:281
+#: includes/class-admin.php:290
 msgid ""
 "No game releases found on GitHub. Publish a release in the catalog "
 "repository to have it appear here automatically."
 msgstr ""
 
-#: includes/class-admin.php:300 includes/class-admin.php:321
+#: includes/class-admin.php:309 includes/class-admin.php:330
 msgid "Update"
 msgstr ""
 
-#: includes/class-admin.php:302
+#: includes/class-admin.php:311
 msgid "Installed"
 msgstr ""
 
-#: includes/class-admin.php:310
+#: includes/class-admin.php:319
 msgid "Version:"
 msgstr ""
 
-#: includes/class-admin.php:312
+#: includes/class-admin.php:321
 msgid "Current:"
 msgstr ""
 
-#: includes/class-admin.php:325 includes/class-admin.php:636
+#: includes/class-admin.php:334 includes/class-admin.php:824
 msgid "Uninstall"
 msgstr ""
 
-#: includes/class-admin.php:329
+#: includes/class-admin.php:338
 msgid "Install (1-Click)"
 msgstr ""
 
-#: includes/class-admin.php:347 includes/class-admin.php:415
+#: includes/class-admin.php:356 includes/class-admin.php:424
 msgid "You do not have permission to access this page."
 msgstr ""
 
-#: includes/class-admin.php:353
+#: includes/class-admin.php:362
 msgid "Score deleted."
 msgstr ""
 
-#: includes/class-admin.php:367
+#: includes/class-admin.php:376
 msgid "Nickname"
 msgstr ""
 
-#: includes/class-admin.php:368
+#: includes/class-admin.php:377
 msgid "User"
 msgstr ""
 
-#: includes/class-admin.php:369 includes/class-shortcodes.php:206
+#: includes/class-admin.php:378 includes/class-shortcodes.php:206
 msgid "Score"
 msgstr ""
 
-#: includes/class-admin.php:370
+#: includes/class-admin.php:379
 msgid "Date"
 msgstr ""
 
-#: includes/class-admin.php:371
+#: includes/class-admin.php:380
 msgid "Valid"
 msgstr ""
 
-#: includes/class-admin.php:382
+#: includes/class-admin.php:391
 msgid "N/A"
 msgstr ""
 
-#: includes/class-admin.php:391
+#: includes/class-admin.php:400
 msgid "Registered"
 msgstr ""
 
-#: includes/class-admin.php:391
+#: includes/class-admin.php:400
 msgid "Guest"
 msgstr ""
 
-#: includes/class-admin.php:394
+#: includes/class-admin.php:403
 msgid "Yes"
 msgstr ""
 
-#: includes/class-admin.php:394
+#: includes/class-admin.php:403
 msgid "No"
 msgstr ""
 
-#: includes/class-admin.php:396
+#: includes/class-admin.php:405
 msgid "Delete this score?"
 msgstr ""
 
-#: includes/class-admin.php:399
+#: includes/class-admin.php:408
 msgid "Delete"
 msgstr ""
 
-#: includes/class-admin.php:421
+#: includes/class-admin.php:430
 msgid "PointNet Games Settings"
 msgstr ""
 
-#: includes/class-admin.php:433
+#: includes/class-admin.php:442
 msgid "Rate Limit (requests/min)"
 msgstr ""
 
-#: includes/class-admin.php:438
+#: includes/class-admin.php:447
 msgid ""
 "Maximum number of scores that can be submitted per minute by a single player."
 msgstr ""
 
-#: includes/class-admin.php:443
+#: includes/class-admin.php:452
 msgid "Score Validation"
 msgstr ""
 
-#: includes/class-admin.php:447
+#: includes/class-admin.php:456
 msgid "Require manual approval before showing scores on leaderboards"
 msgstr ""
 
-#: includes/class-admin.php:452
+#: includes/class-admin.php:461
 msgid "Arcade Records on Author Profiles"
 msgstr ""
 
-#: includes/class-admin.php:456
+#: includes/class-admin.php:465
 msgid ""
 "Automatically display the arcade statistics card on author pages (/"
 "author/...)"
 msgstr ""
 
-#: includes/class-admin.php:461
+#: includes/class-admin.php:470
 msgid "Link Author Profiles on Leaderboards"
 msgstr ""
 
-#: includes/class-admin.php:465
+#: includes/class-admin.php:474
 msgid ""
 "Make registered player names clickable on leaderboards with links to their "
 "author profile"
 msgstr ""
 
-#: includes/class-admin.php:470
+#: includes/class-admin.php:479
 msgid "Player Login & Registration Redirect"
 msgstr ""
 
-#: includes/class-admin.php:474
+#: includes/class-admin.php:483
 msgid ""
 "Where players (subscribers) are redirected after logging in or registering. "
 "Leave empty to redirect to the website home page."
 msgstr ""
 
-#: includes/class-admin.php:480
+#: includes/class-admin.php:489
 msgid "Uninstall & Data Cleanup"
 msgstr ""
 
-#: includes/class-admin.php:482
+#: includes/class-admin.php:491
 msgid ""
 "Define plugin behavior when deleted via \"Plugins → Installed Plugins\". By "
 "default, your data and games are preserved in case of accidental "
 "deactivation or reinstallation."
 msgstr ""
 
-#: includes/class-admin.php:486
+#: includes/class-admin.php:495
 msgid "Delete Scores & Leaderboards"
 msgstr ""
 
-#: includes/class-admin.php:490
+#: includes/class-admin.php:499
 msgid ""
 "Permanently delete all score and leaderboard database tables when "
 "uninstalling the plugin"
 msgstr ""
 
-#: includes/class-admin.php:495
+#: includes/class-admin.php:504
 msgid "Delete Downloaded Games"
 msgstr ""
 
-#: includes/class-admin.php:499
+#: includes/class-admin.php:508
 msgid ""
 "Delete the uploads/pointnet-games/ directory containing all downloaded "
 "catalog games"
 msgstr ""
 
+#: includes/class-admin.php:535
+msgid "PointNet Games — Shortcodes Reference"
+msgstr ""
+
+#: includes/class-admin.php:537
+msgid ""
+"Use these shortcodes to embed playable games, interactive leaderboards, "
+"catalogs, and personal player records anywhere in your pages, posts, or page "
+"builders (Gutenberg, Elementor, Divi)."
+msgstr ""
+
+#: includes/class-admin.php:545
+msgid "Core"
+msgstr ""
+
+#: includes/class-admin.php:547
+msgid ""
+"Embeds the playable arcade game inside an isolated, secure canvas/iframe "
+"sandbox with fullscreen toggle."
+msgstr ""
+
+#: includes/class-admin.php:550 includes/class-admin.php:576
+#: includes/class-admin.php:604 includes/class-admin.php:629
+#: includes/class-admin.php:656
+msgid "Supported Attributes:"
+msgstr ""
+
+#: includes/class-admin.php:552 includes/class-admin.php:578
+#: includes/class-admin.php:606 includes/class-admin.php:631
+#: includes/class-admin.php:658
+msgid "Attribute"
+msgstr ""
+
+#: includes/class-admin.php:552 includes/class-admin.php:578
+#: includes/class-admin.php:606 includes/class-admin.php:631
+#: includes/class-admin.php:658
+msgid "Default"
+msgstr ""
+
+#: includes/class-admin.php:554 includes/class-admin.php:580
+msgid "Required"
+msgstr ""
+
+#: includes/class-admin.php:554
+msgid "Slug of the game (e.g. minesweeper-arcade, mahjong)"
+msgstr ""
+
+#: includes/class-admin.php:555
+msgid "CSS width (e.g. 100%, 800px)"
+msgstr ""
+
+#: includes/class-admin.php:556
+msgid "From manifest"
+msgstr ""
+
+#: includes/class-admin.php:556
+msgid "Custom container height (e.g. 750px)"
+msgstr ""
+
+#: includes/class-admin.php:563 includes/class-admin.php:591
+#: includes/class-admin.php:616 includes/class-admin.php:643
+#: includes/class-admin.php:667
+msgid "Copy"
+msgstr ""
+
+#: includes/class-admin.php:571
+msgid "Rankings"
+msgstr ""
+
+#: includes/class-admin.php:573
+msgid ""
+"Displays the highscore table for a single game with automatic difficulty "
+"tabs and periodic timeframe filtering."
+msgstr ""
+
 #: includes/class-admin.php:580
+msgid "Slug of the game"
+msgstr ""
+
+#: includes/class-admin.php:581
+msgid "Maximum number of positions shown (1 - 100)"
+msgstr ""
+
+#: includes/class-admin.php:582 includes/class-admin.php:609
+msgid "Timeframe filter: all, month, or week"
+msgstr ""
+
+#: includes/class-admin.php:583 includes/class-shortcodes.php:130
+msgid "All"
+msgstr ""
+
+#: includes/class-admin.php:583
+msgid "Specific difficulty preset (e.g. easy, medium, hard, arcade)"
+msgstr ""
+
+#: includes/class-admin.php:584
+msgid ""
+"Render clickable difficulty tabs when multiple modes exist (auto or 0 to "
+"disable)"
+msgstr ""
+
+#: includes/class-admin.php:599
+msgid "Hall of Fame"
+msgstr ""
+
+#: includes/class-admin.php:601
+msgid ""
+"Displays the global arcade ranking across all installed games, isolating "
+"each player's personal best."
+msgstr ""
+
+#: includes/class-admin.php:608
+msgid "Number of global ranking entries (1 - 100)"
+msgstr ""
+
+#: includes/class-admin.php:624
+msgid "Profile & Badges"
+msgstr ""
+
+#: includes/class-admin.php:626
+msgid ""
+"Renders a player's personal arcade records showcase, stat KPI pills, game "
+"cards, and unlocked achievements tray."
+msgstr ""
+
+#: includes/class-admin.php:633 includes/class-admin.php:634
+msgid "Current User"
+msgstr ""
+
+#: includes/class-admin.php:633
+msgid "Specific WordPress user ID (optional; auto-detects author page)"
+msgstr ""
+
+#: includes/class-admin.php:634
+msgid "Username or slug of the player"
+msgstr ""
+
+#: includes/class-admin.php:635
+msgid "Show/hide top summary stat pills (1 or 0)"
+msgstr ""
+
+#: includes/class-admin.php:636
+msgid "Show/hide \"Improve / Challenge\" full-width footer buttons (1 or 0)"
+msgstr ""
+
+#: includes/class-admin.php:651
+msgid "Catalog Grid"
+msgstr ""
+
+#: includes/class-admin.php:653
+msgid ""
+"Displays a responsive grid showcasing all installed arcade games with "
+"titles, thumbnails, tags, and PLAY buttons."
+msgstr ""
+
+#: includes/class-admin.php:660
+msgid "Number of columns in responsive grid (2, 3, 4, or 5)"
+msgstr ""
+
+#: includes/class-admin.php:685
+msgid "Copied!"
+msgstr ""
+
+#: includes/class-admin.php:768
 #, php-format
 msgid "No games installed yet. Visit the %s to install one with 1-click."
 msgstr ""
 
-#: includes/class-admin.php:605
+#: includes/class-admin.php:793
 msgid "Open game"
 msgstr ""
 
-#: includes/class-admin.php:612
+#: includes/class-admin.php:800
 #, php-format
 msgid ""
 "Uninstall game \"%1$s\"? Files in uploads/pointnet-games/%2$s/ will be "
 "removed."
 msgstr ""
 
-#: includes/class-admin.php:618
+#: includes/class-admin.php:806
 msgid "Edit"
 msgstr ""
 
-#: includes/class-admin.php:629
+#: includes/class-admin.php:817
 #, php-format
 msgid "Also delete %d scores"
 msgstr ""
 
-#: includes/class-admin.php:633
+#: includes/class-admin.php:821
 msgid "Delete scores"
 msgstr ""
 
-#: includes/class-admin.php:650
+#: includes/class-admin.php:838
 msgid "Embed a specific game via slug or ID."
 msgstr ""
 
-#: includes/class-admin.php:656
+#: includes/class-admin.php:844
 msgid "Display the leaderboard with filters and tabs for a game."
 msgstr ""
 
-#: includes/class-admin.php:662
+#: includes/class-admin.php:850
 msgid "Display a grid with all available games."
 msgstr ""
 
-#: includes/class-admin.php:668
+#: includes/class-admin.php:856
 msgid "KPI card with player's personal records and statistics."
 msgstr ""
 
-#: includes/class-admin.php:699
+#: includes/class-admin.php:887
 msgid "No games played yet."
 msgstr ""
 
-#: includes/class-admin.php:705
+#: includes/class-admin.php:893
 msgid "Unknown Game"
 msgstr ""
 
-#: includes/class-admin.php:751
+#: includes/class-admin.php:939
 msgid "Security check failed."
 msgstr ""
 
-#: includes/class-admin.php:755 includes/class-game-catalog.php:210
+#: includes/class-admin.php:943 includes/class-game-catalog.php:210
 #: includes/class-game-catalog.php:261 includes/class-game-catalog.php:312
 msgid "Permission denied."
 msgstr ""
@@ -697,10 +866,6 @@ msgstr ""
 
 #: includes/class-shortcodes.php:115
 msgid "Specify a game_id or slug for the leaderboard."
-msgstr ""
-
-#: includes/class-shortcodes.php:130
-msgid "All"
 msgstr ""
 
 #: includes/class-shortcodes.php:184
