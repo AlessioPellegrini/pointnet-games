@@ -255,7 +255,7 @@ class PointNet_Games_Shortcodes {
 					$lvl = $meta['level'] ?? ( $meta['livello'] ?? ( $meta['level_reached'] ?? '' ) );
 					if ( '' !== (string) $lvl ) {
 						$lvl_str = is_numeric( $lvl ) && 'arcade' === $diff ? $lvl . ' / 18' : (string) $lvl;
-						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Livello', 'pointnet-games' ) . ':</strong> ' . esc_html( $lvl_str ) . '</span>';
+						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Level', 'pointnet-games' ) . ':</strong> ' . esc_html( $lvl_str ) . '</span>';
 					}
 
 					// 2. Time formatting (support 'time', 'tempo', or format 'time_seconds').
@@ -265,13 +265,13 @@ class PointNet_Games_Shortcodes {
 						$time_val = sprintf( '%02d:%02d', floor( $sec / 60 ), $sec % 60 );
 					}
 					if ( ! empty( $time_val ) ) {
-						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Tempo', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $time_val ) . '</span>';
+						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Time', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $time_val ) . '</span>';
 					}
 
 					// 3. Outcome / Esito (if present).
 					$outcome = $meta['outcome'] ?? ( $meta['esito'] ?? '' );
 					if ( ! empty( $outcome ) ) {
-						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Esito', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $outcome ) . '</span>';
+						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Outcome', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $outcome ) . '</span>';
 					}
 
 					// 4. Other extra keys.
@@ -434,7 +434,7 @@ class PointNet_Games_Shortcodes {
 			if ( $is_auto ) {
 				return '';
 			}
-			return '<div class="pointnet-games-user-records"><div class="pointnet-games-user-empty"><p>🎮 ' . esc_html__( 'Accedi per visualizzare i tuoi record arcade personali e scalare la classifica!', 'pointnet-games' ) . '</p><a href="' . esc_url( wp_login_url() ) . '" class="pointnet-games-btn-primary">' . esc_html__( 'Accedi', 'pointnet-games' ) . '</a></div></div>';
+			return '<div class="pointnet-games-user-records"><div class="pointnet-games-user-empty"><p>🎮 ' . esc_html__( 'Log in to view your personal arcade records and climb the leaderboard!', 'pointnet-games' ) . '</p><a href="' . esc_url( wp_login_url() ) . '" class="pointnet-games-btn-primary">' . esc_html__( 'Log In', 'pointnet-games' ) . '</a></div></div>';
 		}
 
 		$user = get_userdata( $user_id );
@@ -458,23 +458,23 @@ class PointNet_Games_Shortcodes {
 			$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';
 			$html .= '<div class="pointnet-games-user-records-header">';
 			if ( $is_own_profile ) {
-				$header_title = esc_html__( '🎮 I tuoi Record Arcade', 'pointnet-games' );
+				$header_title = esc_html__( '🎮 Your Arcade Records', 'pointnet-games' );
 			} else {
 				/* translators: %s: player display name */
-				$header_title = sprintf( esc_html__( '🎮 Record Arcade di %s', 'pointnet-games' ), esc_html( PointNet_Games_Leaderboard::get_player_display_name( $user->ID ) ) );
+				$header_title = sprintf( esc_html__( '🎮 %s\'s Arcade Records', 'pointnet-games' ), esc_html( PointNet_Games_Leaderboard::get_player_display_name( $user->ID ) ) );
 			}
 			$html .= '<h3 class="pointnet-games-user-records-title">' . $header_title . '</h3>';
 			$html .= '</div>';
 			$html .= '<div class="pointnet-games-user-empty">';
 			if ( $is_own_profile ) {
-				$html .= '<p>' . esc_html__( 'Non hai ancora salvato nessun record. Scegli un gioco arcade e inizia la scalata per entrare nella classifica!', 'pointnet-games' ) . '</p>';
+				$html .= '<p>' . esc_html__( 'You have not saved any records yet. Choose an arcade game and climb the leaderboard!', 'pointnet-games' ) . '</p>';
 				$games_cpt_url = get_post_type_archive_link( PointNet_Games_Post_Types::GAME_CPT );
 				if ( ! $games_cpt_url ) {
 					$games_cpt_url = home_url( '/#pointnet-games' );
 				}
-				$html .= '<a href="' . esc_url( $games_cpt_url ) . '" class="pointnet-games-btn-primary">🎮 ' . esc_html__( 'Gioca ora', 'pointnet-games' ) . '</a>';
+				$html .= '<a href="' . esc_url( $games_cpt_url ) . '" class="pointnet-games-btn-primary">🎮 ' . esc_html__( 'Play now', 'pointnet-games' ) . '</a>';
 			} else {
-				$html .= '<p>' . esc_html__( 'Nessun record arcade registrato finora.', 'pointnet-games' ) . '</p>';
+				$html .= '<p>' . esc_html__( 'No arcade records recorded yet.', 'pointnet-games' ) . '</p>';
 			}
 			$html .= '</div>';
 			$html .= '</section>';
@@ -490,10 +490,10 @@ class PointNet_Games_Shortcodes {
 		$show_play_btn = ! isset( $options['show_play_btn'] ) || (bool) $options['show_play_btn'];
 
 		if ( $is_own_profile ) {
-			$title = esc_html__( 'I tuoi Record Arcade', 'pointnet-games' );
+			$title = esc_html__( 'Your Arcade Records', 'pointnet-games' );
 		} else {
 			/* translators: %s: player display name */
-			$title = sprintf( esc_html__( 'Record Arcade di %s', 'pointnet-games' ), esc_html( PointNet_Games_Leaderboard::get_player_display_name( $user->ID ) ) );
+			$title = sprintf( esc_html__( '%s\'s Arcade Records', 'pointnet-games' ), esc_html( PointNet_Games_Leaderboard::get_player_display_name( $user->ID ) ) );
 		}
 
 		$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';
@@ -502,11 +502,11 @@ class PointNet_Games_Shortcodes {
 
 		if ( $show_stats ) {
 			$html .= '<div class="pointnet-games-user-stats-bar">';
-			$html .= '<div class="pointnet-games-stat-pill"><span class="png-pill-icon">🏆</span> <span class="png-pill-label">' . esc_html__( 'Punteggio Totale:', 'pointnet-games' ) . '</span> <strong>' . esc_html( number_format_i18n( $stats['total_score'] ) ) . ' pt</strong></div>';
-			$html .= '<div class="pointnet-games-stat-pill"><span class="png-pill-icon">🎮</span> <span class="png-pill-label">' . esc_html__( 'Giochi:', 'pointnet-games' ) . '</span> <strong>' . esc_html( (string) $stats['games_played'] ) . '</strong></div>';
+			$html .= '<div class="pointnet-games-stat-pill"><span class="png-pill-icon">🏆</span> <span class="png-pill-label">' . esc_html__( 'Total Score:', 'pointnet-games' ) . '</span> <strong>' . esc_html( number_format_i18n( $stats['total_score'] ) ) . ' pt</strong></div>';
+			$html .= '<div class="pointnet-games-stat-pill"><span class="png-pill-icon">🎮</span> <span class="png-pill-label">' . esc_html__( 'Games:', 'pointnet-games' ) . '</span> <strong>' . esc_html( (string) $stats['games_played'] ) . '</strong></div>';
 			if ( null !== $stats['best_position'] ) {
 				$medal = 1 === (int) $stats['best_position'] ? '🥇' : ( 2 === (int) $stats['best_position'] ? '🥈' : ( 3 === (int) $stats['best_position'] ? '🥉' : '🎖️' ) );
-				$html .= '<div class="pointnet-games-stat-pill png-pill-gold"><span class="png-pill-icon">' . $medal . '</span> <span class="png-pill-label">' . esc_html__( 'Miglior Rank:', 'pointnet-games' ) . '</span> <strong>#' . esc_html( (string) $stats['best_position'] ) . '</strong></div>';
+				$html .= '<div class="pointnet-games-stat-pill png-pill-gold"><span class="png-pill-icon">' . $medal . '</span> <span class="png-pill-label">' . esc_html__( 'Best Rank:', 'pointnet-games' ) . '</span> <strong>#' . esc_html( (string) $stats['best_position'] ) . '</strong></div>';
 			}
 			$html .= '</div>';
 		}
@@ -528,12 +528,12 @@ class PointNet_Games_Shortcodes {
 			$html .= '<div class="pointnet-games-user-card-titles">';
 			$html .= '<h4 class="pointnet-games-user-card-title"><a href="' . esc_url( $game['permalink'] ) . '">' . esc_html( $game['title'] ) . '</a></h4>';
 			/* translators: %d: number of records */
-			$records_count_label = sprintf( esc_html__( '%d record registrati', 'pointnet-games' ), count( $game['records'] ) );
+			$records_count_label = sprintf( esc_html__( '%d records registered', 'pointnet-games' ), count( $game['records'] ) );
 			$html .= '<span class="pointnet-games-user-card-subtitle">' . $records_count_label . '</span>';
 			$html .= '</div></div>';
 
 			if ( $show_play_btn ) {
-				$html .= '<a href="' . esc_url( $game['permalink'] ) . '" class="pointnet-games-btn-play-sm">🎮 ' . ( $is_own_profile ? esc_html__( 'Migliora', 'pointnet-games' ) : esc_html__( 'Sfida', 'pointnet-games' ) ) . '</a>';
+				$html .= '<a href="' . esc_url( $game['permalink'] ) . '" class="pointnet-games-btn-play-sm">🎮 ' . ( $is_own_profile ? esc_html__( 'Improve', 'pointnet-games' ) : esc_html__( 'Challenge', 'pointnet-games' ) ) . '</a>';
 			}
 			$html .= '</div>'; // .pointnet-games-user-card-head
 

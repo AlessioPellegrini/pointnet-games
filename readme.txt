@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.4.3
+Stable tag: 1.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -322,6 +322,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.4.4 =
+Recommended update: complete internationalization (i18n) standardization with English source strings, loads textdomain for custom translations, and includes 100% updated Italian (it_IT) translations.
 
 = 1.4.3 =
 Recommended update: fixes catalog security scoping for game zip archives, formats level/time details in leaderboards, and supports the slug attribute in leaderboard shortcodes.
