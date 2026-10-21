@@ -598,6 +598,39 @@ aside .pointnet-games-user-records,
 	color: #ffffff !important;
 }
 
+.pointnet-games-user-card-footer {
+	padding: 8px 14px 12px;
+	border-top: 1px solid #f1f5f9;
+	background: #ffffff;
+}
+
+.pointnet-games-btn-play-full {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px 16px;
+	border-radius: 6px;
+	background: #2563eb;
+	color: #ffffff !important;
+	font-size: 0.9em;
+	font-weight: 600;
+	text-decoration: none;
+	transition: background 0.15s ease, transform 0.05s ease;
+	text-align: center;
+}
+
+.pointnet-games-btn-play-full:hover {
+	background: #1d4ed8;
+	color: #ffffff !important;
+}
+
+.pointnet-games-btn-play-full:active {
+	transform: scale(0.99);
+}
+
 .pointnet-games-user-card-records {
 	padding: 4px 0;
 }

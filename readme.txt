@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.4.9
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -322,6 +322,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Recommended update: repositions the Improve / Challenge button to the bottom footer of game cards with a full-width block layout, and polishes record list hierarchy.
 
 = 1.4.9 =
 Recommended update: cleans metadata deduplication across leaderboards and profile cards, removes redundant outcome repetition on levels, and optimizes responsive layout to prevent horizontal overflow in narrow sidebars.

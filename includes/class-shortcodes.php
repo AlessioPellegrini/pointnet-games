@@ -537,10 +537,6 @@ class PointNet_Games_Shortcodes {
 			$records_count_label = sprintf( esc_html__( '%d records registered', 'pointnet-games' ), count( $game['records'] ) );
 			$html .= '<span class="pointnet-games-user-card-subtitle">' . $records_count_label . '</span>';
 			$html .= '</div></div>';
-
-			if ( $show_play_btn ) {
-				$html .= '<a href="' . esc_url( $game['permalink'] ) . '" class="pointnet-games-btn-play-sm">🎮 ' . ( $is_own_profile ? esc_html__( 'Improve', 'pointnet-games' ) : esc_html__( 'Challenge', 'pointnet-games' ) ) . '</a>';
-			}
 			$html .= '</div>'; // .pointnet-games-user-card-head
 
 			// Game records rows
@@ -614,6 +610,12 @@ class PointNet_Games_Shortcodes {
 				$html .= '</div>'; // .pointnet-games-user-record-row
 			}
 			$html .= '</div>'; // .pointnet-games-user-card-records
+
+			if ( $show_play_btn ) {
+				$html .= '<div class="pointnet-games-user-card-footer">';
+				$html .= '<a href="' . esc_url( $game['permalink'] ) . '" class="pointnet-games-btn-play-full">🎮 ' . ( $is_own_profile ? esc_html__( 'Improve', 'pointnet-games' ) : esc_html__( 'Challenge', 'pointnet-games' ) ) . '</a>';
+				$html .= '</div>';
+			}
 
 			$html .= '</div>'; // .pointnet-games-user-game-card
 		}
