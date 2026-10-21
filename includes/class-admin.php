@@ -265,9 +265,6 @@ class PointNet_Games_Admin {
 		<div class="wrap">
 			<div class="pointnet-games-catalog-header">
 				<h1>🎮 <?php esc_html_e( 'Arcade Games Catalog', 'pointnet-games' ); ?></h1>
-				<button type="button" class="button button-secondary" id="pointnet-refresh-catalog-btn">
-					🔄 <?php esc_html_e( 'Check Catalog Updates', 'pointnet-games' ); ?>
-				</button>
 			</div>
 
 			<p><?php esc_html_e( 'Browse free arcade games for PointNet Games. Each game is installed directly on your server with 1-click in a secure, protected directory.', 'pointnet-games' ); ?></p>

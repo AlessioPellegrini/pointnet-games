@@ -32,9 +32,9 @@ class PointNet_Games_Game_Catalog {
 	const TRANSIENT_KEY = 'pointnet_games_github_catalog';
 
 	/**
-	 * Cache TTL (1 hour).
+	 * Cache TTL (10 minutes).
 	 */
-	const CACHE_TTL = 3600;
+	const CACHE_TTL = 600;
 
 	/**
 	 * Register admin AJAX and action hooks.
