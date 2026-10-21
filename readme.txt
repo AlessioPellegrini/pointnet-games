@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.2
+Stable tag: 1.6.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,10 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.6.3 =
+* Feature & Settings: added "Player Login & Registration Redirect" setting in PointNet Games → Settings, allowing administrators to configure where players (subscribers) land after logging in or registering (defaults to website home page).
+* Security: administrators retain default unrestricted access to /wp-admin/.
 
 = 1.6.2 =
 * UX & Registration: always render both "Log In" and "Register" action buttons for anonymous guests, with fallback to registration URL.

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 18:44+0200\n"
+"POT-Creation-Date: 2026-10-21 19:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: pointnet-games.php:211 includes/class-admin.php:63
+#: pointnet-games.php:255 includes/class-admin.php:63
 #: includes/class-admin.php:64
 msgid "Settings"
 msgstr ""
@@ -86,7 +86,7 @@ msgstr ""
 
 #: includes/class-api.php:166 includes/class-api.php:202
 #: includes/class-api.php:333 includes/class-api.php:444
-#: includes/class-api.php:492 includes/class-admin.php:752
+#: includes/class-api.php:492 includes/class-admin.php:763
 msgid "Game not found."
 msgstr ""
 
@@ -147,7 +147,7 @@ msgid "PointNet Games"
 msgstr ""
 
 #: includes/class-admin.php:45 includes/class-admin.php:46
-#: includes/class-admin.php:570
+#: includes/class-admin.php:581
 msgid "Game Catalog"
 msgstr ""
 
@@ -315,7 +315,7 @@ msgstr ""
 msgid "Current:"
 msgstr ""
 
-#: includes/class-admin.php:325 includes/class-admin.php:625
+#: includes/class-admin.php:325 includes/class-admin.php:636
 msgid "Uninstall"
 msgstr ""
 
@@ -420,95 +420,105 @@ msgid ""
 "author profile"
 msgstr ""
 
-#: includes/class-admin.php:471
+#: includes/class-admin.php:470
+msgid "Player Login & Registration Redirect"
+msgstr ""
+
+#: includes/class-admin.php:474
+msgid ""
+"Where players (subscribers) are redirected after logging in or registering. "
+"Leave empty to redirect to the website home page."
+msgstr ""
+
+#: includes/class-admin.php:480
 msgid "Uninstall & Data Cleanup"
 msgstr ""
 
-#: includes/class-admin.php:473
+#: includes/class-admin.php:482
 msgid ""
 "Define plugin behavior when deleted via \"Plugins → Installed Plugins\". By "
 "default, your data and games are preserved in case of accidental "
 "deactivation or reinstallation."
 msgstr ""
 
-#: includes/class-admin.php:477
+#: includes/class-admin.php:486
 msgid "Delete Scores & Leaderboards"
 msgstr ""
 
-#: includes/class-admin.php:481
+#: includes/class-admin.php:490
 msgid ""
 "Permanently delete all score and leaderboard database tables when "
 "uninstalling the plugin"
 msgstr ""
 
-#: includes/class-admin.php:486
+#: includes/class-admin.php:495
 msgid "Delete Downloaded Games"
 msgstr ""
 
-#: includes/class-admin.php:490
+#: includes/class-admin.php:499
 msgid ""
 "Delete the uploads/pointnet-games/ directory containing all downloaded "
 "catalog games"
 msgstr ""
 
-#: includes/class-admin.php:569
+#: includes/class-admin.php:580
 #, php-format
 msgid "No games installed yet. Visit the %s to install one with 1-click."
 msgstr ""
 
-#: includes/class-admin.php:594
+#: includes/class-admin.php:605
 msgid "Open game"
 msgstr ""
 
-#: includes/class-admin.php:601
+#: includes/class-admin.php:612
 #, php-format
 msgid ""
 "Uninstall game \"%1$s\"? Files in uploads/pointnet-games/%2$s/ will be "
 "removed."
 msgstr ""
 
-#: includes/class-admin.php:607
+#: includes/class-admin.php:618
 msgid "Edit"
 msgstr ""
 
-#: includes/class-admin.php:618
+#: includes/class-admin.php:629
 #, php-format
 msgid "Also delete %d scores"
 msgstr ""
 
-#: includes/class-admin.php:622
+#: includes/class-admin.php:633
 msgid "Delete scores"
 msgstr ""
 
-#: includes/class-admin.php:639
+#: includes/class-admin.php:650
 msgid "Embed a specific game via slug or ID."
 msgstr ""
 
-#: includes/class-admin.php:645
+#: includes/class-admin.php:656
 msgid "Display the leaderboard with filters and tabs for a game."
 msgstr ""
 
-#: includes/class-admin.php:651
+#: includes/class-admin.php:662
 msgid "Display a grid with all available games."
 msgstr ""
 
-#: includes/class-admin.php:657
+#: includes/class-admin.php:668
 msgid "KPI card with player's personal records and statistics."
 msgstr ""
 
-#: includes/class-admin.php:688
+#: includes/class-admin.php:699
 msgid "No games played yet."
 msgstr ""
 
-#: includes/class-admin.php:694
+#: includes/class-admin.php:705
 msgid "Unknown Game"
 msgstr ""
 
-#: includes/class-admin.php:740
+#: includes/class-admin.php:751
 msgid "Security check failed."
 msgstr ""
 
-#: includes/class-admin.php:744 includes/class-game-catalog.php:210
+#: includes/class-admin.php:755 includes/class-game-catalog.php:210
 #: includes/class-game-catalog.php:261 includes/class-game-catalog.php:312
 msgid "Permission denied."
 msgstr ""
@@ -671,15 +681,15 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
-#: includes/class-shortcodes.php:264 includes/class-shortcodes.php:619
+#: includes/class-shortcodes.php:264 includes/class-shortcodes.php:617
 msgid "Level"
 msgstr ""
 
-#: includes/class-shortcodes.php:274 includes/class-shortcodes.php:629
+#: includes/class-shortcodes.php:274 includes/class-shortcodes.php:627
 msgid "Time"
 msgstr ""
 
-#: includes/class-shortcodes.php:285 includes/class-shortcodes.php:639
+#: includes/class-shortcodes.php:285 includes/class-shortcodes.php:637
 msgid "Outcome"
 msgstr ""
 
@@ -687,13 +697,13 @@ msgstr ""
 msgid "No games available."
 msgstr ""
 
-#: includes/class-shortcodes.php:457
+#: includes/class-shortcodes.php:459
 msgid ""
 "Log in or register to view your personal arcade records and climb the "
 "leaderboard!"
 msgstr ""
 
-#: includes/class-shortcodes.php:459
+#: includes/class-shortcodes.php:461
 msgid "Log In"
 msgstr ""
 
@@ -701,77 +711,77 @@ msgstr ""
 msgid "Register"
 msgstr ""
 
-#: includes/class-shortcodes.php:493
+#: includes/class-shortcodes.php:491
 msgid "🎮 Your Arcade Records"
 msgstr ""
 
-#: includes/class-shortcodes.php:496
+#: includes/class-shortcodes.php:494
 #, php-format
 msgid "🎮 %s's Arcade Records"
 msgstr ""
 
-#: includes/class-shortcodes.php:502
+#: includes/class-shortcodes.php:500
 msgid ""
 "You have not saved any records yet. Choose an arcade game and climb the "
 "leaderboard!"
 msgstr ""
 
-#: includes/class-shortcodes.php:507
+#: includes/class-shortcodes.php:505
 msgid "Play now"
 msgstr ""
 
-#: includes/class-shortcodes.php:509
+#: includes/class-shortcodes.php:507
 msgid "No arcade records recorded yet."
 msgstr ""
 
-#: includes/class-shortcodes.php:525
+#: includes/class-shortcodes.php:523
 msgid "Your Arcade Records"
 msgstr ""
 
-#: includes/class-shortcodes.php:528
+#: includes/class-shortcodes.php:526
 #, php-format
 msgid "%s's Arcade Records"
 msgstr ""
 
-#: includes/class-shortcodes.php:537
+#: includes/class-shortcodes.php:535
 msgid "Total Score:"
 msgstr ""
 
-#: includes/class-shortcodes.php:538
+#: includes/class-shortcodes.php:536
 msgid "Games:"
 msgstr ""
 
-#: includes/class-shortcodes.php:541
+#: includes/class-shortcodes.php:539
 msgid "Best Rank:"
 msgstr ""
 
-#: includes/class-shortcodes.php:548
+#: includes/class-shortcodes.php:546
 msgid "Badges:"
 msgstr ""
 
-#: includes/class-shortcodes.php:558
+#: includes/class-shortcodes.php:556
 msgid "Achievements & Badges"
 msgstr ""
 
-#: includes/class-shortcodes.php:565
+#: includes/class-shortcodes.php:563
 #, php-format
 msgid "Unlocked on %s"
 msgstr ""
 
-#: includes/class-shortcodes.php:565
+#: includes/class-shortcodes.php:563
 msgid "Locked"
 msgstr ""
 
-#: includes/class-shortcodes.php:595
+#: includes/class-shortcodes.php:593
 #, php-format
 msgid "%d records registered"
 msgstr ""
 
-#: includes/class-shortcodes.php:674
+#: includes/class-shortcodes.php:672
 msgid "Improve"
 msgstr ""
 
-#: includes/class-shortcodes.php:674
+#: includes/class-shortcodes.php:672
 msgid "Challenge"
 msgstr ""
 

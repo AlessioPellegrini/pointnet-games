@@ -466,6 +466,15 @@ class PointNet_Games_Admin {
 							</label>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Player Login & Registration Redirect', 'pointnet-games' ); ?></th>
+						<td>
+							<input type="text" name="pointnet_games_settings[login_redirect_url]" value="<?php echo esc_attr( $settings['login_redirect_url'] ?? '' ); ?>" class="regular-text" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>" />
+							<p class="description">
+								<?php esc_html_e( 'Where players (subscribers) are redirected after logging in or registering. Leave empty to redirect to the website home page.', 'pointnet-games' ); ?>
+							</p>
+						</td>
+					</tr>
 				</table>
 
 				<h2><?php esc_html_e( 'Uninstall & Data Cleanup', 'pointnet-games' ); ?></h2>
@@ -511,6 +520,7 @@ class PointNet_Games_Admin {
 			'require_validation'         => 0,
 			'show_author_records'        => 1,
 			'link_author_profiles'       => 0,
+			'login_redirect_url'         => '',
 			'delete_data_on_uninstall'   => 0,
 			'delete_games_on_uninstall'  => 0,
 		);
@@ -520,6 +530,7 @@ class PointNet_Games_Admin {
 		$clean['require_validation']         = isset( $input['require_validation'] ) ? 1 : 0;
 		$clean['show_author_records']        = isset( $input['show_author_records'] ) ? 1 : 0;
 		$clean['link_author_profiles']       = isset( $input['link_author_profiles'] ) ? 1 : 0;
+		$clean['login_redirect_url']         = ! empty( $input['login_redirect_url'] ) ? esc_url_raw( trim( $input['login_redirect_url'] ) ) : '';
 		$clean['delete_data_on_uninstall']   = isset( $input['delete_data_on_uninstall'] ) ? 1 : 0;
 		$clean['delete_games_on_uninstall']  = isset( $input['delete_games_on_uninstall'] ) ? 1 : 0;
 		$clean['rate_limit']                 = (int) $input['rate_limit'];
