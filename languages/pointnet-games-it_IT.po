@@ -1052,3 +1052,52 @@ msgstr "Anonimo"
 #: includes/class-leaderboard.php:683
 msgid "Standard"
 msgstr "Standard"
+
+#: includes/class-post-types.php:110 includes/class-admin.php:550
+msgid "Game ID"
+msgstr "ID Gioco"
+
+#: includes/class-post-types.php:143
+msgid "Click to copy"
+msgstr "Clicca per copiare"
+
+#: includes/class-admin.php:544
+msgid "Installed Games Quick Reference (ID & Slug)"
+msgstr "Riferimento Rapido Giochi Installati (ID & Slug)"
+
+#: includes/class-admin.php:547
+msgid "You can target games in shortcodes using either id=\"123\" or slug=\"game-slug\". Here are all your currently installed games:"
+msgstr "Puoi specificare i giochi negli shortcode usando sia id=\"123\" che slug=\"slug-del-gioco\". Ecco tutti i giochi attualmente installati:"
+
+#: includes/class-admin.php:551
+msgid "Game Title"
+msgstr "Titolo Gioco"
+
+#: includes/class-admin.php:553
+msgid "Game Embed Shortcode"
+msgstr "Shortcode Incorpora Gioco"
+
+#: includes/class-admin.php:554
+msgid "Leaderboard Shortcode"
+msgstr "Shortcode Classifica"
+
+#: includes/class-admin.php:596
+msgid "WordPress Post ID of the game (e.g. 123). Can be used instead of slug."
+msgstr "ID del post WordPress del gioco (es. 123). Può essere usato al posto dello slug."
+
+#: includes/class-admin.php:597
+msgid "Slug of the game (e.g. minesweeper-arcade). *Either id or slug is required."
+msgstr "Slug del gioco (es. minesweeper-arcade). *È richiesto id oppure slug."
+
+#: includes/class-admin.php:621
+msgid "WordPress Post ID of the game (or game_id=\"123\"). Can be used instead of slug."
+msgstr "ID del post WordPress del gioco (o game_id=\"123\"). Può essere usato al posto dello slug."
+
+#: includes/class-admin.php:622
+msgid "Slug of the game. *Either id or slug is required."
+msgstr "Slug del gioco. *È richiesto id oppure slug."
+
+#: includes/class-admin.php:596 includes/class-admin.php:621
+msgid "Optional*"
+msgstr "Opzionale*"
+

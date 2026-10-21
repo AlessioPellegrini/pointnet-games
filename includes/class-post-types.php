@@ -26,6 +26,8 @@ class PointNet_Games_Post_Types {
 	public function __construct() {
 		add_action( 'init', array( $this, 'register_game_cpt' ) );
 		add_action( 'init', array( $this, 'register_game_category_taxonomy' ) );
+		add_filter( 'manage_pointnet_game_posts_columns', array( $this, 'set_custom_columns' ) );
+		add_action( 'manage_pointnet_game_posts_custom_column', array( $this, 'render_custom_column' ), 10, 2 );
 	}
 
 	/**
@@ -91,5 +93,54 @@ class PointNet_Games_Post_Types {
 		);
 
 		register_taxonomy( 'pointnet_game_category', self::GAME_CPT, $args );
+	}
+
+	/**
+	 * Define custom admin columns for the Installed Games list table.
+	 *
+	 * @param array $columns Existing columns.
+	 * @return array
+	 */
+	public function set_custom_columns( $columns ) {
+		$new_columns = array();
+
+		foreach ( $columns as $key => $title ) {
+			$new_columns[ $key ] = $title;
+			if ( 'title' === $key ) {
+				$new_columns['game_id']   = __( 'Game ID', 'pointnet-games' );
+				$new_columns['game_slug'] = __( 'Slug', 'pointnet-games' );
+				$new_columns['shortcode'] = __( 'Shortcode', 'pointnet-games' );
+			}
+		}
+
+		return $new_columns;
+	}
+
+	/**
+	 * Render custom column contents for games.
+	 *
+	 * @param string $column  Column name.
+	 * @param int    $post_id Post ID.
+	 */
+	public function render_custom_column( $column, $post_id ) {
+		$post = get_post( $post_id );
+		if ( ! $post ) {
+			return;
+		}
+
+		switch ( $column ) {
+			case 'game_id':
+				echo '<code>' . (int) $post_id . '</code>';
+				break;
+
+			case 'game_slug':
+				echo '<code>' . esc_html( $post->post_name ) . '</code>';
+				break;
+
+			case 'shortcode':
+				$code = '[pointnet_game id="' . (int) $post_id . '"]';
+				echo '<input type="text" readonly value="' . esc_attr( $code ) . '" class="code" style="width: 220px; font-size: 12px; background: #f6f7f7; cursor: pointer;" onclick="this.select(); navigator.clipboard.writeText(this.value);" title="' . esc_attr__( 'Click to copy', 'pointnet-games' ) . '" />';
+				break;
+		}
 	}
 }

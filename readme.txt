@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.5
+Stable tag: 1.6.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,11 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.6.6 =
+* Shortcodes & Administration: full support for game `id` attribute alongside `slug` in all shortcodes (`[pointnet_game id="123"]` and `[pointnet_game_leaderboard id="123"]`).
+* Admin UX: added dynamic "Installed Games Quick Reference" table in PointNet Games → Shortcodes showing each game's ID, slug, and 1-click copy shortcodes.
+* Admin Columns: added Game ID, Slug, and 1-click copy shortcode columns to the Installed Games list screen.
 
 = 1.6.5 =
 * Admin Tools & Usability: added dedicated "Shortcodes" reference directory in PointNet Games → Shortcodes with visual attribute tables and 1-click clipboard copy buttons.

@@ -80,6 +80,7 @@ class PointNet_Games_Shortcodes {
 		$default_global = ( 'pointnet_games_leaderboard' === $tag ) ? 1 : 0;
 		$atts           = shortcode_atts(
 			array(
+				'id'         => 0,
 				'game_id'    => 0,
 				'slug'       => '',
 				'limit'      => 10,
@@ -103,7 +104,7 @@ class PointNet_Games_Shortcodes {
 			return $this->render_leaderboard_table( 0, $limit, '', $show_meta, array(), true, $period );
 		}
 
-		$game_id = absint( $atts['game_id'] );
+		$game_id = absint( ! empty( $atts['id'] ) ? $atts['id'] : $atts['game_id'] );
 		if ( ! $game_id && ! empty( $atts['slug'] ) ) {
 			$found = PointNet_Games_Game_Registry::get_game_by_slug( sanitize_title( $atts['slug'] ) );
 			if ( $found ) {

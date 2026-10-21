@@ -537,6 +537,50 @@ class PointNet_Games_Admin {
 				<?php esc_html_e( 'Use these shortcodes to embed playable games, interactive leaderboards, catalogs, and personal player records anywhere in your pages, posts, or page builders (Gutenberg, Elementor, Divi).', 'pointnet-games' ); ?>
 			</p>
 
+			<?php if ( ! empty( $games ) ) : ?>
+				<div class="pointnet-shortcode-quickref-card" style="background: #fff; border: 1px solid #ccd0d4; border-radius: 8px; padding: 16px 20px; margin: 20px 0 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+					<h3 style="margin-top: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+						<span class="dashicons dashicons-games"></span>
+						<?php esc_html_e( 'Installed Games Quick Reference (ID & Slug)', 'pointnet-games' ); ?>
+					</h3>
+					<p style="margin-top: 0; color: #646970; font-size: 13px;">
+						<?php esc_html_e( 'You can target games in shortcodes using either id="123" or slug="game-slug". Here are all your currently installed games:', 'pointnet-games' ); ?>
+					</p>
+					<table class="widefat striped" style="border: 1px solid #e2e4e7; border-radius: 4px; overflow: hidden;">
+						<thead>
+							<tr>
+								<th style="width: 80px;"><strong><?php esc_html_e( 'Game ID', 'pointnet-games' ); ?></strong></th>
+								<th><strong><?php esc_html_e( 'Game Title', 'pointnet-games' ); ?></strong></th>
+								<th><strong><?php esc_html_e( 'Slug', 'pointnet-games' ); ?></strong></th>
+								<th><strong><?php esc_html_e( 'Game Embed Shortcode', 'pointnet-games' ); ?></strong></th>
+								<th><strong><?php esc_html_e( 'Leaderboard Shortcode', 'pointnet-games' ); ?></strong></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $games as $game_item ) : ?>
+								<tr>
+									<td><code><?php echo (int) $game_item->ID; ?></code></td>
+									<td><strong><?php echo esc_html( $game_item->post_title ); ?></strong></td>
+									<td><code><?php echo esc_html( $game_item->post_name ); ?></code></td>
+									<td>
+										<div class="pointnet-code-copy-box" style="margin: 0; padding: 4px 8px;">
+											<code id="code-quick-game-<?php echo (int) $game_item->ID; ?>">[pointnet_game id="<?php echo (int) $game_item->ID; ?>"]</code>
+											<button type="button" class="button button-small pointnet-btn-copy" data-target="code-quick-game-<?php echo (int) $game_item->ID; ?>"><?php esc_html_e( 'Copy', 'pointnet-games' ); ?></button>
+										</div>
+									</td>
+									<td>
+										<div class="pointnet-code-copy-box" style="margin: 0; padding: 4px 8px;">
+											<code id="code-quick-lb-<?php echo (int) $game_item->ID; ?>">[pointnet_game_leaderboard id="<?php echo (int) $game_item->ID; ?>"]</code>
+											<button type="button" class="button button-small pointnet-btn-copy" data-target="code-quick-lb-<?php echo (int) $game_item->ID; ?>"><?php esc_html_e( 'Copy', 'pointnet-games' ); ?></button>
+										</div>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			<?php endif; ?>
+
 			<div class="pointnet-shortcode-cards-grid">
 
 				<!-- 1. Playable Game Embed -->
@@ -551,7 +595,8 @@ class PointNet_Games_Admin {
 						<table class="widefat striped">
 							<thead><tr><th><?php esc_html_e( 'Attribute', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Default', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Description', 'pointnet-games' ); ?></th></tr></thead>
 							<tbody>
-								<tr><td><code>slug</code></td><td><em><?php esc_html_e( 'Required', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Slug of the game (e.g. minesweeper-arcade, mahjong)', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>id</code></td><td><em><?php esc_html_e( 'Optional*', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'WordPress Post ID of the game (e.g. 123). Can be used instead of slug.', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>slug</code></td><td><em><?php esc_html_e( 'Optional*', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Slug of the game (e.g. minesweeper-arcade). *Either id or slug is required.', 'pointnet-games' ); ?></td></tr>
 								<tr><td><code>width</code></td><td><code>100%</code></td><td><?php esc_html_e( 'CSS width (e.g. 100%, 800px)', 'pointnet-games' ); ?></td></tr>
 								<tr><td><code>height</code></td><td><em><?php esc_html_e( 'From manifest', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Custom container height (e.g. 750px)', 'pointnet-games' ); ?></td></tr>
 							</tbody>
@@ -577,7 +622,8 @@ class PointNet_Games_Admin {
 						<table class="widefat striped">
 							<thead><tr><th><?php esc_html_e( 'Attribute', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Default', 'pointnet-games' ); ?></th><th><?php esc_html_e( 'Description', 'pointnet-games' ); ?></th></tr></thead>
 							<tbody>
-								<tr><td><code>slug</code></td><td><em><?php esc_html_e( 'Required', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Slug of the game', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>id</code></td><td><em><?php esc_html_e( 'Optional*', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'WordPress Post ID of the game (or game_id="123"). Can be used instead of slug.', 'pointnet-games' ); ?></td></tr>
+								<tr><td><code>slug</code></td><td><em><?php esc_html_e( 'Optional*', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Slug of the game. *Either id or slug is required.', 'pointnet-games' ); ?></td></tr>
 								<tr><td><code>limit</code></td><td><code>10</code></td><td><?php esc_html_e( 'Maximum number of positions shown (1 - 100)', 'pointnet-games' ); ?></td></tr>
 								<tr><td><code>period</code></td><td><code>all</code></td><td><?php esc_html_e( 'Timeframe filter: all, month, or week', 'pointnet-games' ); ?></td></tr>
 								<tr><td><code>difficulty</code></td><td><em><?php esc_html_e( 'All', 'pointnet-games' ); ?></em></td><td><?php esc_html_e( 'Specific difficulty preset (e.g. easy, medium, hard, arcade)', 'pointnet-games' ); ?></td></tr>

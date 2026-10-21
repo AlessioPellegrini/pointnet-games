@@ -73,8 +73,8 @@ Classic Mahjong Solitaire tile-matching with an arcade twist, dual modes, 330 le
 
 | Shortcode | Attributes | Description |
 |---|---|---|
-| `[pointnet_game]` | `slug="minesweeper-arcade"`<br>`width="600"`<br>`height="850"` | Embeds the playable game with splash screen, fullscreen support, and leaderboard drawer. |
-| `[pointnet_game_leaderboard]` | `slug="minesweeper-arcade"`<br>`difficulty="easy"`<br>`limit="10"`<br>`show_meta="1"` | Displays highscores for a specific game and mode, with automatic tabs if multiple difficulties exist. |
+| `[pointnet_game]` | `id="123"` or `slug="minesweeper-arcade"`<br>`width="600"`<br>`height="850"` | Embeds the playable game with splash screen, fullscreen support, and leaderboard drawer. |
+| `[pointnet_game_leaderboard]` | `id="123"` or `slug="minesweeper-arcade"`<br>`difficulty="easy"`<br>`limit="10"`<br>`show_meta="1"` | Displays highscores for a specific game and mode, with automatic tabs if multiple difficulties exist. |
 | `[pointnet_games_leaderboard]` | `limit="20"` | Displays the multi-game global ranking across all installed games (plural alias with `global="1"`). |
 | `[pointnet_games_list]` | `columns="3"` | Displays a responsive visual grid of all installed games with metadata, tags, and PLAY buttons. |
 | `[pointnet_user_records]` | `user_id=""`<br>`columns="2"`<br>`show_stats="1"`<br>`show_cards="1"` | Displays a player's personal arcade records showcase anywhere. Defaults to current author or logged-in user. |
