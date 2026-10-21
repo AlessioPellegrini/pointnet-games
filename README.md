@@ -6,7 +6,7 @@ Arcade gaming platform & 1-Click Game Catalog for WordPress with scores for regi
 **Tags:** games, arcade, leaderboard, highscore, puzzle  
 **Requires at least:** WordPress 6.2  
 **Tested up to:** 7.1  
-**Stable tag:** 1.4.3  
+**Stable tag:** 1.5.1  
 **Requires PHP:** 8.0+  
 **Donate link:** [https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J](https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J)  
 **License:** GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)  
@@ -140,7 +140,9 @@ pointnet-games/
 │   ├── minesweeper-arcade/  # Minesweeper (The Clean One aesthetics, Dual Modes)
 │   └── mahjong/             # Mahjong Arcade (330 levels, Shield Wards, Conveyor)
 ├── includes/
+│   ├── class-admin.php      # Admin UI, settings, and catalog management
 │   ├── class-api.php        # REST API controllers and rate limiting
+│   ├── class-game-catalog.php # 1-Click Game Catalog sync & installer
 │   ├── class-game-loader.php# Shortcode rendering and author page hooks
 │   ├── class-game-registry.php # Automatic game scanner and CPT sync
 │   ├── class-install.php    # DB migration and custom score tables
@@ -164,9 +166,14 @@ pointnet-games/
 - [x] **v1.3.9**: Privacy-safe display names, duplicate resolution (`#2`, `#3`), optional profile linking for logged-in users, and cached profile hooks.
 - [x] **v1.3.10**: Security & Code Review hardening (Plugin Check compliance, `wp_kses_post` output escaping, DOM XSS prevention, i18n translator notes).
 - [x] **v1.3.11**: Dynamic updater compatibility testing (eliminates false-positive untested warning on WP 7.1.x+).
-- [ ] **v1.4.0**: Additional arcade titles (Snake Arcade, Block Puzzle).
-- [ ] **v1.5.0**: Player achievements & unlockable profile badges system.
-- [ ] **v1.6.0**: Timeframe leaderboard filters (All-Time, Monthly, Weekly).
+- [x] **v1.4.0 - v1.4.3**: 1-Click Game Catalog, zero-bloat lightweight core (<150 KB), safe uploads storage, external zip installer.
+- [x] **v1.4.4**: Complete internationalization (i18n) standardization (English source strings + Italian translation).
+- [x] **v1.4.5 - v1.4.8**: Streamlined admin menu under PointNet Games, 1-click game edit, automated catalog check with transient cache & refresh button.
+- [x] **v1.4.9 - v1.5.0**: Metadata deduplication, outcome levels optimization, responsive sidebar container overflow fixes, full-width Improve button layout.
+- [x] **v1.5.1**: Baseline documentation release, updated developer guidelines, and architecture stabilization.
+- [ ] **v1.6.0 (Phase 1)**: Player Achievements & Badges system, Periodic Leaderboards (All-Time / Monthly / Weekly), and Personal Record celebration toasts.
+- [ ] **v1.7.0 (Phase 2)**: Additional arcade titles (Mahjong Arcade release, Snake, Solitaire).
+- [ ] **v1.8.0 (Phase 3)**: Social challenges, shareable victory cards, and sound FX manager.
 
 ---
 

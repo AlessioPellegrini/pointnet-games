@@ -541,6 +541,12 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
+- **v1.5.1** — Architettura & Baseline: stabilizzazione specifiche sviluppatore, integrazione roadmap e preparazione per il motore di Gamification & Badges (Fase 1).
+- **v1.5.0** — Interfaccia Grafica: layout a piena larghezza per il pulsante "Migliora / Sfida" posizionato nel footer della card e allineamento responsive su griglie strette.
+- **v1.4.9** — Deduplicazione Metadati: rimozione duplicati `Livello/Level` e `Tempo/Time`, soppressione esito ridondante su giochi a livelli continui (`Livello: 5 / 18`) e ottimizzazione overflow CSS su sidebar.
+- **v1.4.8** — Catalogo Giochi: supporto per parametro `&refresh=1` e pulsante di svuotamento cache delle release di GitHub.
+- **v1.4.6** — Standard di Codice: conformità alle linee guida WordPress VIP / WPCS (`wp_delete_file` e `WP_Filesystem`).
+- **v1.4.4** — Internazionalizzazione (i18n): standardizzazione dell'intero codice sorgente in lingua inglese e caricamento del textdomain con traduzione italiana ufficiale.
 - **v1.3.11** — Compatibilità WordPress: risoluzione dinamica della versione di WordPress testata (`$GLOBALS['wp_version']`) nell'auto-updater e aggiornamento di "Tested up to" a 7.1.3 / "Requires at least" a 6.2 per eliminare il falso positivo del warning "This plugin has not been tested with your current version of WordPress".
 - **v1.3.10** — Sicurezza & Code Review: sanificazione avanzata con `wp_kses_post` sull'output dei record utente in Game Loader (Plugin Check compliant), hardenening DOM XSS su pulsante fullscreen (`textContent`), posizionamento standard commenti gettext per traduttori i18n, e sanificazione stretta dei parametri di aggiornamento GitHub updater.
 - **v1.3.9** — Privacy e Sicurezza: le classifiche utilizzano il `display_name` pubblico di WordPress (con de-duplicazione progressiva `#2`, `#3` calcolata su hook `user_register`/`profile_update` e salvata in user meta) per proteggere i dati di login. Nuova impostazione opzionale "Link Player Profiles" in amministrazione per mostrare i link ai profili solo agli utenti autenticati.

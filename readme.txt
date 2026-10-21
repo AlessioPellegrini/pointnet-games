@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,37 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.5.1 =
+* Documentation & Architecture: stabilized developer guidelines, updated roadmap, added reference architecture for Player Achievements and Periodic Leaderboards (Phase 1).
+* Maintenance: tagged clean baseline release prior to Phase 1 gamification engine implementation.
+
+= 1.5.0 =
+* UI & Layout: repositioned the "Improve / Challenge" button to the bottom footer of game cards with a 100% full-width block layout (`.pointnet-games-btn-play-full`).
+* Visual Hierarchy: polished record list elements and game card footer styling across all screen sizes.
+
+= 1.4.9 =
+* UI & Metadata: eliminated redundant duplicate meta items (`Level/Livello`, `Time/Tempo`) across leaderboards and profile cards.
+* Clean Output: suppressed redundant outcome text on progressive games (`Level: 5 / 18` instead of duplicating `Outcome: Livello 5`).
+* Responsive Layout: fixed horizontal container overflow on narrow sidebar layouts via dynamic minmax clamping (`minmax(min(100%, 320px), 1fr)`).
+
+= 1.4.8 =
+* Catalog Engine: added manual force-refresh support (`&refresh=1`) and restored the "Check Updates" button on the Game Catalog screen to clear GitHub release caches immediately.
+
+= 1.4.7 =
+* Catalog Automation: automated game catalog synchronization on admin page load with a 10-minute rate-limited transient cache.
+
+= 1.4.6 =
+* Code Standards: replaced PHP native `unlink()` and `rmdir()` with `wp_delete_file()` and WordPress VIP / WPCS compliant `WP_Filesystem` methods in catalog installation and uninstallation flows.
+
+= 1.4.5 =
+* Admin Experience: consolidated installed games under the unified "PointNet Games" admin menu.
+* Workflow: redirected manual empty game post creation (`Add New Game`) to the 1-Click Game Catalog.
+* Management: added a 1-click ✏️ "Edit" button on installed games table for metadata and SEO customization.
+
+= 1.4.4 =
+* Internationalization (i18n): standardized 100% of codebase strings in standard American English with proper gettext domain `pointnet-games`.
+* Localization: loaded textdomain via `load_plugin_textdomain` and updated full Italian (`it_IT`) PO and MO translations.
 
 = 1.4.3 =
 * Leaderboard Shortcode: added `slug` attribute support to `[pointnet_game_leaderboard slug="..."]` for friendly game resolution.
@@ -322,6 +353,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.5.1 =
+Recommended baseline update: updates developer guides, architecture specifications and documentation prior to Phase 1 gamification release.
 
 = 1.5.0 =
 Recommended update: repositions the Improve / Challenge button to the bottom footer of game cards with a full-width block layout, and polishes record list hierarchy.
