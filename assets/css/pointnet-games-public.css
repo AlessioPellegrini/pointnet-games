@@ -403,17 +403,17 @@
 	background: #ffffff;
 	border: 1px solid #e2e8f0;
 	border-radius: 12px;
-	padding: 24px 28px;
+	padding: 20px 24px;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 	font-family: inherit;
 	width: 100% !important;
 	max-width: 100% !important;
 	clear: both !important;
 	grid-column: 1 / -1 !important;
-	flex: 0 0 100% !important;
 	box-sizing: border-box !important;
 	position: relative;
 	z-index: 1;
+	overflow: hidden;
 }
 
 .pointnet-games-user-records-header {
@@ -468,8 +468,34 @@
 
 .pointnet-games-user-cards-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 	gap: 20px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* Sidebar / Narrow widget container support */
+.widget .pointnet-games-user-records,
+aside .pointnet-games-user-records,
+.sidebar .pointnet-games-user-records,
+.pointnet-games-user-records-narrow .pointnet-games-user-records {
+	padding: 14px 12px !important;
+	margin: 10px 0 20px !important;
+	border-radius: 8px;
+}
+
+@container (max-width: 420px) {
+	.pointnet-games-user-cards-grid {
+		grid-template-columns: 1fr;
+	}
+	.pointnet-games-user-record-row {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 6px;
+	}
+	.pointnet-games-user-record-right {
+		align-self: flex-end;
+	}
 }
 
 @media (max-width: 768px) {
@@ -580,9 +606,9 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 10px 16px;
+	padding: 10px 14px;
 	border-bottom: 1px solid #f1f5f9;
-	gap: 12px;
+	gap: 8px 12px;
 	flex-wrap: wrap;
 }
 

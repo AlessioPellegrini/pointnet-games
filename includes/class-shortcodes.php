@@ -268,13 +268,19 @@ class PointNet_Games_Shortcodes {
 						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Time', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $time_val ) . '</span>';
 					}
 
-					// 3. Outcome / Esito (if present).
+					// 3. Outcome / Esito: only show if distinct from level and not a duplicate level string
 					$outcome = $meta['outcome'] ?? ( $meta['esito'] ?? '' );
 					if ( ! empty( $outcome ) ) {
-						$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Outcome', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $outcome ) . '</span>';
+						$outcome_norm = trim( strtolower( (string) $outcome ) );
+						$lvl_norm     = trim( strtolower( (string) $lvl ) );
+						$is_dup_lvl   = ( '' !== $lvl_norm && ( $outcome_norm === $lvl_norm || false !== strpos( $outcome_norm, 'livello ' . $lvl_norm ) || false !== strpos( $outcome_norm, 'level ' . $lvl_norm ) ) );
+
+						if ( ! $is_dup_lvl ) {
+							$meta_parts[] = '<span class="png-meta-item"><strong>' . esc_html__( 'Outcome', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $outcome ) . '</span>';
+						}
 					}
 
-					// 4. Other extra keys.
+					// 4. Other extra keys (strictly ignore known/duplicate keys).
 					$handled_keys = array( 'difficulty', 'label', 'session_token', 'level', 'livello', 'level_reached', 'time', 'tempo', 'time_seconds', 'level_time_seconds', 'outcome', 'esito', 'won' );
 					foreach ( $meta as $k => $v ) {
 						if ( in_array( strtolower( (string) $k ), $handled_keys, true ) ) {
@@ -546,15 +552,47 @@ class PointNet_Games_Shortcodes {
 				$html .= '<div class="pointnet-games-user-record-left">';
 				$html .= '<span class="pointnet-games-mode-badge pointnet-games-mode-' . esc_attr( sanitize_html_class( $rec['difficulty'] ) ) . '">' . esc_html( $rec['difficulty_label'] ) . '</span>';
 
-				// Meta items
+				// Clean & structured meta items (Level, Time, Outcome)
 				$meta_items = array();
 				if ( ! empty( $rec['meta'] ) && is_array( $rec['meta'] ) ) {
-					$excluded = array( 'difficulty', 'label', 'session_token', 'time_seconds', 'level_time_seconds', 'level_reached', 'won' );
-					foreach ( $rec['meta'] as $mk => $mv ) {
+					$rmeta = $rec['meta'];
+					$rdiff = $rec['difficulty'];
+
+					// Level
+					$rlvl = $rmeta['level'] ?? ( $rmeta['livello'] ?? ( $rmeta['level_reached'] ?? '' ) );
+					if ( '' !== (string) $rlvl ) {
+						$rlvl_str = ( is_numeric( $rlvl ) && 'arcade' === $rdiff ) ? $rlvl . ' / 18' : (string) $rlvl;
+						$meta_items[] = '<strong>' . esc_html__( 'Level', 'pointnet-games' ) . ':</strong> ' . esc_html( $rlvl_str );
+					}
+
+					// Time
+					$rtime = $rmeta['time'] ?? ( $rmeta['tempo'] ?? '' );
+					if ( empty( $rtime ) && isset( $rmeta['time_seconds'] ) && is_numeric( $rmeta['time_seconds'] ) ) {
+						$rsec  = (int) $rmeta['time_seconds'];
+						$rtime = sprintf( '%02d:%02d', floor( $rsec / 60 ), $rsec % 60 );
+					}
+					if ( ! empty( $rtime ) ) {
+						$meta_items[] = '<strong>' . esc_html__( 'Time', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $rtime );
+					}
+
+					// Outcome (only if not repeating level)
+					$routcome = $rmeta['outcome'] ?? ( $rmeta['esito'] ?? '' );
+					if ( ! empty( $routcome ) ) {
+						$ro_norm  = trim( strtolower( (string) $routcome ) );
+						$rl_norm  = trim( strtolower( (string) $rlvl ) );
+						$r_is_dup = ( '' !== $rl_norm && ( $ro_norm === $rl_norm || false !== strpos( $ro_norm, 'livello ' . $rl_norm ) || false !== strpos( $ro_norm, 'level ' . $rl_norm ) ) );
+						if ( ! $r_is_dup ) {
+							$meta_items[] = '<strong>' . esc_html__( 'Outcome', 'pointnet-games' ) . ':</strong> ' . esc_html( (string) $routcome );
+						}
+					}
+
+					// Other custom keys
+					$excluded = array( 'difficulty', 'label', 'session_token', 'level', 'livello', 'level_reached', 'time', 'tempo', 'time_seconds', 'level_time_seconds', 'outcome', 'esito', 'won' );
+					foreach ( $rmeta as $mk => $mv ) {
 						if ( in_array( strtolower( (string) $mk ), $excluded, true ) ) {
 							continue;
 						}
-						if ( is_scalar( $mv ) ) {
+						if ( is_scalar( $mv ) && '' !== (string) $mv ) {
 							$meta_items[] = '<strong>' . esc_html( ucfirst( str_replace( '_', ' ', (string) $mk ) ) ) . ':</strong> ' . esc_html( (string) $mv );
 						}
 					}
