@@ -258,13 +258,17 @@ class PointNet_Games_Admin {
 	 * Render the Game Catalog page.
 	 */
 	public function render_catalog_page() {
-		$catalog   = PointNet_Games_Game_Catalog::get_catalog();
-		$installed = PointNet_Games_Game_Catalog::get_installed_games_map();
+		$force_refresh = ! empty( $_GET['refresh'] );
+		$catalog       = PointNet_Games_Game_Catalog::get_catalog( $force_refresh );
+		$installed     = PointNet_Games_Game_Catalog::get_installed_games_map();
 
 		?>
 		<div class="wrap">
 			<div class="pointnet-games-catalog-header">
 				<h1>🎮 <?php esc_html_e( 'Arcade Games Catalog', 'pointnet-games' ); ?></h1>
+				<button type="button" class="button button-secondary" id="pointnet-refresh-catalog-btn">
+					🔄 <?php esc_html_e( 'Check Updates', 'pointnet-games' ); ?>
+				</button>
 			</div>
 
 			<p><?php esc_html_e( 'Browse free arcade games for PointNet Games. Each game is installed directly on your server with 1-click in a secure, protected directory.', 'pointnet-games' ); ?></p>
