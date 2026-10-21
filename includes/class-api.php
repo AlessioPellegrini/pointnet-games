@@ -78,6 +78,9 @@ class PointNet_Games_API {
 					'difficulty' => array(
 						'sanitize_callback' => 'sanitize_text_field',
 					),
+					'period'     => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
 				),
 			)
 		);
@@ -89,6 +92,14 @@ class PointNet_Games_API {
 				'methods'             => 'GET',
 				'callback'            => array( $this, 'get_global_leaderboard' ),
 				'permission_callback' => '__return_true',
+				'args'                => array(
+					'limit'  => array(
+						'sanitize_callback' => 'absint',
+					),
+					'period' => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
+				),
 			)
 		);
 
@@ -253,6 +264,27 @@ class PointNet_Games_API {
 		// Sanitize meta safely without nesting.
 		$meta = $this->sanitize_meta( $raw_meta );
 
+		$difficulty = '';
+		if ( ! empty( $params['meta']['difficulty'] ) && is_string( $params['meta']['difficulty'] ) ) {
+			$difficulty = sanitize_text_field( $params['meta']['difficulty'] );
+		}
+
+		// Retrieve previous personal best before inserting the new score.
+		global $wpdb;
+		$table = pointnet_games_scores_table();
+		$previous_best = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT MAX(score) FROM %i
+				 WHERE user_id = %d AND game_id = %d
+				   AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(score_meta, '$.difficulty')) = %s )",
+				$table,
+				$user_id,
+				$game_id,
+				$difficulty,
+				$difficulty
+			)
+		);
+
 		$result = PointNet_Games_Leaderboard::insert_score( $game_id, $score, $nickname, $meta, $user_id );
 
 		if ( false === $result ) {
@@ -263,18 +295,23 @@ class PointNet_Games_API {
 			);
 		}
 
-		$difficulty = '';
-		if ( ! empty( $params['meta']['difficulty'] ) && is_string( $params['meta']['difficulty'] ) ) {
-			$difficulty = sanitize_text_field( $params['meta']['difficulty'] );
-		}
-
 		$position = PointNet_Games_Leaderboard::get_player_position( $game_id, $user_id, $nickname, $difficulty );
+
+		// Evaluate achievements.
+		$new_achievements = PointNet_Games_Achievements::evaluate_on_score( $user_id, $game_id, $score, $position );
+
+		$is_personal_best = ( $score > $previous_best );
+		$is_top_3         = ( null !== $position && $position >= 1 && $position <= 3 );
 
 		return rest_ensure_response(
 			array(
-				'success'  => true,
-				'score_id' => $result,
-				'position' => $position,
+				'success'                => true,
+				'score_id'               => $result,
+				'position'               => $position,
+				'is_personal_best'       => $is_personal_best,
+				'previous_personal_best' => $previous_best,
+				'is_top_3'               => $is_top_3,
+				'new_achievements'       => $new_achievements,
 			)
 		);
 	}
@@ -346,11 +383,17 @@ class PointNet_Games_API {
 			$filters['difficulty'] = $difficulty;
 		}
 
+		$period = isset( $request['period'] ) ? sanitize_key( $request['period'] ) : 'all';
+		if ( $period ) {
+			$filters['period'] = $period;
+		}
+
 		$entries = PointNet_Games_Leaderboard::get_leaderboard( $game_id, $limit, $offset, $filters );
 
 		return rest_ensure_response(
 			array(
 				'game_id'    => $game_id,
+				'period'     => $period,
 				'entries'    => $entries,
 				'count'      => count( $entries ),
 				'pagination' => array(
@@ -370,12 +413,14 @@ class PointNet_Games_API {
 	 * @return WP_REST_Response
 	 */
 	public function get_global_leaderboard( $request ) {
-		$limit = isset( $request['limit'] ) ? (int) $request['limit'] : 20;
+		$limit  = isset( $request['limit'] ) ? (int) $request['limit'] : 20;
+		$period = isset( $request['period'] ) ? sanitize_key( $request['period'] ) : 'all';
 
-		$entries = PointNet_Games_Leaderboard::get_global_leaderboard( $limit );
+		$entries = PointNet_Games_Leaderboard::get_global_leaderboard( $limit, $period );
 
 		return rest_ensure_response(
 			array(
+				'period'  => $period,
 				'entries' => $entries,
 				'count'   => count( $entries ),
 			)

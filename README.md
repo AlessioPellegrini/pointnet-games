@@ -6,7 +6,7 @@ Arcade gaming platform & 1-Click Game Catalog for WordPress with scores for regi
 **Tags:** games, arcade, leaderboard, highscore, puzzle  
 **Requires at least:** WordPress 6.2  
 **Tested up to:** 7.1  
-**Stable tag:** 1.5.1  
+**Stable tag:** 1.6.0  
 **Requires PHP:** 8.0+  
 **Donate link:** [https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J](https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J)  
 **License:** GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)  
@@ -171,7 +171,7 @@ pointnet-games/
 - [x] **v1.4.5 - v1.4.8**: Streamlined admin menu under PointNet Games, 1-click game edit, automated catalog check with transient cache & refresh button.
 - [x] **v1.4.9 - v1.5.0**: Metadata deduplication, outcome levels optimization, responsive sidebar container overflow fixes, full-width Improve button layout.
 - [x] **v1.5.1**: Baseline documentation release, updated developer guidelines, and architecture stabilization.
-- [ ] **v1.6.0 (Phase 1)**: Player Achievements & Badges system, Periodic Leaderboards (All-Time / Monthly / Weekly), and Personal Record celebration toasts.
+- [x] **v1.6.0 (Phase 1)**: Player Achievements & Badges system, Periodic Leaderboards (All-Time / Monthly / Weekly), and Personal Record celebration toasts.
 - [ ] **v1.7.0 (Phase 2)**: Additional arcade titles (Mahjong Arcade release, Snake, Solitaire).
 - [ ] **v1.8.0 (Phase 3)**: Social challenges, shareable victory cards, and sound FX manager.
 

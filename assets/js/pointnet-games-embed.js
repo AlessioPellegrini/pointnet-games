@@ -150,6 +150,11 @@
 					// Immediately refresh session for the next round.
 					refreshSessionToken();
 
+					// Trigger celebratory toast banner if personal best or achievements unlocked.
+					if (response && (response.is_personal_best || response.is_top_3 || (response.new_achievements && response.new_achievements.length > 0))) {
+						showCelebrationToast(element, response);
+					}
+
 					iframe.contentWindow.postMessage({
 						type: 'pointnet-games:score-submitted',
 						data: response
@@ -396,6 +401,54 @@
 				});
 			});
 		});
+	}
+
+	/**
+	 * Display an animated celebration toast above the embed.
+	 *
+	 * @param {HTMLElement} element Parent embed element.
+	 * @param {Object} response Server response payload.
+	 */
+	function showCelebrationToast(element, response) {
+		var existing = element.querySelector('.pointnet-games-toast-celebration');
+		if (existing) {
+			existing.remove();
+		}
+
+		var toast = document.createElement('div');
+		toast.className = 'pointnet-games-toast-celebration';
+
+		var title = '🎉 Complimenti!';
+		var details = [];
+
+		if (response.is_personal_best) {
+			details.push('Nuovo Record Personale!');
+		}
+		if (response.is_top_3) {
+			details.push('Sei entrato nella Top 3 (# ' + response.position + ')!');
+		}
+		if (response.new_achievements && response.new_achievements.length > 0) {
+			response.new_achievements.forEach(function (ach) {
+				details.push('Nuovo Badge: ' + (ach.icon || '🏅') + ' ' + (ach.title || ''));
+			});
+		}
+
+		toast.innerHTML = '<div class="png-toast-title">' + title + '</div><div class="png-toast-body">' + details.join('<br>') + '</div>';
+
+		element.appendChild(toast);
+
+		setTimeout(function () {
+			toast.classList.add('png-toast-show');
+		}, 10);
+
+		setTimeout(function () {
+			toast.classList.remove('png-toast-show');
+			setTimeout(function () {
+				if (toast.parentNode) {
+					toast.parentNode.removeChild(toast);
+				}
+			}, 300);
+		}, 4500);
 	}
 
 	// Initialize on DOM ready and for dynamically added content.

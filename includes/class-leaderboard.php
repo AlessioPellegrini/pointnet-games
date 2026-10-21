@@ -95,6 +95,15 @@ class PointNet_Games_Leaderboard {
 		// Difficulty filter value (empty string = filter disabled).
 		$difficulty = ! empty( $filters['difficulty'] ) ? sanitize_text_field( $filters['difficulty'] ) : '';
 
+		// Period filter (all, month, week).
+		$period = ! empty( $filters['period'] ) ? sanitize_key( $filters['period'] ) : 'all';
+		$since_date = '';
+		if ( 'week' === $period ) {
+			$since_date = gmdate( 'Y-m-d H:i:s', time() - 7 * DAY_IN_SECONDS );
+		} elseif ( 'month' === $period ) {
+			$since_date = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
+		}
+
 		// Only the best score per registered user per difficulty (or overall best per difficulty in "All" view).
 		// Optional filters use the ( %d = 0 OR ... ) / ( %s = '' OR ... ) pattern:
 		// passing 0/'' disables the condition while keeping every placeholder
@@ -106,6 +115,7 @@ class PointNet_Games_Leaderboard {
 				 LEFT JOIN %i s2 ON s1.game_id = s2.game_id
 				     AND ( s1.score < s2.score OR ( s1.score = s2.score AND s1.id < s2.id ) )
 				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
+				     AND ( %s = '' OR ( s1.played_at >= %s AND s2.played_at >= %s ) )
 				     AND s1.user_id = s2.user_id
 				     AND (
 				         ( %s != '' AND JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')) = %s )
@@ -115,16 +125,22 @@ class PointNet_Games_Leaderboard {
 				 WHERE s1.game_id = %d
 				   AND s1.user_id > 0
 				   AND s2.id IS NULL
+				   AND ( %s = '' OR s1.played_at >= %s )
 				   AND ( %s = '' OR JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')) = %s )
 				 ORDER BY s1.score DESC, s1.played_at ASC
 				 LIMIT %d OFFSET %d",
 				$table,
 				$table,
 				$require_validation,
+				$since_date,
+				$since_date,
+				$since_date,
 				$difficulty,
 				$difficulty,
 				$difficulty,
 				$game_id,
+				$since_date,
+				$since_date,
 				$difficulty,
 				$difficulty,
 				$limit,
@@ -153,11 +169,12 @@ class PointNet_Games_Leaderboard {
 	/**
 	 * Get the global leaderboard across all games.
 	 *
-	 * @param int $limit Max results.
+	 * @param int    $limit   Max results.
+	 * @param string $period  Optional period ('all', 'month', 'week').
 	 *
 	 * @return array
 	 */
-	public static function get_global_leaderboard( $limit = 20 ) {
+	public static function get_global_leaderboard( $limit = 20, $period = 'all' ) {
 		global $wpdb;
 
 		$table = pointnet_games_scores_table();
@@ -165,6 +182,14 @@ class PointNet_Games_Leaderboard {
 
 		$settings           = get_option( 'pointnet_games_settings', array() );
 		$require_validation = (int) ( $settings['require_validation'] ?? 0 );
+
+		$period = sanitize_key( $period );
+		$since_date = '';
+		if ( 'week' === $period ) {
+			$since_date = gmdate( 'Y-m-d H:i:s', time() - 7 * DAY_IN_SECONDS );
+		} elseif ( 'month' === $period ) {
+			$since_date = gmdate( 'Y-m-d H:i:s', time() - 30 * DAY_IN_SECONDS );
+		}
 
 		// Only the best score per registered user per game per difficulty across all games.
 		$rows = $wpdb->get_results(
@@ -175,17 +200,24 @@ class PointNet_Games_Leaderboard {
 				 LEFT JOIN %i s2 ON s1.game_id = s2.game_id
 				     AND ( s1.score < s2.score OR ( s1.score = s2.score AND s1.id < s2.id ) )
 				     AND ( %d = 0 OR ( s1.validated = 1 AND s2.validated = 1 ) )
+				     AND ( %s = '' OR ( s1.played_at >= %s AND s2.played_at >= %s ) )
 				     AND s1.user_id = s2.user_id
 				     AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s1.score_meta, '$.difficulty')), '') = COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s2.score_meta, '$.difficulty')), '')
 				 INNER JOIN %i p ON p.ID = s1.game_id AND p.post_status = 'publish'
 				 WHERE s1.user_id > 0
 				   AND s2.id IS NULL
+				   AND ( %s = '' OR s1.played_at >= %s )
 				 ORDER BY s1.score DESC, s1.played_at ASC
 				 LIMIT %d",
 				$table,
 				$table,
 				$require_validation,
+				$since_date,
+				$since_date,
+				$since_date,
 				$wpdb->posts,
+				$since_date,
+				$since_date,
 				$limit
 			),
 			ARRAY_A

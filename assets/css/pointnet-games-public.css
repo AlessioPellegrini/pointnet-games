@@ -806,3 +806,155 @@ aside .pointnet-games-user-records,
 		align-self: flex-end;
 	}
 }
+
+/* ==========================================================================
+   Achievements & Badges Tray
+   ========================================================================== */
+
+.pointnet-games-achievements-tray {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	padding: 16px 18px;
+	margin-bottom: 24px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.pointnet-games-achievements-title {
+	font-size: 0.95em;
+	font-weight: 700;
+	color: #334155;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-bottom: 12px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.pointnet-games-achievements-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 12px;
+}
+
+.pointnet-games-badge-card {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 14px;
+	border-radius: 8px;
+	border: 1px solid #e2e8f0;
+	background: #f8fafc;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pointnet-games-badge-card:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.pointnet-games-badge-icon {
+	font-size: 1.8em;
+	line-height: 1;
+	flex-shrink: 0;
+}
+
+.pointnet-games-badge-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.pointnet-games-badge-name {
+	font-size: 0.9em;
+	font-weight: 700;
+	color: #0f172a;
+	margin-bottom: 2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.pointnet-games-badge-desc {
+	font-size: 0.78em;
+	color: #64748b;
+	line-height: 1.3;
+}
+
+/* Badge States */
+.png-badge-locked {
+	opacity: 0.55;
+	filter: grayscale(85%);
+	background: #f1f5f9;
+	border-style: dashed;
+}
+
+.png-badge-unlocked.png-badge-common {
+	border-color: #cbd5e1;
+	background: #f8fafc;
+}
+
+.png-badge-unlocked.png-badge-uncommon {
+	border-color: #93c5fd;
+	background: #eff6ff;
+}
+
+.png-badge-unlocked.png-badge-rare {
+	border-color: #fde047;
+	background: #fefce8;
+}
+
+.png-badge-unlocked.png-badge-epic {
+	border-color: #f472b6;
+	background: #fdf2f8;
+}
+
+.png-pill-badge {
+	background: #fdf4ff !important;
+	border-color: #f0abfc !important;
+	color: #86198f !important;
+}
+
+/* ==========================================================================
+   Celebration Toast Banner
+   ========================================================================== */
+
+.pointnet-games-toast-celebration {
+	position: absolute;
+	top: 16px;
+	left: 50%;
+	transform: translate(-50%, -20px);
+	background: linear-gradient(135deg, #1e293b, #0f172a);
+	color: #ffffff;
+	padding: 12px 20px;
+	border-radius: 10px;
+	border: 1px solid #facc15;
+	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 15px rgba(250, 204, 21, 0.25);
+	z-index: 9999;
+	text-align: center;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+	font-family: inherit;
+}
+
+.pointnet-games-toast-celebration.png-toast-show {
+	opacity: 1;
+	transform: translate(-50%, 0);
+	pointer-events: auto;
+}
+
+.pointnet-games-toast-celebration .png-toast-title {
+	font-weight: 800;
+	font-size: 1.05em;
+	color: #facc15;
+	margin-bottom: 4px;
+}
+
+.pointnet-games-toast-celebration .png-toast-body {
+	font-size: 0.88em;
+	line-height: 1.4;
+	color: #f8fafc;
+}
+
+

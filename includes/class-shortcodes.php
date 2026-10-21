@@ -86,6 +86,7 @@ class PointNet_Games_Shortcodes {
 				'global'     => $default_global,
 				'show_meta'  => 1,
 				'difficulty' => '',
+				'period'     => 'all',
 				'tabs'       => 'auto',
 			),
 			$atts,
@@ -95,10 +96,11 @@ class PointNet_Games_Shortcodes {
 		$limit      = min( max( 1, absint( $atts['limit'] ) ), 100 );
 		$is_global  = (bool) $atts['global'];
 		$difficulty = sanitize_text_field( $atts['difficulty'] );
+		$period     = sanitize_key( $atts['period'] );
 		$show_meta  = (bool) $atts['show_meta'];
 
 		if ( $is_global ) {
-			return $this->render_leaderboard_table( 0, $limit, '', $show_meta, array(), true );
+			return $this->render_leaderboard_table( 0, $limit, '', $show_meta, array(), true, $period );
 		}
 
 		$game_id = absint( $atts['game_id'] );
@@ -133,13 +135,13 @@ class PointNet_Games_Shortcodes {
 
 			// Panel for "All":
 			$html .= '<div class="pointnet-games-leaderboard-panel pointnet-games-leaderboard-panel-active" data-panel="">';
-			$html .= $this->render_leaderboard_table( $game_id, $limit, '', $show_meta, $difficulties, false );
+			$html .= $this->render_leaderboard_table( $game_id, $limit, '', $show_meta, $difficulties, false, $period );
 			$html .= '</div>';
 
 			// Panels for each difficulty:
 			foreach ( $difficulties as $diff_slug => $diff_label ) {
 				$html .= '<div class="pointnet-games-leaderboard-panel" data-panel="' . esc_attr( $diff_slug ) . '">';
-				$html .= $this->render_leaderboard_table( $game_id, $limit, $diff_slug, $show_meta, $difficulties, false );
+				$html .= $this->render_leaderboard_table( $game_id, $limit, $diff_slug, $show_meta, $difficulties, false, $period );
 				$html .= '</div>';
 			}
 
@@ -148,7 +150,7 @@ class PointNet_Games_Shortcodes {
 		}
 
 		// Single mode or explicitly requested difficulty.
-		return $this->render_leaderboard_table( $game_id, $limit, $difficulty, $show_meta, $difficulties, false );
+		return $this->render_leaderboard_table( $game_id, $limit, $difficulty, $show_meta, $difficulties, false, $period );
 	}
 
 	/**
@@ -160,16 +162,20 @@ class PointNet_Games_Shortcodes {
 	 * @param bool   $show_meta    Whether to show metadata details.
 	 * @param array  $difficulties Map of difficulties for the game.
 	 * @param bool   $is_global    Whether this is the global leaderboard.
+	 * @param string $period       Period filter ('all', 'month', 'week').
 	 *
 	 * @return string Table HTML.
 	 */
-	public function render_leaderboard_table( $game_id, $limit, $difficulty = '', $show_meta = true, $difficulties = array(), $is_global = false ) {
+	public function render_leaderboard_table( $game_id, $limit, $difficulty = '', $show_meta = true, $difficulties = array(), $is_global = false, $period = 'all' ) {
 		if ( $is_global ) {
-			$entries = PointNet_Games_Leaderboard::get_global_leaderboard( $limit );
+			$entries = PointNet_Games_Leaderboard::get_global_leaderboard( $limit, $period );
 		} else {
 			$filters = array();
 			if ( '' !== $difficulty ) {
 				$filters['difficulty'] = $difficulty;
+			}
+			if ( ! empty( $period ) && 'all' !== $period ) {
+				$filters['period'] = $period;
 			}
 			$entries = PointNet_Games_Leaderboard::get_leaderboard( $game_id, $limit, 0, $filters );
 		}
@@ -514,9 +520,41 @@ class PointNet_Games_Shortcodes {
 				$medal = 1 === (int) $stats['best_position'] ? '🥇' : ( 2 === (int) $stats['best_position'] ? '🥈' : ( 3 === (int) $stats['best_position'] ? '🥉' : '🎖️' ) );
 				$html .= '<div class="pointnet-games-stat-pill png-pill-gold"><span class="png-pill-icon">' . $medal . '</span> <span class="png-pill-label">' . esc_html__( 'Best Rank:', 'pointnet-games' ) . '</span> <strong>#' . esc_html( (string) $stats['best_position'] ) . '</strong></div>';
 			}
+
+			// Achievements count pill.
+			$user_achievements = PointNet_Games_Achievements::get_user_achievements( $user_id );
+			$total_badges      = count( PointNet_Games_Achievements::get_definitions() );
+			$unlocked_count    = count( $user_achievements );
+			$html .= '<div class="pointnet-games-stat-pill png-pill-badge"><span class="png-pill-icon">🎖️</span> <span class="png-pill-label">' . esc_html__( 'Badges:', 'pointnet-games' ) . '</span> <strong>' . esc_html( $unlocked_count . ' / ' . $total_badges ) . '</strong></div>';
 			$html .= '</div>';
 		}
 		$html .= '</div>'; // .pointnet-games-user-records-header
+
+		// Achievements Showcase Grid.
+		$all_definitions = PointNet_Games_Achievements::get_definitions();
+		$unlocked_map    = PointNet_Games_Achievements::get_user_achievements( $user_id );
+
+		$html .= '<div class="pointnet-games-achievements-tray">';
+		$html .= '<div class="pointnet-games-achievements-title">🏅 ' . esc_html__( 'Achievements & Badges', 'pointnet-games' ) . '</div>';
+		$html .= '<div class="pointnet-games-achievements-grid">';
+
+		foreach ( $all_definitions as $badge_id => $badge ) {
+			$is_unlocked = isset( $unlocked_map[ $badge_id ] );
+			$badge_class = $is_unlocked ? 'png-badge-unlocked png-badge-' . esc_attr( $badge['rarity'] ) : 'png-badge-locked';
+			$unlocked_meta = $is_unlocked ? $unlocked_map[ $badge_id ] : null;
+			$unlocked_tip  = $is_unlocked ? sprintf( esc_html__( 'Unlocked on %s', 'pointnet-games' ), esc_html( date_i18n( get_option( 'date_format' ), strtotime( $unlocked_meta['unlocked_at'] ?? 'now' ) ) ) ) : esc_html__( 'Locked', 'pointnet-games' );
+
+			$html .= '<div class="pointnet-games-badge-card ' . esc_attr( $badge_class ) . '" title="' . esc_attr( $badge['title'] . ' — ' . $badge['description'] . ' (' . $unlocked_tip . ')' ) . '">';
+			$html .= '<div class="pointnet-games-badge-icon">' . ( $is_unlocked ? esc_html( $badge['icon'] ) : '🔒' ) . '</div>';
+			$html .= '<div class="pointnet-games-badge-body">';
+			$html .= '<div class="pointnet-games-badge-name">' . esc_html( $badge['title'] ) . '</div>';
+			$html .= '<div class="pointnet-games-badge-desc">' . esc_html( $badge['description'] ) . '</div>';
+			$html .= '</div>';
+			$html .= '</div>';
+		}
+
+		$html .= '</div>'; // .pointnet-games-achievements-grid
+		$html .= '</div>'; // .pointnet-games-achievements-tray
 
 		// Grid of game cards
 		$html .= '<div class="pointnet-games-user-cards-grid">';

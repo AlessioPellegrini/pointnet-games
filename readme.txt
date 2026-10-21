@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.5.1
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,12 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.6.0 =
+* Major Milestone (Phase 1 Gamification): introduces Player Achievements & Badges system (`includes/class-achievements.php`) with 6 distinct milestone badges saved safely to `wp_usermeta`.
+* Achievements Showcase: rendered directly on author profile pages and `[pointnet_user_records]` with golden status badges and unlocked timestamps.
+* Periodic Leaderboards: added timeframe filters (`period="all"`, `period="month"`, `period="week"`) across REST API routes and `[pointnet_game_leaderboard]` shortcode.
+* Real-Time Celebrations: added instant celebration banner toasts upon score submission when beating personal records, reaching Top 3 or unlocking new badges.
 
 = 1.5.1 =
 * Documentation & Architecture: stabilized developer guidelines, updated roadmap, added reference architecture for Player Achievements and Periodic Leaderboards (Phase 1).
@@ -353,6 +359,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * Anti-cheat: nonce, rate limit, IP hash, optional validation
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+Major Phase 1 release: introduces Player Achievements & Badges, Periodic Leaderboard filters (week/month/all-time) and real-time Personal Best celebrations.
 
 = 1.5.1 =
 Recommended baseline update: updates developer guides, architecture specifications and documentation prior to Phase 1 gamification release.
