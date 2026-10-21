@@ -33,8 +33,9 @@
 	color: #94a3b8;
 	font-size: 13px;
 }
+.pointnet-games-btn-donate,
 .pointnet-games-btn-kofi {
-	background: #ff5e5b;
+	background: #0070ba;
 	color: #fff !important;
 	text-decoration: none;
 	font-weight: 600;
@@ -46,8 +47,9 @@
 	font-size: 14px;
 	transition: background 0.2s, transform 0.1s;
 }
+.pointnet-games-btn-donate:hover,
 .pointnet-games-btn-kofi:hover {
-	background: #e04845;
+	background: #005ea6;
 	transform: translateY(-1px);
 }
 

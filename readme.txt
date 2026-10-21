@@ -1,6 +1,6 @@
 === PointNet Games ===
 Contributors: pointnet
-Donate link: https://ko-fi.com/pointnet
+Donate link: https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J
 Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1

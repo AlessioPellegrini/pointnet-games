@@ -8,7 +8,7 @@ Arcade gaming platform & 1-Click Game Catalog for WordPress with scores for regi
 **Tested up to:** 7.1  
 **Stable tag:** 1.4.3  
 **Requires PHP:** 8.0+  
-**Donate link:** [https://ko-fi.com/pointnet](https://ko-fi.com/pointnet)  
+**Donate link:** [https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J](https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J)  
 **License:** GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)  
 
 ---
