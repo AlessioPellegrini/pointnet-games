@@ -115,9 +115,8 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 
 == Roadmap ==
 
+* 🎯 **WordPress Widgets & Gutenberg Blocks** — Native sidebar/footer widgets and editor blocks for Leaderboards, Player Records, and Game Embeds.
 * 🎯 **Additional Arcade Games** — classic favorites (Snake Arcade, Block Puzzle, Solitaire Klondike).
-* 🎯 **Player Achievements & Badges** — unlockable achievements ("Speedrunner", "Minesweeper Master", "Shield Breaker").
-* 🎯 **Timeframe Leaderboard Filters** — All-Time, Monthly, and Weekly highscore views.
 * 🎯 **Discord & Webhook Notifications** — optional automated notifications when highscores are beaten.
 
 == Screenshots ==

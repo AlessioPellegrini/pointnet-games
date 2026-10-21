@@ -171,7 +171,8 @@ pointnet-games/
 - [x] **v1.4.5 - v1.4.8**: Streamlined admin menu under PointNet Games, 1-click game edit, automated catalog check with transient cache & refresh button.
 - [x] **v1.4.9 - v1.5.0**: Metadata deduplication, outcome levels optimization, responsive sidebar container overflow fixes, full-width Improve button layout.
 - [x] **v1.5.1**: Baseline documentation release, updated developer guidelines, and architecture stabilization.
-- [x] **v1.6.0 (Phase 1)**: Player Achievements & Badges system, Periodic Leaderboards (All-Time / Monthly / Weekly), and Personal Record celebration toasts.
+- [x] **v1.6.0 - v1.6.5**: Player Achievements & Badges (10 tiers), Periodic Leaderboards (All-Time / Monthly / Weekly), Celebration toasts, and Shortcodes Reference Directory with 1-click copy.
+- [ ] **v1.6.6**: WordPress Widgets & Gutenberg Blocks (Sidebar/Footer widgets & native block controls for Game Embed, Single & Global Leaderboards, and Player Records).
 - [ ] **v1.7.0 (Phase 2)**: Additional arcade titles (Mahjong Arcade release, Snake, Solitaire).
 - [ ] **v1.8.0 (Phase 3)**: Social challenges, shareable victory cards, and sound FX manager.
 
