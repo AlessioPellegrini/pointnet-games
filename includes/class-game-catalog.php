@@ -370,7 +370,7 @@ class PointNet_Games_Game_Catalog {
 					// Reject any server-executable script inside the game folder.
 					if ( $is_in_game_dir && in_array( $ext, array( 'php', 'phtml', 'phar', 'sh', 'py', 'pl', 'cgi', 'exe' ), true ) ) {
 						$zip->close();
-						@unlink( $temp_file );
+						wp_delete_file( $temp_file );
 						return new WP_Error(
 							'unsafe_file_detected',
 							__( 'Security violation: The game package contains server-executable scripts and was rejected.', 'pointnet-games' )
@@ -412,7 +412,7 @@ class PointNet_Games_Game_Catalog {
 			}
 		}
 
-		@unlink( $temp_file );
+		wp_delete_file( $temp_file );
 
 		if ( is_wp_error( $unzip_result ) ) {
 			return $unzip_result;
@@ -526,7 +526,7 @@ class PointNet_Games_Game_Catalog {
 	}
 
 	/**
-	 * Recursive directory deletion fallback.
+	 * Recursive directory deletion using WP_Filesystem.
 	 *
 	 * @param string $dir Directory to delete.
 	 */
@@ -535,20 +535,18 @@ class PointNet_Games_Game_Catalog {
 			return;
 		}
 
-		$iterator = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator( $dir, FilesystemIterator::SKIP_DOTS ),
-			RecursiveIteratorIterator::CHILD_FIRST
-		);
-
-		foreach ( $iterator as $item ) {
-			if ( $item->isDir() ) {
-				@rmdir( $item->getPathname() );
-			} else {
-				@unlink( $item->getPathname() );
-			}
+		global $wp_filesystem;
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
-		@rmdir( $dir );
+		if ( empty( $wp_filesystem ) ) {
+			WP_Filesystem();
+		}
+
+		if ( ! empty( $wp_filesystem ) ) {
+			$wp_filesystem->delete( $dir, true, 'd' );
+		}
 	}
 
 }
