@@ -3,7 +3,7 @@
  * Plugin Name:       PointNet Games
  * Plugin URI:        https://wpgames.pointnet.it/
  * Description:       Arcade games platform for WordPress with scores for registered users, global leaderboards and a standardized API for game developers.
- * Version:           1.6.6
+ * Version:           1.6.7
  * Requires at least: 6.2
  * Requires PHP:      8.0
  * Author:            PointNet
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Plugin version.
-define( 'POINTNET_GAMES_VERSION', '1.6.6' );
+define( 'POINTNET_GAMES_VERSION', '1.6.7' );
 
 // Plugin paths.
 define( 'POINTNET_GAMES_PLUGIN_FILE', __FILE__ );
@@ -198,7 +198,7 @@ function pointnet_games_scores_table() {
 }
 
 /**
- * Redirect players (subscribers) after login.
+ * Redirect players (subscribers) after login (Optional).
  *
  * @param string           $redirect_to           The redirect destination URL.
  * @param string           $requested_redirect_to The requested redirect destination URL passed as a parameter.
@@ -210,16 +210,35 @@ function pointnet_games_login_redirect( $redirect_to, $requested_redirect_to, $u
 		return $redirect_to;
 	}
 
-	// Administrators, editors and managers retain normal access to wp-admin.
+	// Administrators, editors and managers retain default access to wp-admin.
 	if ( user_can( $user, 'manage_options' ) ) {
 		return $redirect_to;
 	}
 
-	$settings     = get_option( 'pointnet_games_settings', array() );
+	$settings = get_option( 'pointnet_games_settings', array() );
+
+	// If login redirect is not enabled, leave standard WordPress behavior untouched.
+	if ( empty( $settings['enable_login_redirect'] ) ) {
+		return $redirect_to;
+	}
+
+	// Check if this is the user's very first login.
+	$has_logged_in_before = get_user_meta( $user->ID, '_pointnet_games_has_logged_in', true );
+	$first_login_url      = ! empty( $settings['first_login_redirect_url'] ) ? esc_url_raw( $settings['first_login_redirect_url'] ) : '';
+
+	if ( ! $has_logged_in_before ) {
+		// Mark as logged in so subsequent logins use standard redirect.
+		update_user_meta( $user->ID, '_pointnet_games_has_logged_in', 1 );
+
+		if ( ! empty( $first_login_url ) ) {
+			return $first_login_url;
+		}
+	}
+
 	$custom_url   = ! empty( $settings['login_redirect_url'] ) ? esc_url_raw( $settings['login_redirect_url'] ) : '';
 	$fallback_url = $custom_url ? $custom_url : home_url( '/' );
 
-	// If a specific non-admin frontend URL was requested (e.g. game page), honor it.
+	// If a specific non-admin frontend URL was requested (e.g. game page return URL), honor it.
 	if ( ! empty( $requested_redirect_to ) && false === strpos( $requested_redirect_to, 'wp-admin' ) ) {
 		return $requested_redirect_to;
 	}
@@ -227,19 +246,6 @@ function pointnet_games_login_redirect( $redirect_to, $requested_redirect_to, $u
 	return $fallback_url;
 }
 add_filter( 'login_redirect', 'pointnet_games_login_redirect', 10, 3 );
-
-/**
- * Redirect players (subscribers) after registration.
- *
- * @param string $registration_redirect The redirect destination URL.
- * @return string
- */
-function pointnet_games_registration_redirect( $registration_redirect ) {
-	$settings     = get_option( 'pointnet_games_settings', array() );
-	$custom_url   = ! empty( $settings['login_redirect_url'] ) ? esc_url_raw( $settings['login_redirect_url'] ) : '';
-	return $custom_url ? $custom_url : home_url( '/' );
-}
-add_filter( 'registration_redirect', 'pointnet_games_registration_redirect', 10, 1 );
 
 /**
  * Add a "Settings" link to the plugin's row on the Plugins admin page.

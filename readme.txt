@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.6
+Stable tag: 1.6.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,11 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.6.7 =
+* User Experience & Onboarding: made login redirect completely optional (defaults to standard WordPress behavior when unchecked).
+* Onboarding Flow: added optional separate "First Login Redirect URL" for newly registered players, seamlessly distinguishing the first welcome experience from subsequent logins.
+* Native Flow: kept user registration completely standard and removed custom registration redirects.
 
 = 1.6.6 =
 * Shortcodes & Administration: full support for game `id` attribute alongside `slug` in all shortcodes (`[pointnet_game id="123"]` and `[pointnet_game_leaderboard id="123"]`).

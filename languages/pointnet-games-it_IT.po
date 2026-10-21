@@ -1101,3 +1101,28 @@ msgstr "Slug del gioco. *È richiesto id oppure slug."
 msgid "Optional*"
 msgstr "Opzionale*"
 
+#: includes/class-admin.php:479
+msgid "Player Login Redirect"
+msgstr "Reindirizzamento Login Giocatori"
+
+#: includes/class-admin.php:483
+msgid "Enable custom redirect after login for players (subscribers)"
+msgstr "Abilita reindirizzamento personalizzato dopo il login per i giocatori (sottoscrittori)"
+
+#: includes/class-admin.php:487
+msgid "Standard Login Redirect URL:"
+msgstr "URL Reindirizzamento Login Standard:"
+
+#: includes/class-admin.php:491
+msgid "Destination for returning players after logging in. Leave empty to redirect to the website home page."
+msgstr "Destinazione per i giocatori abituali dopo il login. Lascia vuoto per reindirizzare alla home page del sito."
+
+#: includes/class-admin.php:495
+msgid "First Login Redirect URL (Optional):"
+msgstr "URL Reindirizzamento al Primo Login (Opzionale):"
+
+#: includes/class-admin.php:499
+msgid "Special destination used only the very first time a newly registered player logs in (e.g. welcome guide, rules, or profile setup). Leave empty to use the standard redirect."
+msgstr "Destinazione speciale utilizzata solo la primissima volta che un giocatore appena registrato effettua il login (es. guida di benvenuto, regole o impostazione del profilo). Lascia vuoto per utilizzare il reindirizzamento standard."
+
+

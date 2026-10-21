@@ -476,12 +476,29 @@ class PointNet_Games_Admin {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Player Login & Registration Redirect', 'pointnet-games' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Player Login Redirect', 'pointnet-games' ); ?></th>
 						<td>
-							<input type="text" name="pointnet_games_settings[login_redirect_url]" value="<?php echo esc_attr( $settings['login_redirect_url'] ?? '' ); ?>" class="regular-text" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>" />
-							<p class="description">
-								<?php esc_html_e( 'Where players (subscribers) are redirected after logging in or registering. Leave empty to redirect to the website home page.', 'pointnet-games' ); ?>
-							</p>
+							<label style="display: block; margin-bottom: 8px;">
+								<input type="checkbox" name="pointnet_games_settings[enable_login_redirect]" value="1" <?php checked( ! empty( $settings['enable_login_redirect'] ) ); ?>>
+								<strong><?php esc_html_e( 'Enable custom redirect after login for players (subscribers)', 'pointnet-games' ); ?></strong>
+							</label>
+							<div style="margin-left: 24px;">
+								<p style="margin: 6px 0 2px;">
+									<label for="pointnet_login_redirect_url"><strong><?php esc_html_e( 'Standard Login Redirect URL:', 'pointnet-games' ); ?></strong></label>
+								</p>
+								<input type="text" id="pointnet_login_redirect_url" name="pointnet_games_settings[login_redirect_url]" value="<?php echo esc_attr( $settings['login_redirect_url'] ?? '' ); ?>" class="regular-text" placeholder="<?php echo esc_attr( home_url( '/' ) ); ?>" />
+								<p class="description">
+									<?php esc_html_e( 'Destination for returning players after logging in. Leave empty to redirect to the website home page.', 'pointnet-games' ); ?>
+								</p>
+
+								<p style="margin: 14px 0 2px;">
+									<label for="pointnet_first_login_redirect_url"><strong><?php esc_html_e( 'First Login Redirect URL (Optional):', 'pointnet-games' ); ?></strong></label>
+								</p>
+								<input type="text" id="pointnet_first_login_redirect_url" name="pointnet_games_settings[first_login_redirect_url]" value="<?php echo esc_attr( $settings['first_login_redirect_url'] ?? '' ); ?>" class="regular-text" placeholder="<?php echo esc_attr( home_url( '/welcome/' ) ); ?>" />
+								<p class="description">
+									<?php esc_html_e( 'Special destination used only the very first time a newly registered player logs in (e.g. welcome guide, rules, or profile setup). Leave empty to use the standard redirect.', 'pointnet-games' ); ?>
+								</p>
+							</div>
 						</td>
 					</tr>
 				</table>
@@ -754,7 +771,9 @@ class PointNet_Games_Admin {
 			'require_validation'         => 0,
 			'show_author_records'        => 1,
 			'link_author_profiles'       => 0,
+			'enable_login_redirect'      => 0,
 			'login_redirect_url'         => '',
+			'first_login_redirect_url'   => '',
 			'delete_data_on_uninstall'   => 0,
 			'delete_games_on_uninstall'  => 0,
 		);
@@ -764,7 +783,9 @@ class PointNet_Games_Admin {
 		$clean['require_validation']         = isset( $input['require_validation'] ) ? 1 : 0;
 		$clean['show_author_records']        = isset( $input['show_author_records'] ) ? 1 : 0;
 		$clean['link_author_profiles']       = isset( $input['link_author_profiles'] ) ? 1 : 0;
+		$clean['enable_login_redirect']      = isset( $input['enable_login_redirect'] ) ? 1 : 0;
 		$clean['login_redirect_url']         = ! empty( $input['login_redirect_url'] ) ? esc_url_raw( trim( $input['login_redirect_url'] ) ) : '';
+		$clean['first_login_redirect_url']   = ! empty( $input['first_login_redirect_url'] ) ? esc_url_raw( trim( $input['first_login_redirect_url'] ) ) : '';
 		$clean['delete_data_on_uninstall']   = isset( $input['delete_data_on_uninstall'] ) ? 1 : 0;
 		$clean['delete_games_on_uninstall']  = isset( $input['delete_games_on_uninstall'] ) ? 1 : 0;
 		$clean['rate_limit']                 = (int) $input['rate_limit'];
