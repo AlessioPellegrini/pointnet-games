@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -128,6 +128,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.6.2 =
+* UX & Registration: always render both "Log In" and "Register" action buttons for anonymous guests, with fallback to registration URL.
 
 = 1.6.1 =
 * UX & Registration: added dynamic "Register" action button alongside "Log In" in the guest/anonymous arcade records prompt (respecting WordPress `users_can_register` setting).

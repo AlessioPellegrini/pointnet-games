@@ -450,18 +450,16 @@ class PointNet_Games_Shortcodes {
 			$current_url  = esc_url_raw( ( is_ssl() ? 'https://' : 'http://' ) . ( $_SERVER['HTTP_HOST'] ?? '' ) . ( $_SERVER['REQUEST_URI'] ?? '' ) );
 			$login_url    = wp_login_url( $current_url );
 			$register_url = wp_registration_url();
-			$can_register = (bool) get_option( 'users_can_register' );
+			if ( empty( $register_url ) || false !== strpos( $register_url, 'registration=disabled' ) ) {
+				$register_url = site_url( 'wp-login.php?action=register', 'login' );
+			}
 
 			$html  = '<div class="pointnet-games-user-records">';
 			$html .= '<div class="pointnet-games-user-empty">';
 			$html .= '<p>🎮 ' . esc_html__( 'Log in or register to view your personal arcade records and climb the leaderboard!', 'pointnet-games' ) . '</p>';
 			$html .= '<div class="pointnet-games-user-empty-actions">';
 			$html .= '<a href="' . esc_url( $login_url ) . '" class="pointnet-games-btn-primary">' . esc_html__( 'Log In', 'pointnet-games' ) . '</a>';
-
-			if ( $can_register ) {
-				$html .= '<a href="' . esc_url( $register_url ) . '" class="pointnet-games-btn-secondary">' . esc_html__( 'Register', 'pointnet-games' ) . '</a>';
-			}
-
+			$html .= '<a href="' . esc_url( $register_url ) . '" class="pointnet-games-btn-secondary">' . esc_html__( 'Register', 'pointnet-games' ) . '</a>';
 			$html .= '</div>';
 			$html .= '</div>';
 			$html .= '</div>';
