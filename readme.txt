@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.7.2
+Stable tag: 1.7.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.7.3 =
+* Settings UI & UX Reactivity: disabled all suboptions when the master toggle is unchecked, auto-checked all individual roles when "All Roles" is clicked, and auto-unchecked "All Roles" when any specific role is deselected.
 
 = 1.7.2 =
 * Unified Admin Settings: merged redundant user profile settings into a single, cohesive "User Arcade Profiles & Career" section with display location checkboxes (backend dashboard & frontend author page) and an "All Roles" 1-click toggle.

@@ -468,19 +468,19 @@ class PointNet_Games_Admin {
 						<th scope="row"><?php esc_html_e( 'User Arcade Profiles & Career', 'pointnet-games' ); ?></th>
 						<td>
 							<label style="display: block; margin-bottom: 12px;">
-								<input type="checkbox" name="pointnet_games_settings[enable_user_profile_career]" value="1" <?php checked( ! empty( $settings['enable_user_profile_career'] ) ); ?>>
+								<input type="checkbox" id="pointnet_enable_profile_career" name="pointnet_games_settings[enable_user_profile_career]" value="1" <?php checked( ! empty( $settings['enable_user_profile_career'] ) ); ?>>
 								<strong><?php esc_html_e( 'Enable arcade statistics, personal records, and achievements showcase for users', 'pointnet-games' ); ?></strong>
 							</label>
 
-							<div style="margin-left: 24px;">
+							<div id="pointnet_profile_career_suboptions" style="margin-left: 24px; transition: opacity 0.2s ease;">
 								<p style="margin: 0 0 6px;"><strong><?php esc_html_e( 'Display locations:', 'pointnet-games' ); ?></strong></p>
 								<div style="margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px;">
 									<label>
-										<input type="checkbox" name="pointnet_games_settings[show_backend_profile]" value="1" <?php checked( ! isset( $settings['show_backend_profile'] ) || ! empty( $settings['show_backend_profile'] ) ); ?>>
+										<input type="checkbox" class="pointnet-career-sub-input" name="pointnet_games_settings[show_backend_profile]" value="1" <?php checked( ! isset( $settings['show_backend_profile'] ) || ! empty( $settings['show_backend_profile'] ) ); ?>>
 										<?php esc_html_e( 'In WordPress user profile dashboard (/wp-admin/profile.php)', 'pointnet-games' ); ?>
 									</label>
 									<label>
-										<input type="checkbox" name="pointnet_games_settings[show_author_records]" value="1" <?php checked( ! isset( $settings['show_author_records'] ) || ! empty( $settings['show_author_records'] ) ); ?>>
+										<input type="checkbox" class="pointnet-career-sub-input" name="pointnet_games_settings[show_author_records]" value="1" <?php checked( ! isset( $settings['show_author_records'] ) || ! empty( $settings['show_author_records'] ) ); ?>>
 										<?php esc_html_e( 'On public website author archive pages (/author/...)', 'pointnet-games' ); ?>
 									</label>
 								</div>
@@ -491,19 +491,19 @@ class PointNet_Games_Admin {
 								</p>
 								<fieldset style="display: flex; flex-wrap: wrap; gap: 16px;">
 									<?php
-									$all_roles       = function_exists( 'wp_roles' ) ? wp_roles()->get_names() : array();
-									$is_all_roles    = ! empty( $settings['profile_career_all_roles'] );
-									$enabled_roles   = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array( 'subscriber' );
+									$all_roles     = function_exists( 'wp_roles' ) ? wp_roles()->get_names() : array();
+									$is_all_roles  = ! empty( $settings['profile_career_all_roles'] );
+									$enabled_roles = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array( 'subscriber' );
 									?>
 									<label style="display: inline-flex; align-items: center; gap: 4px; font-weight: 600; width: 100%; margin-bottom: 4px;">
-										<input type="checkbox" id="pointnet_all_roles_toggle" name="pointnet_games_settings[profile_career_all_roles]" value="1" <?php checked( $is_all_roles ); ?> onclick="document.querySelectorAll('.pointnet-role-checkbox').forEach(cb => cb.disabled = this.checked);">
+										<input type="checkbox" id="pointnet_all_roles_toggle" class="pointnet-career-sub-input" name="pointnet_games_settings[profile_career_all_roles]" value="1" <?php checked( $is_all_roles ); ?>>
 										<span>⚡ <?php esc_html_e( 'All roles (apply to every registered user)', 'pointnet-games' ); ?></span>
 									</label>
 									<?php foreach ( $all_roles as $role_key => $role_name ) :
-										$is_role_checked = $is_all_roles || in_array( $role_key, $enabled_roles, true );
+										$is_role_checked = ! empty( $is_all_roles ) || in_array( $role_key, $enabled_roles, true );
 										?>
 										<label style="display: inline-flex; align-items: center; gap: 4px;">
-											<input type="checkbox" class="pointnet-role-checkbox" name="pointnet_games_settings[profile_career_roles][]" value="<?php echo esc_attr( $role_key ); ?>" <?php checked( $is_role_checked ); ?> <?php disabled( $is_all_roles ); ?>>
+											<input type="checkbox" class="pointnet-role-checkbox pointnet-career-sub-input" name="pointnet_games_settings[profile_career_roles][]" value="<?php echo esc_attr( $role_key ); ?>" <?php checked( $is_role_checked ); ?>>
 											<span><?php echo esc_html( translate_user_role( $role_name ) ); ?> (<code><?php echo esc_html( $role_key ); ?></code>)</span>
 										</label>
 									<?php endforeach; ?>
@@ -575,6 +575,81 @@ class PointNet_Games_Admin {
 
 				<?php submit_button(); ?>
 			</form>
+
+			<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				var masterToggle = document.getElementById('pointnet_enable_profile_career');
+				var subContainer = document.getElementById('pointnet_profile_career_suboptions');
+				var allRolesToggle = document.getElementById('pointnet_all_roles_toggle');
+				var roleCheckboxes = document.querySelectorAll('.pointnet-role-checkbox');
+				var subInputs = document.querySelectorAll('.pointnet-career-sub-input');
+
+				function updateMasterState() {
+					if (!masterToggle || !subContainer) return;
+					var isEnabled = masterToggle.checked;
+					subContainer.style.opacity = isEnabled ? '1' : '0.4';
+					subContainer.style.pointerEvents = isEnabled ? 'auto' : 'none';
+					subInputs.forEach(function(input) {
+						input.disabled = !isEnabled;
+					});
+					if (isEnabled) {
+						updateRolesState();
+					}
+				}
+
+				function updateRolesState() {
+					if (!allRolesToggle) return;
+					// Check if all individual roles are manually checked
+					var totalRoles = roleCheckboxes.length;
+					var checkedRoles = 0;
+					roleCheckboxes.forEach(function(cb) {
+						if (cb.checked) checkedRoles++;
+					});
+
+					if (allRolesToggle.checked) {
+						// When All Roles is checked, select all individual roles
+						roleCheckboxes.forEach(function(cb) {
+							cb.checked = true;
+						});
+					} else if (totalRoles > 0 && checkedRoles === totalRoles) {
+						allRolesToggle.checked = true;
+					}
+				}
+
+				if (masterToggle) {
+					masterToggle.addEventListener('change', updateMasterState);
+				}
+
+				if (allRolesToggle) {
+					allRolesToggle.addEventListener('change', function() {
+						var isChecked = this.checked;
+						roleCheckboxes.forEach(function(cb) {
+							cb.checked = isChecked;
+						});
+					});
+				}
+
+				roleCheckboxes.forEach(function(cb) {
+					cb.addEventListener('change', function() {
+						if (!this.checked && allRolesToggle) {
+							// If any single role is unchecked, turn off All Roles
+							allRolesToggle.checked = false;
+						} else if (this.checked && allRolesToggle) {
+							// Check if all are now checked
+							var allChecked = true;
+							roleCheckboxes.forEach(function(c) {
+								if (!c.checked) allChecked = false;
+							});
+							if (allChecked) {
+								allRolesToggle.checked = true;
+							}
+						}
+					});
+				});
+
+				updateMasterState();
+			});
+			</script>
 		</div>
 		<?php
 	}
