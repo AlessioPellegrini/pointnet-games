@@ -88,6 +88,12 @@ class PointNet_Games_Game_Loader {
 			return;
 		}
 
+		// Check if author opted out of showing their records publicly.
+		$hide_public = (bool) get_user_meta( $author_id, '_pointnet_games_hide_records', true );
+		if ( $hide_public ) {
+			return;
+		}
+
 		// Mark injected immediately to prevent any concurrent or secondary hook from firing.
 		self::$author_records_injected = true;
 

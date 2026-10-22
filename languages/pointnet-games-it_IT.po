@@ -1125,4 +1125,45 @@ msgstr "URL Reindirizzamento al Primo Login (Opzionale):"
 msgid "Special destination used only the very first time a newly registered player logs in (e.g. welcome guide, rules, or profile setup). Leave empty to use the standard redirect."
 msgstr "Destinazione speciale utilizzata solo la primissima volta che un giocatore appena registrato effettua il login (es. guida di benvenuto, regole o impostazione del profilo). Lascia vuoto per utilizzare il reindirizzamento standard."
 
+#: includes/class-admin.php:477
+msgid "Arcade Career in User Profiles"
+msgstr "Carriera Arcade nei Profili Utente"
+
+#: includes/class-admin.php:481
+msgid "Show arcade statistics, top games, and badges on user profiles (/wp-admin/profile.php)"
+msgstr "Mostra statistiche arcade, migliori giochi e distintivi nei profili utente (/wp-admin/profile.php)"
+
+#: includes/class-admin.php:485
+msgid "Select which user roles can see the arcade section on their profile. If none selected, the profile remains standard WordPress default."
+msgstr "Seleziona quali ruoli utente possono vedere la sezione arcade nel proprio profilo. Se non è selezionato alcun ruolo, il profilo rimane standard di default."
+
+#: includes/class-admin.php:1169
+msgid "PointNet Games — Arcade Career & Records"
+msgstr "PointNet Games — Carriera & Record Arcade"
+
+#: includes/class-admin.php:1172
+msgid "Public Profile Privacy"
+msgstr "Privacy Profilo Pubblico"
+
+#: includes/class-admin.php:1176
+msgid "Hide my arcade statistics and records from my public author/profile page"
+msgstr "Nascondi le mie statistiche e record arcade dalla mia pagina profilo/autore pubblica"
+
+#: includes/class-admin.php:1179
+msgid "When checked, your arcade scores and badges will remain visible only to you and administrators."
+msgstr "Se selezionato, i tuoi punteggi e distintivi arcade rimarranno visibili solo a te e agli amministratori."
+
+#: includes/class-admin.php:1184
+msgid "Career Overview"
+msgstr "Riepilogo Carriera"
+
+#: includes/class-admin.php:1194
+msgid "Games Played:"
+msgstr "Giochi Giocati:"
+
+#: includes/class-admin.php:1247
+msgid "Personal Best by Game"
+msgstr "Miglior Record per Gioco"
+
+
 

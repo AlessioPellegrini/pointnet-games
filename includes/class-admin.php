@@ -24,6 +24,10 @@ class PointNet_Games_Admin {
 		add_action( 'admin_init', array( $this, 'handle_uninstall_game' ) );
 		add_action( 'admin_init', array( $this, 'redirect_manual_game_creation' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'show_user_profile', array( $this, 'render_user_profile_arcade_section' ) );
+		add_action( 'edit_user_profile', array( $this, 'render_user_profile_arcade_section' ) );
+		add_action( 'personal_options_update', array( $this, 'save_user_profile_arcade_preferences' ) );
+		add_action( 'edit_user_profile_update', array( $this, 'save_user_profile_arcade_preferences' ) );
 	}
 
 	/**
@@ -83,7 +87,10 @@ class PointNet_Games_Admin {
 	 * @param string $hook_suffix The current admin screen.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
-		if ( strpos( $hook_suffix, 'pointnet-games' ) === false ) {
+		$is_pointnet_page = ( strpos( $hook_suffix, 'pointnet-games' ) !== false );
+		$is_profile_page  = in_array( $hook_suffix, array( 'profile.php', 'user-edit.php' ), true );
+
+		if ( ! $is_pointnet_page && ! $is_profile_page ) {
 			return;
 		}
 
@@ -467,12 +474,30 @@ class PointNet_Games_Admin {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Link Author Profiles on Leaderboards', 'pointnet-games' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Arcade Career in User Profiles', 'pointnet-games' ); ?></th>
 						<td>
-							<label>
-								<input type="checkbox" name="pointnet_games_settings[link_author_profiles]" value="1" <?php checked( ! empty( $settings['link_author_profiles'] ) ); ?>>
-								<?php esc_html_e( 'Make registered player names clickable on leaderboards with links to their author profile', 'pointnet-games' ); ?>
+							<label style="display: block; margin-bottom: 8px;">
+								<input type="checkbox" name="pointnet_games_settings[enable_user_profile_career]" value="1" <?php checked( ! empty( $settings['enable_user_profile_career'] ) ); ?>>
+								<strong><?php esc_html_e( 'Show arcade statistics, top games, and badges on user profiles (/wp-admin/profile.php)', 'pointnet-games' ); ?></strong>
 							</label>
+							<div style="margin-left: 24px;">
+								<p class="description" style="margin-bottom: 8px;">
+									<?php esc_html_e( 'Select which user roles can see the arcade section on their profile. If none selected, the profile remains standard WordPress default.', 'pointnet-games' ); ?>
+								</p>
+								<fieldset style="display: flex; flex-wrap: wrap; gap: 16px;">
+									<?php
+									$all_roles     = function_exists( 'wp_roles' ) ? wp_roles()->get_names() : array();
+									$enabled_roles = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array( 'subscriber' );
+									foreach ( $all_roles as $role_key => $role_name ) :
+										$is_role_checked = in_array( $role_key, $enabled_roles, true );
+										?>
+										<label style="display: inline-flex; align-items: center; gap: 4px;">
+											<input type="checkbox" name="pointnet_games_settings[profile_career_roles][]" value="<?php echo esc_attr( $role_key ); ?>" <?php checked( $is_role_checked ); ?>>
+											<span><?php echo esc_html( translate_user_role( $role_name ) ); ?> (<code><?php echo esc_html( $role_key ); ?></code>)</span>
+										</label>
+									<?php endforeach; ?>
+								</fieldset>
+							</div>
 						</td>
 					</tr>
 					<tr>
@@ -771,6 +796,8 @@ class PointNet_Games_Admin {
 			'require_validation'         => 0,
 			'show_author_records'        => 1,
 			'link_author_profiles'       => 0,
+			'enable_user_profile_career' => 0,
+			'profile_career_roles'       => array( 'subscriber' ),
 			'enable_login_redirect'      => 0,
 			'login_redirect_url'         => '',
 			'first_login_redirect_url'   => '',
@@ -783,6 +810,8 @@ class PointNet_Games_Admin {
 		$clean['require_validation']         = isset( $input['require_validation'] ) ? 1 : 0;
 		$clean['show_author_records']        = isset( $input['show_author_records'] ) ? 1 : 0;
 		$clean['link_author_profiles']       = isset( $input['link_author_profiles'] ) ? 1 : 0;
+		$clean['enable_user_profile_career'] = isset( $input['enable_user_profile_career'] ) ? 1 : 0;
+		$clean['profile_career_roles']       = isset( $input['profile_career_roles'] ) && is_array( $input['profile_career_roles'] ) ? array_map( 'sanitize_key', $input['profile_career_roles'] ) : array();
 		$clean['enable_login_redirect']      = isset( $input['enable_login_redirect'] ) ? 1 : 0;
 		$clean['login_redirect_url']         = ! empty( $input['login_redirect_url'] ) ? esc_url_raw( trim( $input['login_redirect_url'] ) ) : '';
 		$clean['first_login_redirect_url']   = ! empty( $input['first_login_redirect_url'] ) ? esc_url_raw( trim( $input['first_login_redirect_url'] ) ) : '';
@@ -1099,6 +1128,191 @@ class PointNet_Games_Admin {
 		if ( 'post-new.php' === $pagenow && isset( $_GET['post_type'] ) && PointNet_Games_Post_Types::GAME_CPT === $_GET['post_type'] ) {
 			wp_safe_redirect( admin_url( 'admin.php?page=pointnet-games-catalog' ) );
 			exit;
+		}
+	}
+
+	/**
+	 * Render Arcade Career, Top Games, and Badges in the WordPress User Profile.
+	 *
+	 * @param WP_User $user The WordPress user object.
+	 */
+	public function render_user_profile_arcade_section( $user ) {
+		if ( ! is_a( $user, 'WP_User' ) ) {
+			return;
+		}
+
+		$settings = get_option( 'pointnet_games_settings', array() );
+
+		// Check if feature is globally enabled.
+		if ( empty( $settings['enable_user_profile_career'] ) ) {
+			return;
+		}
+
+		// Check role permission (admins always have permission to view on user-edit).
+		$enabled_roles = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array();
+		$user_roles    = (array) $user->roles;
+		$has_role      = (bool) array_intersect( $user_roles, $enabled_roles );
+		$is_admin      = current_user_can( 'manage_options' );
+
+		if ( ! $has_role && ! $is_admin ) {
+			return;
+		}
+
+		$records_data = PointNet_Games_Leaderboard::get_user_records( $user->ID );
+		$stats        = $records_data['stats'];
+		$games        = $records_data['games'];
+
+		$hide_public  = (bool) get_user_meta( $user->ID, '_pointnet_games_hide_records', true );
+
+		// Enqueue public styling for badges and cards.
+		wp_enqueue_style( 'pointnet-games-public', POINTNET_GAMES_PLUGIN_URL . 'assets/css/pointnet-games-public.css', array(), POINTNET_GAMES_VERSION );
+
+		?>
+		<h2>🎮 <?php esc_html_e( 'PointNet Games — Arcade Career & Records', 'pointnet-games' ); ?></h2>
+		<table class="form-table pointnet-profile-arcade-table">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Public Profile Privacy', 'pointnet-games' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="pointnet_games_hide_records" value="1" <?php checked( $hide_public ); ?> />
+						<?php esc_html_e( 'Hide my arcade statistics and records from my public author/profile page', 'pointnet-games' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'When checked, your arcade scores and badges will remain visible only to you and administrators.', 'pointnet-games' ); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Career Overview', 'pointnet-games' ); ?></th>
+				<td>
+					<div class="pointnet-games-stats-bar" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+						<div class="pointnet-games-stat-pill">
+							<span class="png-pill-icon">🏆</span>
+							<span class="png-pill-label"><?php esc_html_e( 'Total Score:', 'pointnet-games' ); ?></span>
+							<strong><?php echo esc_html( number_format_i18n( $stats['total_score'] ) ); ?> pt</strong>
+						</div>
+						<div class="pointnet-games-stat-pill">
+							<span class="png-pill-icon">🕹️</span>
+							<span class="png-pill-label"><?php esc_html_e( 'Games Played:', 'pointnet-games' ); ?></span>
+							<strong><?php echo esc_html( (string) $stats['games_played'] ); ?></strong>
+						</div>
+						<div class="pointnet-games-stat-pill">
+							<span class="png-pill-icon">🎯</span>
+							<span class="png-pill-label"><?php esc_html_e( 'Best Rank:', 'pointnet-games' ); ?></span>
+							<strong><?php echo null !== $stats['best_position'] ? '#' . esc_html( (string) $stats['best_position'] ) : '—'; ?></strong>
+						</div>
+						<div class="pointnet-games-stat-pill">
+							<span class="png-pill-icon">🎖️</span>
+							<span class="png-pill-label"><?php esc_html_e( 'Badges:', 'pointnet-games' ); ?></span>
+							<strong><?php echo esc_html( (string) count( PointNet_Games_Achievements::get_user_achievements( $user->ID ) ) ); ?> / <?php echo esc_html( (string) count( PointNet_Games_Achievements::get_all() ) ); ?></strong>
+						</div>
+					</div>
+				</td>
+			</tr>
+
+			<?php
+			$all_definitions = PointNet_Games_Achievements::get_all();
+			$user_badges     = PointNet_Games_Achievements::get_user_achievements( $user->ID );
+			$unlocked_map    = array();
+			foreach ( $user_badges as $ub ) {
+				$unlocked_map[ $ub['achievement_id'] ] = $ub;
+			}
+			?>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Achievements & Badges', 'pointnet-games' ); ?></th>
+				<td>
+					<div class="pointnet-games-achievements-tray" style="margin-top: 0; background: #fff;">
+						<div class="pointnet-games-achievements-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+							<?php foreach ( $all_definitions as $badge_id => $badge ) :
+								$is_unlocked   = isset( $unlocked_map[ $badge_id ] );
+								$badge_class   = $is_unlocked ? 'png-badge-unlocked png-badge-' . esc_attr( $badge['rarity'] ) : 'png-badge-locked';
+								$unlocked_meta = $is_unlocked ? $unlocked_map[ $badge_id ] : null;
+								if ( $is_unlocked ) {
+									$formatted_date = date_i18n( get_option( 'date_format' ), strtotime( $unlocked_meta['unlocked_at'] ?? 'now' ) );
+									/* translators: %s: formatted unlock date */
+									$unlocked_tip = sprintf( esc_html__( 'Unlocked on %s', 'pointnet-games' ), esc_html( $formatted_date ) );
+								} else {
+									$unlocked_tip = esc_html__( 'Locked', 'pointnet-games' );
+								}
+								?>
+								<div class="pointnet-games-badge-card <?php echo esc_attr( $badge_class ); ?>" title="<?php echo esc_attr( $badge['title'] . ' — ' . $badge['description'] . ' (' . $unlocked_tip . ')' ); ?>">
+									<div class="pointnet-games-badge-icon"><?php echo $is_unlocked ? esc_html( $badge['icon'] ) : '🔒'; ?></div>
+									<div class="pointnet-games-badge-body">
+										<div class="pointnet-games-badge-name"><?php echo esc_html( $badge['title'] ); ?></div>
+										<div class="pointnet-games-badge-desc"><?php echo esc_html( $badge['description'] ); ?></div>
+									</div>
+								</div>
+							<?php endforeach; ?>
+						</div>
+					</div>
+				</td>
+			</tr>
+
+			<?php if ( ! empty( $games ) ) : ?>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Personal Best by Game', 'pointnet-games' ); ?></th>
+					<td>
+						<div class="pointnet-games-user-cards-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+							<?php foreach ( $games as $game ) : ?>
+								<div class="pointnet-games-user-card" style="margin: 0;">
+									<div class="pointnet-games-user-card-head">
+										<div class="pointnet-games-user-card-game">
+											<?php if ( ! empty( $game['thumbnail'] ) ) : ?>
+												<img src="<?php echo esc_url( $game['thumbnail'] ); ?>" alt="<?php echo esc_attr( $game['title'] ); ?>" class="pointnet-games-user-card-thumb" />
+											<?php else : ?>
+												<div class="pointnet-games-user-card-icon">🎮</div>
+											<?php endif; ?>
+											<div class="pointnet-games-user-card-titles">
+												<h4 class="pointnet-games-user-card-title"><a href="<?php echo esc_url( $game['permalink'] ); ?>" target="_blank"><?php echo esc_html( $game['title'] ); ?></a></h4>
+												<span class="pointnet-games-user-card-subtitle">
+													<?php
+													/* translators: %d: number of records */
+													printf( esc_html__( '%d records registered', 'pointnet-games' ), count( $game['records'] ) );
+													?>
+												</span>
+											</div>
+										</div>
+									</div>
+									<div class="pointnet-games-user-card-records">
+										<?php foreach ( $game['records'] as $rec ) : ?>
+											<div class="pointnet-games-record-row">
+												<div class="pointnet-games-record-mode">
+													<span class="pointnet-games-diff-badge"><?php echo esc_html( $rec['diff_label'] ); ?></span>
+													<?php if ( ! empty( $rec['played_at'] ) ) : ?>
+														<span class="pointnet-games-record-date"><?php echo esc_html( date_i18n( get_option( 'date_format' ), strtotime( $rec['played_at'] ) ) ); ?></span>
+													<?php endif; ?>
+												</div>
+												<div class="pointnet-games-record-score">
+													<span class="pointnet-games-score-num"><?php echo esc_html( number_format_i18n( $rec['score'] ) ); ?></span>
+													<span class="pointnet-games-score-pts">pt</span>
+												</div>
+											</div>
+										<?php endforeach; ?>
+									</div>
+								</div>
+							<?php endforeach; ?>
+						</div>
+					</td>
+				</tr>
+			<?php endif; ?>
+		</table>
+		<?php
+	}
+
+	/**
+	 * Save arcade user preferences from the profile screen.
+	 *
+	 * @param int $user_id The user ID.
+	 */
+	public function save_user_profile_arcade_preferences( $user_id ) {
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+			return;
+		}
+
+		if ( isset( $_POST['pointnet_games_hide_records'] ) ) {
+			update_user_meta( $user_id, '_pointnet_games_hide_records', 1 );
+		} else {
+			delete_user_meta( $user_id, '_pointnet_games_hide_records' );
 		}
 	}
 

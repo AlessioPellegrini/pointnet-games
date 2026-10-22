@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.6.8
+Stable tag: 1.6.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,11 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.6.9 =
+* User Profiles & Granular Roles: added dedicated "Arcade Career & Records" section to WordPress user profile screens (/wp-admin/profile.php and user-edit.php) showing career KPIs, top games, and achievements tray.
+* Granular Role Management: added settings in PointNet Games → Settings allowing administrators to enable/disable profile career display globally and selectively filter which user roles have access.
+* Player Privacy Opt-out: added a profile privacy setting enabling players to easily hide their arcade records from public author pages.
 
 = 1.6.8 =
 * Code Quality & WordPress VIP: fixed WordPress.WP.I18n.MissingTranslatorsComment in achievement unlock tooltip string.
