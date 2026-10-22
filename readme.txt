@@ -3,7 +3,7 @@ Contributors: pointnet
 Donate link: https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J
 Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
-Tested up to: 7.1
+Tested up to: 7.1.3
 Requires PHP: 8.0
 Stable tag: 1.7.7
 License: GPLv2 or later
