@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.7.6
+Stable tag: 1.7.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.7.7 =
+* Multi-language Iframe Sync: synchronized WordPress page locale (`determine_locale()`) with embedded game iframes by automatically passing the `?lang=` query parameter, enabling seamless multilingual gaming experiences with Polylang, WPML, and core WordPress site language.
 
 = 1.7.6 =
 * Shortcode Isolation: strictly scoped author DOM repositioning only to auto-injected author archive pages (`body.author` with `data-pointnet-auto="1"`), ensuring manual shortcodes `[pointnet_user_records]` in widgets, sidebars, and posts remain exactly in their designated layout columns.
