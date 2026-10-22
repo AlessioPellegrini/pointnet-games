@@ -26,3 +26,5 @@ package-lock.json
 *.tmp
 *.bak
 *~
+*.zip
+pointnet-games.zip

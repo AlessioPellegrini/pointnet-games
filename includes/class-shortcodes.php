@@ -561,7 +561,13 @@ class PointNet_Games_Shortcodes {
 			$is_unlocked = isset( $unlocked_map[ $badge_id ] );
 			$badge_class = $is_unlocked ? 'png-badge-unlocked png-badge-' . esc_attr( $badge['rarity'] ) : 'png-badge-locked';
 			$unlocked_meta = $is_unlocked ? $unlocked_map[ $badge_id ] : null;
-			$unlocked_tip  = $is_unlocked ? sprintf( esc_html__( 'Unlocked on %s', 'pointnet-games' ), esc_html( date_i18n( get_option( 'date_format' ), strtotime( $unlocked_meta['unlocked_at'] ?? 'now' ) ) ) ) : esc_html__( 'Locked', 'pointnet-games' );
+			if ( $is_unlocked ) {
+				$formatted_date = date_i18n( get_option( 'date_format' ), strtotime( $unlocked_meta['unlocked_at'] ?? 'now' ) );
+				/* translators: %s: formatted unlock date */
+				$unlocked_tip = sprintf( esc_html__( 'Unlocked on %s', 'pointnet-games' ), esc_html( $formatted_date ) );
+			} else {
+				$unlocked_tip = esc_html__( 'Locked', 'pointnet-games' );
+			}
 
 			$html .= '<div class="pointnet-games-badge-card ' . esc_attr( $badge_class ) . '" title="' . esc_attr( $badge['title'] . ' — ' . $badge['description'] . ' (' . $unlocked_tip . ')' ) . '">';
 			$html .= '<div class="pointnet-games-badge-icon">' . ( $is_unlocked ? esc_html( $badge['icon'] ) : '🔒' ) . '</div>';
