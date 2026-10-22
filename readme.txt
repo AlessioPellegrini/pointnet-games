@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.7.3
+Stable tag: 1.7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.7.4 =
+* Bug Fix: eliminated raw JavaScript snippet leak on frontend author profiles caused by `wp_kses_post()` stripping inline `<script>` tags. Repositioning logic moved safely to `assets/js/pointnet-games-embed.js`.
 
 = 1.7.3 =
 * Settings UI & UX Reactivity: disabled all suboptions when the master toggle is unchecked, auto-checked all individual roles when "All Roles" is clicked, and auto-unchecked "All Roles" when any specific role is deselected.

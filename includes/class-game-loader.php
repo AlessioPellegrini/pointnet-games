@@ -63,11 +63,11 @@ class PointNet_Games_Game_Loader {
 
 		if ( $has_shortcode || $is_game_single || $is_author_page ) {
 			wp_enqueue_style( 'pointnet-games-public' );
+			wp_enqueue_script( 'pointnet-games-embed' );
 		}
 
 		if ( $has_shortcode || $is_game_single ) {
 			wp_enqueue_script( 'pointnet-games-api' );
-			wp_enqueue_script( 'pointnet-games-embed' );
 		}
 	}
 

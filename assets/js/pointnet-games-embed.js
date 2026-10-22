@@ -451,9 +451,22 @@
 		}, 4500);
 	}
 
+	// Reposition auto-injected author records if nested inside header elements.
+	function initAuthorRecords() {
+		var records = document.querySelectorAll('.pointnet-games-user-records');
+		for (var i = 0; i < records.length; i++) {
+			var r = records[i];
+			var h = r.closest('.page-header, .author-box, .author-header, .archive-header, header');
+			if (h && h.parentNode && h.contains(r)) {
+				h.parentNode.insertBefore(r, h.nextSibling);
+			}
+		}
+	}
+
 	// Initialize on DOM ready and for dynamically added content.
 	function initLeaderboardTabs() {
 		setupLeaderboardTabs();
+		initAuthorRecords();
 	}
 
 	if (document.readyState === 'loading') {
@@ -466,6 +479,7 @@
 	if (window.MutationObserver && document.body) {
 		var tabObserver = new MutationObserver(function () {
 			setupLeaderboardTabs();
+			initAuthorRecords();
 		});
 		tabObserver.observe(document.body, { childList: true, subtree: true });
 	}

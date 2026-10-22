@@ -686,10 +686,6 @@ class PointNet_Games_Shortcodes {
 
 		$html .= '</section>'; // .pointnet-games-user-records
 
-		if ( $is_auto ) {
-			$html .= '<script>(function(){var r=document.getElementById("' . esc_js( $section_id ) . '");if(!r)return;var h=r.closest(".page-header,.author-box,.author-header,.archive-header,header");if(h&&h.parentNode&&h.contains(r)){h.parentNode.insertBefore(r,h.nextSibling);}})();</script>';
-		}
-
 		return $html;
 	}
 }
