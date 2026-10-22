@@ -30,9 +30,9 @@ class PointNet_Games_Game_Loader {
 		add_filter( 'the_content', array( $this, 'inject_game_before_content' ) );
 
 		// Hooks for author archive page (universal theme support):
-		// 1. GeneratePress: outside page-header, right before the loop
+		// 1. GeneratePress: inside main content wrapper, above the loop
 		add_action( 'generate_before_loop', array( $this, 'inject_user_records_on_author_page' ), 5 );
-		add_action( 'generate_inside_container', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		add_action( 'generate_before_main_content', array( $this, 'inject_user_records_on_author_page' ), 5 );
 		// 2. Astra
 		add_action( 'astra_archive_header_after', array( $this, 'inject_user_records_on_author_page' ), 5 );
 		add_action( 'astra_entry_before', array( $this, 'inject_user_records_on_author_page' ), 5 );
@@ -232,20 +232,26 @@ class PointNet_Games_Game_Loader {
 		self::$author_records_injected = true;
 		$records_html = PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) );
 
-		// 1. Try injecting before <section class="no-results or inside <div class="page-content"> or </header>
+		// Try injecting before no-results or inside main/content-area
 		$targets = array(
-			'<section class="no-results',
 			'<div class="no-results',
+			'<section class="no-results',
+			'<article class="no-results',
 			'<div class="page-content">',
-			'</header>',
+			'<div class="entry-content">',
 			'<main',
+			'id="primary"',
 			'id="content"',
 		);
 
 		foreach ( $targets as $target ) {
 			if ( false !== ( $pos = strpos( $html, $target ) ) ) {
-				if ( '</header>' === $target ) {
-					return substr_replace( $html, '</header>' . "\n" . $records_html, $pos, strlen( '</header>' ) );
+				if ( 'id="primary"' === $target || '<main' === $target ) {
+					// Inject immediately after the tag so it stays inside the main primary column
+					$tag_end = strpos( $html, '>', $pos );
+					if ( false !== $tag_end ) {
+						return substr_replace( $html, '>' . "\n" . $records_html, $tag_end, 1 );
+					}
 				}
 				return substr_replace( $html, $records_html . "\n" . $target, $pos, strlen( $target ) );
 			}

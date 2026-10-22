@@ -451,14 +451,24 @@
 		}, 4500);
 	}
 
-	// Reposition auto-injected author records if nested inside header elements.
+	// Ensure auto-injected author records sit inside the primary content container and above no-results.
 	function initAuthorRecords() {
 		var records = document.querySelectorAll('.pointnet-games-user-records');
 		for (var i = 0; i < records.length; i++) {
 			var r = records[i];
-			var h = r.closest('.page-header, .author-box, .author-header, .archive-header, header');
-			if (h && h.parentNode && h.contains(r)) {
-				h.parentNode.insertBefore(r, h.nextSibling);
+			var primary = document.querySelector('#primary main, #primary, #main, .content-area');
+			var noResults = document.querySelector('.no-results');
+
+			// If records were injected outside primary, move them inside primary right before no-results.
+			if (primary && !primary.contains(r)) {
+				if (noResults && primary.contains(noResults)) {
+					noResults.parentNode.insertBefore(r, noResults);
+				} else {
+					primary.insertBefore(r, primary.firstChild);
+				}
+			} else if (noResults && r.parentNode && r.parentNode.contains(noResults) && r.nextElementSibling !== noResults) {
+				// If inside the same parent, ensure it precedes no-results.
+				noResults.parentNode.insertBefore(r, noResults);
 			}
 		}
 	}
