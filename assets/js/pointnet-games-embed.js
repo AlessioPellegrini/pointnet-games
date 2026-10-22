@@ -451,9 +451,15 @@
 		}, 4500);
 	}
 
-	// Ensure auto-injected author records sit inside the primary content container and above no-results.
+	// Ensure auto-injected author records on author archive pages sit inside the primary content container and above no-results.
 	function initAuthorRecords() {
-		var records = document.querySelectorAll('.pointnet-games-user-records');
+		// Only run repositioning on author archives for auto-injected cards.
+		// Manual shortcodes [pointnet_user_records] in posts, sidebars, or pages should stay wherever placed.
+		if (!document.body || !document.body.classList.contains('author')) {
+			return;
+		}
+
+		var records = document.querySelectorAll('.pointnet-games-user-records[data-pointnet-auto="1"]');
 		for (var i = 0; i < records.length; i++) {
 			var r = records[i];
 			var primary = document.querySelector('#primary main, #primary, #main, .content-area');

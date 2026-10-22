@@ -486,7 +486,8 @@ class PointNet_Games_Shortcodes {
 				return '';
 			}
 
-			$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';
+			$auto_attr = $is_auto ? ' data-pointnet-auto="1"' : '';
+			$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '"' . $auto_attr . '>';
 			$html .= '<div class="pointnet-games-user-records-header">';
 			if ( $is_own_profile ) {
 				$header_title = esc_html__( '🎮 Your Arcade Records', 'pointnet-games' );
@@ -510,10 +511,6 @@ class PointNet_Games_Shortcodes {
 			$html .= '</div>';
 			$html .= '</section>';
 
-			if ( $is_auto ) {
-				$html .= '<script>(function(){var r=document.getElementById("' . esc_js( $section_id ) . '");if(!r)return;var h=r.closest(".page-header,.author-box,.author-header,.archive-header,header");if(h&&h.parentNode&&h.contains(r)){h.parentNode.insertBefore(r,h.nextSibling);}})();</script>';
-			}
-
 			return $html;
 		}
 
@@ -527,7 +524,8 @@ class PointNet_Games_Shortcodes {
 			$title = sprintf( esc_html__( '%s\'s Arcade Records', 'pointnet-games' ), esc_html( PointNet_Games_Leaderboard::get_player_display_name( $user->ID ) ) );
 		}
 
-		$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '">';
+		$auto_attr = $is_auto ? ' data-pointnet-auto="1"' : '';
+		$html  = '<section class="pointnet-games-user-records" id="' . esc_attr( $section_id ) . '"' . $auto_attr . '>';
 		$html .= '<div class="pointnet-games-user-records-header">';
 		$html .= '<h3 class="pointnet-games-user-records-title">🎮 ' . $title . '</h3>';
 
