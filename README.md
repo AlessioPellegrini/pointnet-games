@@ -6,7 +6,7 @@ Arcade gaming platform & 1-Click Game Catalog for WordPress with scores for regi
 **Tags:** games, arcade, leaderboard, highscore, puzzle  
 **Requires at least:** WordPress 6.2  
 **Tested up to:** 7.1  
-**Stable tag:** 1.6.5  
+**Stable tag:** 1.7.7  
 **Requires PHP:** 8.0+  
 **Donate link:** [https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J](https://www.paypal.com/donate/?hosted_button_id=V8836NLKVLP4J)  
 **License:** GPL-2.0-or-later — see [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html)  
@@ -29,14 +29,20 @@ Developed by [PointNet](https://www.pointnet.it/).
 
 Games are maintained in the modular catalog and installed safely to `wp-content/uploads/pointnet-games/` directly from the WordPress dashboard:
 
-### 1. 💣 Minesweeper (v1.3.5)
-Inspired by the minimalist aesthetics and tactile responsiveness of *Minesweeper: The Clean One*, featuring **Dual Game Modes**:
+### 1. 💣 Minesweeper (v1.5.1)
+Inspired by the minimalist aesthetics and tactile responsiveness of *Minesweeper: The Clean One*, featuring **Dual Game Modes**, Multi-language synchronization with WordPress (IT/EN), and an Educational Tutor Engine:
 - **⚡ Classic Mode (Speedrun & Time-Attack)**: Free-selection single game with the 4 standard presets:
   - 🟢 **Easy**: $9 \times 9$, 10 mines (~12.3% density)
   - 🟡 **Medium**: $16 \times 16$, 40 mines (~15.6% density)
   - 🔴 **Hard**: $30 \times 16$, 99 mines (~20.6% density)
   - 💀 **Extreme**: $32 \times 18$, 150 mines (~26.0% density)
 - **🏆 Scalata Mode (18 Progressive Levels)**: Continuous 1-life climbing progression advancing from a relaxing $8 \times 8$ board up to the Extreme $32 \times 18$ board with 150 mines. Scores are submitted progressively upon clearing each level.
+- **🎓 Educational Tutor & Tactical Pattern Solver**:
+  - Rewind on Game Over to learn the correct move.
+  - Interactive Smart Inspector & visual moves heatmap safety overlay.
+  - Tactical Pattern Recognizer (`1-2-1`, `1-2-2-1`, Core `1-2-X`, Edge/Corner `1-1-X`, and Pattern Reductions) adhering to standard international minesweeper theory.
+  - False flag detection (identifies incorrectly flagged non-mine cells).
+- **🌐 WordPress Multilingual Integration**: Automatically aligns with the current WordPress page language (`determine_locale()`) via URL parameter `?lang=` and real-time `postMessage` synchronization.
 - **🔍 Viewport Engine**: Hardware-accelerated Pan & Pinch-to-zoom (1-finger pan, 2-finger pinch, desktop mouse wheel, fit-to-screen button, accidental-tap suppression).
 - **🎶 Organic Sound Design**: Acoustic drop/wood clicks, pentatonic kalimba chords for numbers, snap for flags, and sub-bass boom thuds.
 - **☀️ High-Contrast OLED Outdoors**: 1px perimetral edge definition with double inset highlight for flawless sunlight legibility.

@@ -247,11 +247,26 @@ window.addEventListener('message', function (event) {
 });
 ```
 
-> 💡 **Nota**: se il tuo gioco ha una splash screen con pulsante 🎮 GIOCA,
-> aggiungi SEMPRE questo listener. In questo modo il pulsante "GIOCA" del
-> plugin (sopra l'iframe su mobile) e il pulsante PLAY della splash
-> fanno la stessa cosa: nascondono la splash, avviano la partita e
-> richiedono il fullscreen.
+#### 🌐 `pointnet-games:set-language` — sincronizzazione multilingua (i18n)
+
+A partire dalla versione **1.7.7**, PointNet Games sincronizza automaticamente la lingua della pagina WordPress con il gioco:
+
+1. **All'avvio (URL Parameter)**: L'iframe viene generato con il parametro `?lang=XX` (es. `?lang=it` o `?lang=en`) calcolato tramite `determine_locale()`. Il gioco può leggere questo parametro all'avvio per caricare istantaneamente il dizionario corretto.
+2. **Dinamico in tempo reale (postMessage)**: In caso di switcher client-side senza ricarica della pagina, WordPress invia il messaggio `pointnet-games:set-language`:
+
+```javascript
+window.addEventListener('message', function (event) {
+    if (event.origin !== window.location.origin || event.source !== window.parent) {
+        return;
+    }
+    var msg = event.data;
+    if (msg && msg.type === 'pointnet-games:set-language' && msg.lang) {
+        // Aggiorna i testi del gioco nella lingua richiesta (es. 'it', 'en')
+        // senza riavviare la partita in corso
+        I18n.setLanguage(msg.lang);
+    }
+});
+```
 
 ---
 
@@ -541,6 +556,7 @@ Assolutamente sì! Usa `games/mio-gioco/audio/` e fai riferimento ai file relati
 
 ## 📝 Changelog Guida
 
+- **v1.7.7** — Sincronizzazione Multilingua Iframe (i18n): passaggio automatico della lingua di WordPress (`determine_locale()`) tramite parametro URL `?lang=XX` e nuovo messaggio postMessage `pointnet-games:set-language` per cambi dinamici client-side.
 - **v1.5.1** — Architettura & Baseline: stabilizzazione specifiche sviluppatore, integrazione roadmap e preparazione per il motore di Gamification & Badges (Fase 1).
 - **v1.5.0** — Interfaccia Grafica: layout a piena larghezza per il pulsante "Migliora / Sfida" posizionato nel footer della card e allineamento responsive su griglie strette.
 - **v1.4.9** — Deduplicazione Metadati: rimozione duplicati `Livello/Level` e `Tempo/Time`, soppressione esito ridondante su giochi a livelli continui (`Livello: 5 / 18`) e ottimizzazione overflow CSS su sidebar.
