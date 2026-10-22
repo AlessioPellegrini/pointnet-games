@@ -474,6 +474,15 @@ class PointNet_Games_Admin {
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><?php esc_html_e( 'Link Author Profiles on Leaderboards', 'pointnet-games' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="pointnet_games_settings[link_author_profiles]" value="1" <?php checked( ! empty( $settings['link_author_profiles'] ) ); ?>>
+								<?php esc_html_e( 'Make registered player names clickable on leaderboards with links to their author profile', 'pointnet-games' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( 'Arcade Career in User Profiles', 'pointnet-games' ); ?></th>
 						<td>
 							<label style="display: block; margin-bottom: 8px;">
