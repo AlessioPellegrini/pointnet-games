@@ -5,7 +5,7 @@ Tags: games, arcade, leaderboard, highscore, puzzle
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -127,6 +127,9 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 4. Settings panel
 
 == Changelog ==
+
+= 1.7.1 =
+* Public Author Profiles: added universal output buffer fallback and content-none template hooks to ensure arcade records display on public author pages even when the user has 0 published blog posts.
 
 = 1.7.0 =
 * Admin Settings Fix: restored the "Link Author Profiles on Leaderboards" setting row in PointNet Games → Settings.

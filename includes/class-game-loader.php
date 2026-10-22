@@ -32,9 +32,11 @@ class PointNet_Games_Game_Loader {
 		// Hooks for author archive page (universal theme support):
 		// 1. GeneratePress: outside page-header, right before the loop
 		add_action( 'generate_before_loop', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		add_action( 'generate_inside_container', array( $this, 'inject_user_records_on_author_page' ), 5 );
 		// 2. Astra
 		add_action( 'astra_archive_header_after', array( $this, 'inject_user_records_on_author_page' ), 5 );
 		add_action( 'astra_entry_before', array( $this, 'inject_user_records_on_author_page' ), 5 );
+		add_action( 'astra_primary_content_top', array( $this, 'inject_user_records_on_author_page' ), 5 );
 		// 3. Kadence
 		add_action( 'kadence_before_archive_content', array( $this, 'inject_user_records_on_author_page' ), 5 );
 		// 4. OceanWP
@@ -43,6 +45,10 @@ class PointNet_Games_Game_Loader {
 		add_action( 'genesis_before_loop', array( $this, 'inject_user_records_on_author_page' ), 5 );
 		// 6. Universal WordPress fallback: fires when the posts loop starts
 		add_action( 'loop_start', array( $this, 'inject_user_records_on_loop_start' ) );
+		// 7. Universal fallback hooks for author archive pages when author has 0 blog posts
+		add_action( 'get_template_part_content', array( $this, 'inject_user_records_on_author_template_part' ), 10, 3 );
+		add_action( 'get_template_part_template-parts/content', array( $this, 'inject_user_records_on_author_template_part' ), 10, 3 );
+		add_action( 'template_redirect', array( $this, 'start_author_page_buffer' ) );
 	}
 
 	/**
@@ -118,6 +124,90 @@ class PointNet_Games_Game_Loader {
 		}
 
 		self::output_author_records();
+	}
+
+	/**
+	 * Inject when themes render template-parts/content-none or no-results templates.
+	 *
+	 * @param string $slug Template slug.
+	 * @param string $name Template name.
+	 * @param array  $args Template args.
+	 */
+	public function inject_user_records_on_author_template_part( $slug, $name = null, $args = array() ): void {
+		if ( ! is_author() ) {
+			return;
+		}
+
+		// When theme loads content-none.php because user has 0 blog posts.
+		if ( 'none' === $name || 'none' === $slug || false !== strpos( (string) $name, 'none' ) ) {
+			self::output_author_records();
+		}
+	}
+
+	/**
+	 * Start output buffering on author archive pages as an ultimate universal fallback.
+	 */
+	public function start_author_page_buffer(): void {
+		if ( ! is_admin() && is_author() ) {
+			ob_start( array( $this, 'filter_author_page_html' ) );
+		}
+	}
+
+	/**
+	 * Output buffer filter: if author records were not injected by any theme hook,
+	 * inject right after the main content opening or before closing main tag.
+	 *
+	 * @param string $html The page HTML.
+	 * @return string
+	 */
+	public function filter_author_page_html( $html ) {
+		if ( self::$author_records_injected || empty( $html ) ) {
+			return $html;
+		}
+
+		if ( ! is_author() ) {
+			return $html;
+		}
+
+		$settings = get_option( 'pointnet_games_settings', array() );
+		$enabled  = ! isset( $settings['show_author_records'] ) || (int) $settings['show_author_records'] === 1;
+		if ( ! $enabled ) {
+			return $html;
+		}
+
+		$author_id = (int) get_queried_object_id();
+		if ( ! $author_id ) {
+			return $html;
+		}
+
+		$hide_public = (bool) get_user_meta( $author_id, '_pointnet_games_hide_records', true );
+		if ( $hide_public ) {
+			return $html;
+		}
+
+		self::$author_records_injected = true;
+		$records_html = PointNet_Games_Shortcodes::render_user_records_html( $author_id, array( 'is_auto_injected' => true ) );
+
+		// 1. Try injecting before <section class="no-results or inside <div class="page-content"> or </header>
+		$targets = array(
+			'<section class="no-results',
+			'<div class="no-results',
+			'<div class="page-content">',
+			'</header>',
+			'<main',
+			'id="content"',
+		);
+
+		foreach ( $targets as $target ) {
+			if ( false !== ( $pos = strpos( $html, $target ) ) ) {
+				if ( '</header>' === $target ) {
+					return substr_replace( $html, '</header>' . "\n" . $records_html, $pos, strlen( '</header>' ) );
+				}
+				return substr_replace( $html, $records_html . "\n" . $target, $pos, strlen( $target ) );
+			}
+		}
+
+		return $html . $records_html;
 	}
 
 	/**
