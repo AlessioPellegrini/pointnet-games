@@ -84,13 +84,35 @@ class PointNet_Games_Game_Loader {
 		}
 
 		$settings = get_option( 'pointnet_games_settings', array() );
-		$enabled  = ! isset( $settings['show_author_records'] ) || (int) $settings['show_author_records'] === 1;
+
+		// Check if user arcade profiles feature is enabled globally.
+		if ( empty( $settings['enable_user_profile_career'] ) ) {
+			return;
+		}
+
+		// Check if public author display is enabled.
+		$enabled = ! isset( $settings['show_author_records'] ) || ! empty( $settings['show_author_records'] );
 		if ( ! $enabled ) {
 			return;
 		}
 
 		$author_id = (int) get_queried_object_id();
 		if ( ! $author_id ) {
+			return;
+		}
+
+		// Check role permission for this author.
+		$author_user = get_userdata( $author_id );
+		if ( ! $author_user ) {
+			return;
+		}
+
+		$all_roles_enabled = ! empty( $settings['profile_career_all_roles'] );
+		$enabled_roles     = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array();
+		$user_roles        = (array) $author_user->roles;
+		$has_role          = $all_roles_enabled || (bool) array_intersect( $user_roles, $enabled_roles );
+
+		if ( ! $has_role ) {
 			return;
 		}
 
@@ -170,13 +192,35 @@ class PointNet_Games_Game_Loader {
 		}
 
 		$settings = get_option( 'pointnet_games_settings', array() );
-		$enabled  = ! isset( $settings['show_author_records'] ) || (int) $settings['show_author_records'] === 1;
+
+		// Check if user arcade profiles feature is enabled globally.
+		if ( empty( $settings['enable_user_profile_career'] ) ) {
+			return $html;
+		}
+
+		// Check if public author display is enabled.
+		$enabled = ! isset( $settings['show_author_records'] ) || ! empty( $settings['show_author_records'] );
 		if ( ! $enabled ) {
 			return $html;
 		}
 
 		$author_id = (int) get_queried_object_id();
 		if ( ! $author_id ) {
+			return $html;
+		}
+
+		// Check role permission for this author.
+		$author_user = get_userdata( $author_id );
+		if ( ! $author_user ) {
+			return $html;
+		}
+
+		$all_roles_enabled = ! empty( $settings['profile_career_all_roles'] );
+		$enabled_roles     = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array();
+		$user_roles        = (array) $author_user->roles;
+		$has_role          = $all_roles_enabled || (bool) array_intersect( $user_roles, $enabled_roles );
+
+		if ( ! $has_role ) {
 			return $html;
 		}
 

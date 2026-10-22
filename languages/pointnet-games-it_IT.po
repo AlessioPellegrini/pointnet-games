@@ -1165,5 +1165,38 @@ msgstr "Giochi Giocati:"
 msgid "Personal Best by Game"
 msgstr "Miglior Record per Gioco"
 
+#: includes/class-admin.php:468
+msgid "User Arcade Profiles & Career"
+msgstr "Profili & Carriera Arcade Utenti"
+
+#: includes/class-admin.php:472
+msgid "Enable arcade statistics, personal records, and achievements showcase for users"
+msgstr "Abilita la vetrina delle statistiche, record personali e obiettivi per gli utenti"
+
+#: includes/class-admin.php:476
+msgid "Display locations:"
+msgstr "Posizioni di visualizzazione:"
+
+#: includes/class-admin.php:480
+msgid "In WordPress user profile dashboard (/wp-admin/profile.php)"
+msgstr "Nella bacheca del profilo utente WordPress (/wp-admin/profile.php)"
+
+#: includes/class-admin.php:484
+msgid "On public website author archive pages (/author/...)"
+msgstr "Nelle pagine archivio autore pubbliche del sito (/author/...)"
+
+#: includes/class-admin.php:488
+msgid "Enabled user roles:"
+msgstr "Ruoli utente abilitati:"
+
+#: includes/class-admin.php:490
+msgid "Choose which user roles have their arcade career active. Unchecked roles retain standard default WordPress profile."
+msgstr "Scegli quali ruoli utente hanno la carriera arcade attiva. I ruoli non selezionati mantengono il profilo WordPress standard di default."
+
+#: includes/class-admin.php:498
+msgid "All roles (apply to every registered user)"
+msgstr "Tutti i ruoli (applica a ogni utente registrato)"
+
+
 
 

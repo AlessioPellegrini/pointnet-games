@@ -465,12 +465,50 @@ class PointNet_Games_Admin {
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Arcade Records on Author Profiles', 'pointnet-games' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'User Arcade Profiles & Career', 'pointnet-games' ); ?></th>
 						<td>
-							<label>
-								<input type="checkbox" name="pointnet_games_settings[show_author_records]" value="1" <?php checked( ! isset( $settings['show_author_records'] ) || (int) $settings['show_author_records'] === 1 ); ?>>
-								<?php esc_html_e( 'Automatically display the arcade statistics card on author pages (/author/...)', 'pointnet-games' ); ?>
+							<label style="display: block; margin-bottom: 12px;">
+								<input type="checkbox" name="pointnet_games_settings[enable_user_profile_career]" value="1" <?php checked( ! empty( $settings['enable_user_profile_career'] ) ); ?>>
+								<strong><?php esc_html_e( 'Enable arcade statistics, personal records, and achievements showcase for users', 'pointnet-games' ); ?></strong>
 							</label>
+
+							<div style="margin-left: 24px;">
+								<p style="margin: 0 0 6px;"><strong><?php esc_html_e( 'Display locations:', 'pointnet-games' ); ?></strong></p>
+								<div style="margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px;">
+									<label>
+										<input type="checkbox" name="pointnet_games_settings[show_backend_profile]" value="1" <?php checked( ! isset( $settings['show_backend_profile'] ) || ! empty( $settings['show_backend_profile'] ) ); ?>>
+										<?php esc_html_e( 'In WordPress user profile dashboard (/wp-admin/profile.php)', 'pointnet-games' ); ?>
+									</label>
+									<label>
+										<input type="checkbox" name="pointnet_games_settings[show_author_records]" value="1" <?php checked( ! isset( $settings['show_author_records'] ) || ! empty( $settings['show_author_records'] ) ); ?>>
+										<?php esc_html_e( 'On public website author archive pages (/author/...)', 'pointnet-games' ); ?>
+									</label>
+								</div>
+
+								<p style="margin: 0 0 6px;"><strong><?php esc_html_e( 'Enabled user roles:', 'pointnet-games' ); ?></strong></p>
+								<p class="description" style="margin-top: 0; margin-bottom: 8px;">
+									<?php esc_html_e( 'Choose which user roles have their arcade career active. Unchecked roles retain standard default WordPress profile.', 'pointnet-games' ); ?>
+								</p>
+								<fieldset style="display: flex; flex-wrap: wrap; gap: 16px;">
+									<?php
+									$all_roles       = function_exists( 'wp_roles' ) ? wp_roles()->get_names() : array();
+									$is_all_roles    = ! empty( $settings['profile_career_all_roles'] );
+									$enabled_roles   = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array( 'subscriber' );
+									?>
+									<label style="display: inline-flex; align-items: center; gap: 4px; font-weight: 600; width: 100%; margin-bottom: 4px;">
+										<input type="checkbox" id="pointnet_all_roles_toggle" name="pointnet_games_settings[profile_career_all_roles]" value="1" <?php checked( $is_all_roles ); ?> onclick="document.querySelectorAll('.pointnet-role-checkbox').forEach(cb => cb.disabled = this.checked);">
+										<span>⚡ <?php esc_html_e( 'All roles (apply to every registered user)', 'pointnet-games' ); ?></span>
+									</label>
+									<?php foreach ( $all_roles as $role_key => $role_name ) :
+										$is_role_checked = $is_all_roles || in_array( $role_key, $enabled_roles, true );
+										?>
+										<label style="display: inline-flex; align-items: center; gap: 4px;">
+											<input type="checkbox" class="pointnet-role-checkbox" name="pointnet_games_settings[profile_career_roles][]" value="<?php echo esc_attr( $role_key ); ?>" <?php checked( $is_role_checked ); ?> <?php disabled( $is_all_roles ); ?>>
+											<span><?php echo esc_html( translate_user_role( $role_name ) ); ?> (<code><?php echo esc_html( $role_key ); ?></code>)</span>
+										</label>
+									<?php endforeach; ?>
+								</fieldset>
+							</div>
 						</td>
 					</tr>
 					<tr>
@@ -480,33 +518,6 @@ class PointNet_Games_Admin {
 								<input type="checkbox" name="pointnet_games_settings[link_author_profiles]" value="1" <?php checked( ! empty( $settings['link_author_profiles'] ) ); ?>>
 								<?php esc_html_e( 'Make registered player names clickable on leaderboards with links to their author profile', 'pointnet-games' ); ?>
 							</label>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Arcade Career in User Profiles', 'pointnet-games' ); ?></th>
-						<td>
-							<label style="display: block; margin-bottom: 8px;">
-								<input type="checkbox" name="pointnet_games_settings[enable_user_profile_career]" value="1" <?php checked( ! empty( $settings['enable_user_profile_career'] ) ); ?>>
-								<strong><?php esc_html_e( 'Show arcade statistics, top games, and badges on user profiles (/wp-admin/profile.php)', 'pointnet-games' ); ?></strong>
-							</label>
-							<div style="margin-left: 24px;">
-								<p class="description" style="margin-bottom: 8px;">
-									<?php esc_html_e( 'Select which user roles can see the arcade section on their profile. If none selected, the profile remains standard WordPress default.', 'pointnet-games' ); ?>
-								</p>
-								<fieldset style="display: flex; flex-wrap: wrap; gap: 16px;">
-									<?php
-									$all_roles     = function_exists( 'wp_roles' ) ? wp_roles()->get_names() : array();
-									$enabled_roles = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array( 'subscriber' );
-									foreach ( $all_roles as $role_key => $role_name ) :
-										$is_role_checked = in_array( $role_key, $enabled_roles, true );
-										?>
-										<label style="display: inline-flex; align-items: center; gap: 4px;">
-											<input type="checkbox" name="pointnet_games_settings[profile_career_roles][]" value="<?php echo esc_attr( $role_key ); ?>" <?php checked( $is_role_checked ); ?>>
-											<span><?php echo esc_html( translate_user_role( $role_name ) ); ?> (<code><?php echo esc_html( $role_key ); ?></code>)</span>
-										</label>
-									<?php endforeach; ?>
-								</fieldset>
-							</div>
 						</td>
 					</tr>
 					<tr>
@@ -804,8 +815,10 @@ class PointNet_Games_Admin {
 			'rate_limit'                 => 5,
 			'require_validation'         => 0,
 			'show_author_records'        => 1,
+			'show_backend_profile'       => 1,
 			'link_author_profiles'       => 0,
 			'enable_user_profile_career' => 0,
+			'profile_career_all_roles'   => 0,
 			'profile_career_roles'       => array( 'subscriber' ),
 			'enable_login_redirect'      => 0,
 			'login_redirect_url'         => '',
@@ -818,8 +831,10 @@ class PointNet_Games_Admin {
 
 		$clean['require_validation']         = isset( $input['require_validation'] ) ? 1 : 0;
 		$clean['show_author_records']        = isset( $input['show_author_records'] ) ? 1 : 0;
+		$clean['show_backend_profile']       = isset( $input['show_backend_profile'] ) ? 1 : 0;
 		$clean['link_author_profiles']       = isset( $input['link_author_profiles'] ) ? 1 : 0;
 		$clean['enable_user_profile_career'] = isset( $input['enable_user_profile_career'] ) ? 1 : 0;
+		$clean['profile_career_all_roles']   = isset( $input['profile_career_all_roles'] ) ? 1 : 0;
 		$clean['profile_career_roles']       = isset( $input['profile_career_roles'] ) && is_array( $input['profile_career_roles'] ) ? array_map( 'sanitize_key', $input['profile_career_roles'] ) : array();
 		$clean['enable_login_redirect']      = isset( $input['enable_login_redirect'] ) ? 1 : 0;
 		$clean['login_redirect_url']         = ! empty( $input['login_redirect_url'] ) ? esc_url_raw( trim( $input['login_redirect_url'] ) ) : '';
@@ -1152,16 +1167,21 @@ class PointNet_Games_Admin {
 
 		$settings = get_option( 'pointnet_games_settings', array() );
 
-		// Check if feature is globally enabled.
+		// Check if feature is globally enabled and backend location is active.
 		if ( empty( $settings['enable_user_profile_career'] ) ) {
 			return;
 		}
 
+		if ( isset( $settings['show_backend_profile'] ) && empty( $settings['show_backend_profile'] ) ) {
+			return;
+		}
+
 		// Check role permission (admins always have permission to view on user-edit).
-		$enabled_roles = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array();
-		$user_roles    = (array) $user->roles;
-		$has_role      = (bool) array_intersect( $user_roles, $enabled_roles );
-		$is_admin      = current_user_can( 'manage_options' );
+		$all_roles_enabled = ! empty( $settings['profile_career_all_roles'] );
+		$enabled_roles     = isset( $settings['profile_career_roles'] ) && is_array( $settings['profile_career_roles'] ) ? $settings['profile_career_roles'] : array();
+		$user_roles        = (array) $user->roles;
+		$has_role          = $all_roles_enabled || (bool) array_intersect( $user_roles, $enabled_roles );
+		$is_admin          = current_user_can( 'manage_options' );
 
 		if ( ! $has_role && ! $is_admin ) {
 			return;
