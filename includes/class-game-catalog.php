@@ -201,6 +201,79 @@ class PointNet_Games_Game_Catalog {
 	}
 
 	/**
+	 * Transient key for caching catalog notification summary.
+	 */
+	const NOTIFICATIONS_TRANSIENT_KEY = 'pointnet_games_catalog_notifications';
+
+	/**
+	 * Invalidate catalog and notification caches.
+	 */
+	public static function clear_catalog_cache() {
+		delete_transient( self::TRANSIENT_KEY );
+		delete_transient( self::NOTIFICATIONS_TRANSIENT_KEY );
+	}
+
+	/**
+	 * Get summary of catalog updates and new games for badges and admin bar alerts.
+	 *
+	 * Compares catalog releases against installed games.
+	 *
+	 * @param bool $force_refresh Whether to bypass transient cache.
+	 * @return array {
+	 *     @type array $updates     List of installed games with an update available.
+	 *     @type array $new_games   List of catalog games not yet installed.
+	 *     @type int   $total_count Total count of updates and new games.
+	 * }
+	 */
+	public static function get_notifications( $force_refresh = false ) {
+		if ( ! $force_refresh ) {
+			$cached = get_transient( self::NOTIFICATIONS_TRANSIENT_KEY );
+			if ( false !== $cached && is_array( $cached ) ) {
+				return $cached;
+			}
+		}
+
+		$catalog   = self::get_catalog( $force_refresh );
+		$installed = self::get_installed_games_map();
+
+		$updates   = array();
+		$new_games = array();
+
+		foreach ( $catalog as $game ) {
+			$slug = sanitize_title( $game['slug'] );
+			if ( isset( $installed[ $slug ] ) ) {
+				$local_ver  = $installed[ $slug ]['version'];
+				$remote_ver = $game['version'];
+				if ( version_compare( $remote_ver, $local_ver, '>' ) ) {
+					$updates[] = array(
+						'slug'           => $slug,
+						'name'           => $game['name'],
+						'local_version'  => $local_ver,
+						'remote_version' => $remote_ver,
+					);
+				}
+			} else {
+				$new_games[] = array(
+					'slug'    => $slug,
+					'name'    => $game['name'],
+					'version' => $game['version'],
+				);
+			}
+		}
+
+		$notifications = array(
+			'updates'     => $updates,
+			'new_games'   => $new_games,
+			'total_count' => count( $updates ) + count( $new_games ),
+		);
+
+		// Cache for 10 minutes matching catalog TTL.
+		set_transient( self::NOTIFICATIONS_TRANSIENT_KEY, $notifications, self::CACHE_TTL );
+
+		return $notifications;
+	}
+
+	/**
 	 * AJAX Handler to install or update a game from catalog.
 	 */
 	public function ajax_install_game() {
@@ -235,8 +308,9 @@ class PointNet_Games_Game_Catalog {
 			wp_send_json_error( array( 'message' => $result->get_error_message() ) );
 		}
 
-		// Force registry sync.
+		// Force registry sync and invalidate notification cache.
 		PointNet_Games_Game_Registry::sync_all_games( true );
+		self::clear_catalog_cache();
 
 		wp_send_json_success(
 			array(
@@ -293,6 +367,7 @@ class PointNet_Games_Game_Catalog {
 		}
 
 		PointNet_Games_Game_Registry::sync_all_games( true );
+		self::clear_catalog_cache();
 
 		wp_send_json_success(
 			array(
@@ -312,13 +387,15 @@ class PointNet_Games_Game_Catalog {
 			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'pointnet-games' ) ) );
 		}
 
-		delete_transient( self::TRANSIENT_KEY );
+		self::clear_catalog_cache();
 		$catalog = self::get_catalog( true );
+		$notifs  = self::get_notifications( true );
 
 		wp_send_json_success(
 			array(
-				'message' => __( 'Catalog refreshed from GitHub successfully.', 'pointnet-games' ),
-				'count'   => count( $catalog ),
+				'message'       => __( 'Catalog refreshed from GitHub successfully.', 'pointnet-games' ),
+				'count'         => count( $catalog ),
+				'notifications' => $notifs,
 			)
 		);
 	}

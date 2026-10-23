@@ -20,10 +20,12 @@ class PointNet_Games_Admin {
 	 */
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'register_admin_menu' ) );
+		add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_items' ), 90 );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'handle_uninstall_game' ) );
 		add_action( 'admin_init', array( $this, 'redirect_manual_game_creation' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_admin_bar_styles' ) );
 		add_action( 'show_user_profile', array( $this, 'render_user_profile_arcade_section' ) );
 		add_action( 'edit_user_profile', array( $this, 'render_user_profile_arcade_section' ) );
 		add_action( 'personal_options_update', array( $this, 'save_user_profile_arcade_preferences' ) );
@@ -34,6 +36,17 @@ class PointNet_Games_Admin {
 	 * Register the admin menu pages.
 	 */
 	public function register_admin_menu() {
+		$catalog_label = __( 'Game Catalog', 'pointnet-games' );
+
+		// Check for catalog notifications (updates & new games).
+		$notifs = PointNet_Games_Game_Catalog::get_notifications();
+		if ( ! empty( $notifs['total_count'] ) ) {
+			$catalog_label .= sprintf(
+				' <span class="update-plugins count-%1$d"><span class="update-count">%1$d</span></span>',
+				(int) $notifs['total_count']
+			);
+		}
+
 		add_menu_page(
 			__( 'PointNet Games', 'pointnet-games' ),
 			__( 'PointNet Games', 'pointnet-games' ),
@@ -47,7 +60,7 @@ class PointNet_Games_Admin {
 		add_submenu_page(
 			'pointnet-games',
 			__( 'Game Catalog', 'pointnet-games' ),
-			__( 'Game Catalog', 'pointnet-games' ),
+			$catalog_label,
 			'manage_options',
 			'pointnet-games-catalog',
 			array( $this, 'render_catalog_page' )
@@ -119,6 +132,181 @@ class PointNet_Games_Admin {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Enqueue minimal styling for the Admin Bar badge on the frontend.
+	 */
+	public function enqueue_admin_bar_styles() {
+		if ( ! is_admin_bar_showing() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		wp_add_inline_style(
+			'admin-bar',
+			'#wp-admin-bar-pointnet-games .ab-icon:before { content: "\f537"; top: 2px; }
+			#wp-admin-bar-pointnet-games .pointnet-ab-badge {
+				display: inline-block;
+				background-color: #d63638;
+				color: #fff;
+				border-radius: 10px;
+				font-size: 9px;
+				line-height: 17px;
+				font-weight: 600;
+				margin-left: 5px;
+				padding: 0 6px;
+				vertical-align: middle;
+				height: 17px;
+			}
+			#wp-admin-bar-pointnet-games .pointnet-ab-badge.has-updates {
+				background-color: #d63638;
+			}
+			#wp-admin-bar-pointnet-games .pointnet-ab-badge.has-new {
+				background-color: #2271b1;
+			}'
+		);
+	}
+
+	/**
+	 * Add PointNet Games entry and notifications to the WordPress Toolbar / Admin Bar.
+	 *
+	 * Only shown to administrators with 'manage_options' capability.
+	 *
+	 * @param WP_Admin_Bar $wp_admin_bar The WordPress admin bar instance.
+	 */
+	public function add_admin_bar_items( $wp_admin_bar ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$notifs       = PointNet_Games_Game_Catalog::get_notifications();
+		$updates_cnt  = count( $notifs['updates'] ?? array() );
+		$new_cnt      = count( $notifs['new_games'] ?? array() );
+		$total_count  = (int) ( $notifs['total_count'] ?? 0 );
+
+		$catalog_url = admin_url( 'admin.php?page=pointnet-games-catalog' );
+
+		// Title with dashicon and optional badge.
+		$badge_html = '';
+		if ( $total_count > 0 ) {
+			$badge_class = $updates_cnt > 0 ? 'has-updates' : 'has-new';
+			$badge_html  = sprintf(
+				' <span class="pointnet-ab-badge %s" aria-label="%d notifications">%d</span>',
+				esc_attr( $badge_class ),
+				$total_count,
+				$total_count
+			);
+		}
+
+		$title = '<span class="ab-icon dashicons dashicons-games"></span><span class="ab-label">' . esc_html__( 'PointNet Games', 'pointnet-games' ) . $badge_html . '</span>';
+
+		// Root node.
+		$wp_admin_bar->add_node(
+			array(
+				'id'    => 'pointnet-games',
+				'title' => $title,
+				'href'  => admin_url( 'admin.php?page=pointnet-games' ),
+				'meta'  => array(
+					'title' => __( 'PointNet Games Arcade Management', 'pointnet-games' ),
+				),
+			)
+		);
+
+		// Subnode: Game Catalog.
+		$wp_admin_bar->add_node(
+			array(
+				'id'     => 'pointnet-games-catalog',
+				'parent' => 'pointnet-games',
+				'title'  => '🎮 ' . esc_html__( 'Game Catalog', 'pointnet-games' ),
+				'href'   => $catalog_url,
+			)
+		);
+
+		// Subnode: Updates list (if any).
+		if ( ! empty( $notifs['updates'] ) ) {
+			$wp_admin_bar->add_node(
+				array(
+					'id'     => 'pointnet-games-updates-header',
+					'parent' => 'pointnet-games',
+					'title'  => '<strong>🔄 ' . sprintf( esc_html__( 'Updates Available (%d)', 'pointnet-games' ), $updates_cnt ) . '</strong>',
+					'href'   => $catalog_url,
+				)
+			);
+
+			foreach ( $notifs['updates'] as $upd ) {
+				$wp_admin_bar->add_node(
+					array(
+						'id'     => 'pointnet-games-update-' . sanitize_key( $upd['slug'] ),
+						'parent' => 'pointnet-games',
+						'title'  => sprintf(
+							'• %s <span style="color:#d63638; font-size:11px;">v%s &rarr; v%s</span>',
+							esc_html( $upd['name'] ),
+							esc_html( $upd['local_version'] ),
+							esc_html( $upd['remote_version'] )
+						),
+						'href'   => $catalog_url,
+					)
+				);
+			}
+		}
+
+		// Subnode: New Games list (if any).
+		if ( ! empty( $notifs['new_games'] ) ) {
+			$wp_admin_bar->add_node(
+				array(
+					'id'     => 'pointnet-games-new-header',
+					'parent' => 'pointnet-games',
+					'title'  => '<strong>✨ ' . sprintf( esc_html__( 'New Games Available (%d)', 'pointnet-games' ), $new_cnt ) . '</strong>',
+					'href'   => $catalog_url,
+				)
+			);
+
+			foreach ( array_slice( $notifs['new_games'], 0, 5 ) as $new_game ) {
+				$wp_admin_bar->add_node(
+					array(
+						'id'     => 'pointnet-games-new-' . sanitize_key( $new_game['slug'] ),
+						'parent' => 'pointnet-games',
+						'title'  => sprintf(
+							'• %s <span style="color:#2271b1; font-size:11px;">v%s</span>',
+							esc_html( $new_game['name'] ),
+							esc_html( $new_game['version'] )
+						),
+						'href'   => $catalog_url,
+					)
+				);
+			}
+
+			if ( $new_cnt > 5 ) {
+				$wp_admin_bar->add_node(
+					array(
+						'id'     => 'pointnet-games-new-more',
+						'parent' => 'pointnet-games',
+						'title'  => sprintf( '<em>+ %d ' . esc_html__( 'more new games in catalog...', 'pointnet-games' ) . '</em>', $new_cnt - 5 ),
+						'href'   => $catalog_url,
+					)
+				);
+			}
+		}
+
+		// Subnode: Leaderboard & Scores.
+		$wp_admin_bar->add_node(
+			array(
+				'id'     => 'pointnet-games-scores',
+				'parent' => 'pointnet-games',
+				'title'  => '🏆 ' . esc_html__( 'Scores & Leaderboard', 'pointnet-games' ),
+				'href'   => admin_url( 'admin.php?page=pointnet-games-scores' ),
+			)
+		);
+
+		// Subnode: Settings.
+		$wp_admin_bar->add_node(
+			array(
+				'id'     => 'pointnet-games-settings-link',
+				'parent' => 'pointnet-games',
+				'title'  => '⚙️ ' . esc_html__( 'Settings', 'pointnet-games' ),
+				'href'   => admin_url( 'admin.php?page=pointnet-games-settings' ),
+			)
+		);
 	}
 
 	/**
@@ -277,6 +465,9 @@ class PointNet_Games_Admin {
 		$force_refresh = ! empty( $_GET['refresh'] );
 		$catalog       = PointNet_Games_Game_Catalog::get_catalog( $force_refresh );
 		$installed     = PointNet_Games_Game_Catalog::get_installed_games_map();
+		$notifs        = PointNet_Games_Game_Catalog::get_notifications( $force_refresh );
+		$updates_cnt   = count( $notifs['updates'] ?? array() );
+		$new_cnt       = count( $notifs['new_games'] ?? array() );
 
 		?>
 		<div class="wrap">
@@ -288,6 +479,20 @@ class PointNet_Games_Admin {
 			</div>
 
 			<p><?php esc_html_e( 'Browse free arcade games for PointNet Games. Each game is installed directly on your server with 1-click in a secure, protected directory.', 'pointnet-games' ); ?></p>
+
+			<?php if ( $updates_cnt > 0 || $new_cnt > 0 ) : ?>
+				<div class="notice notice-info pointnet-catalog-alert-banner" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; margin: 15px 0;">
+					<div>
+						<strong>🔔 <?php esc_html_e( 'Catalog Highlights:', 'pointnet-games' ); ?></strong>
+						<?php if ( $updates_cnt > 0 ) : ?>
+							<span style="margin-left: 8px; color: #b91c1c;">🔄 <?php echo sprintf( _n( '%d game update available', '%d game updates available', $updates_cnt, 'pointnet-games' ), $updates_cnt ); ?></span>
+						<?php endif; ?>
+						<?php if ( $new_cnt > 0 ) : ?>
+							<span style="margin-left: 8px; color: #0284c7;">✨ <?php echo sprintf( _n( '%d new game available to install', '%d new games available to install', $new_cnt, 'pointnet-games' ), $new_cnt ); ?></span>
+						<?php endif; ?>
+					</div>
+				</div>
+			<?php endif; ?>
 
 			<?php self::render_donation_box(); ?>
 
@@ -306,18 +511,18 @@ class PointNet_Games_Admin {
 						$has_update    = $is_installed && version_compare( $game['version'], $local_version, '>' );
 						$badge_label   = isset( $game['badge'] ) ? $game['badge'] : '';
 					?>
-						<div class="pointnet-game-card">
+						<div class="pointnet-game-card<?php echo $has_update ? ' has-update' : ( ! $is_installed ? ' is-new' : '' ); ?>">
 							<div class="pointnet-game-card-header">
 								<div>
 									<h3 class="pointnet-game-card-title"><?php echo esc_html( $game['name'] ); ?></h3>
 									<span style="font-size:12px; color:#646970;"><?php echo esc_html( $game['author'] ); ?></span>
 								</div>
 								<?php if ( $has_update ) : ?>
-									<span class="pointnet-game-badge update"><?php esc_html_e( 'Update', 'pointnet-games' ); ?></span>
+									<span class="pointnet-game-badge update">🔄 <?php esc_html_e( 'Update', 'pointnet-games' ); ?></span>
 								<?php elseif ( $is_installed ) : ?>
-									<span class="pointnet-game-badge installed"><?php esc_html_e( 'Installed', 'pointnet-games' ); ?></span>
-								<?php elseif ( ! empty( $badge_label ) ) : ?>
-									<span class="pointnet-game-badge popular"><?php echo esc_html( $badge_label ); ?></span>
+									<span class="pointnet-game-badge installed">✓ <?php esc_html_e( 'Installed', 'pointnet-games' ); ?></span>
+								<?php else : ?>
+									<span class="pointnet-game-badge new-game">✨ <?php esc_html_e( 'New Game', 'pointnet-games' ); ?></span>
 								<?php endif; ?>
 							</div>
 							<div class="pointnet-game-card-body">
