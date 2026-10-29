@@ -122,6 +122,16 @@ class PointNet_Games_API {
 				'permission_callback' => array( $this, 'verify_authenticated_user' ),
 			)
 		);
+
+		register_rest_route(
+			$namespace,
+			'/achievement/unlock',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'unlock_achievement' ),
+				'permission_callback' => array( $this, 'verify_authenticated_user' ),
+			)
+		);
 	}
 
 	/**
@@ -665,9 +675,6 @@ class PointNet_Games_API {
 				continue;
 			}
 			// Only scalar values allowed - strictly reject nested arrays/objects.
-			if ( is_array( $value ) || is_object( $value ) ) {
-				continue;
-			}
 			if ( is_numeric( $value ) ) {
 				$clean[ $key ] = (float) $value;
 			} else {
@@ -676,5 +683,40 @@ class PointNet_Games_API {
 		}
 
 		return $clean;
+	}
+
+	/**
+	 * POST /achievement/unlock — unlock a specific achievement (e.g. from educational academy).
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function unlock_achievement( $request ) {
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			return new WP_Error( 'not_logged_in', __( 'Must be logged in to unlock achievements.', 'pointnet-games' ), array( 'status' => 401 ) );
+		}
+
+		$params         = $request->get_json_params();
+		$achievement_id = sanitize_key( $params['achievement_id'] ?? '' );
+		if ( empty( $achievement_id ) ) {
+			return new WP_Error( 'missing_id', __( 'Achievement ID is required.', 'pointnet-games' ), array( 'status' => 400 ) );
+		}
+
+		$definitions = PointNet_Games_Achievements::get_definitions();
+		if ( ! isset( $definitions[ $achievement_id ] ) ) {
+			return new WP_Error( 'invalid_achievement', __( 'Unknown achievement ID.', 'pointnet-games' ), array( 'status' => 404 ) );
+		}
+
+		$unlocked_now = PointNet_Games_Achievements::unlock( $user_id, $achievement_id, array(
+			'source' => sanitize_text_field( $params['source'] ?? 'game' ),
+		) );
+
+		return rest_ensure_response( array(
+			'success'     => true,
+			'unlocked'    => $unlocked_now,
+			'achievement' => $definitions[ $achievement_id ],
+		) );
 	}
 }

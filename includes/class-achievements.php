@@ -21,6 +21,15 @@ class PointNet_Games_Achievements {
 	const USER_META_KEY = '_pointnet_games_achievements';
 
 	/**
+	 * Get the list of all available achievements (alias for get_definitions).
+	 *
+	 * @return array
+	 */
+	public static function get_all() {
+		return self::get_definitions();
+	}
+
+	/**
 	 * Get the list of all available achievements.
 	 *
 	 * @return array
@@ -111,6 +120,29 @@ class PointNet_Games_Achievements {
 				'title'       => __( 'Millionaire Club', 'pointnet-games' ),
 				'description' => __( 'Accumulate 1,000,000 total points across your arcade records.', 'pointnet-games' ),
 				'icon'        => '🌟',
+				'rarity'      => 'legendary',
+			),
+
+			// --- Logic & Strategy Academy (Educational Badges) ---
+			'logic_cadet' => array(
+				'id'          => 'logic_cadet',
+				'title'       => __( 'Cadetto della Logica', 'pointnet-games' ),
+				'description' => __( 'Supera la prima lezione dell\'Accademia dimostrando la padronanza della saturazione.', 'pointnet-games' ),
+				'icon'        => '🎓',
+				'rarity'      => 'common',
+			),
+			'tactical_analyst' => array(
+				'id'          => 'tactical_analyst',
+				'title'       => __( 'Analista Tattico', 'pointnet-games' ),
+				'description' => __( 'Supera le lezioni sui pattern fondamentali 1-1, 1-2-X e 1-2-1.', 'pointnet-games' ),
+				'icon'        => '🧩',
+				'rarity'      => 'rare',
+			),
+			'logic_scholar' => array(
+				'id'          => 'logic_scholar',
+				'title'       => __( 'Maestro dell\'Accademia', 'pointnet-games' ),
+				'description' => __( 'Completa con successo tutte le lezioni della Scuola di Logica.', 'pointnet-games' ),
+				'icon'        => '🏛️',
 				'rarity'      => 'legendary',
 			),
 		);

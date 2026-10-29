@@ -26,6 +26,7 @@ class PointNet_Games_Admin {
 		add_action( 'admin_init', array( $this, 'redirect_manual_game_creation' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_admin_bar_styles' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_bar_styles' ) );
 		add_action( 'show_user_profile', array( $this, 'render_user_profile_arcade_section' ) );
 		add_action( 'edit_user_profile', array( $this, 'render_user_profile_arcade_section' ) );
 		add_action( 'personal_options_update', array( $this, 'save_user_profile_arcade_preferences' ) );
@@ -1513,14 +1514,14 @@ class PointNet_Games_Admin {
 						<div class="pointnet-games-stat-pill">
 							<span class="png-pill-icon">🎖️</span>
 							<span class="png-pill-label"><?php esc_html_e( 'Badges:', 'pointnet-games' ); ?></span>
-							<strong><?php echo esc_html( (string) count( PointNet_Games_Achievements::get_user_achievements( $user->ID ) ) ); ?> / <?php echo esc_html( (string) count( PointNet_Games_Achievements::get_all() ) ); ?></strong>
+							<strong><?php echo esc_html( (string) count( PointNet_Games_Achievements::get_user_achievements( $user->ID ) ) ); ?> / <?php echo esc_html( (string) count( PointNet_Games_Achievements::get_definitions() ) ); ?></strong>
 						</div>
 					</div>
 				</td>
 			</tr>
 
 			<?php
-			$all_definitions = PointNet_Games_Achievements::get_all();
+			$all_definitions = PointNet_Games_Achievements::get_definitions();
 			$user_badges     = PointNet_Games_Achievements::get_user_achievements( $user->ID );
 			$unlocked_map    = array();
 			foreach ( $user_badges as $ub ) {

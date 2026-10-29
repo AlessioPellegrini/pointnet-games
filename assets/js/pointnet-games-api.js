@@ -279,6 +279,30 @@
 		},
 
 		/**
+		 * Unlock an achievement for the currently logged-in user.
+		 *
+		 * @param {string} achievementId Achievement ID.
+		 * @param {string} source        Optional source (e.g. game slug).
+		 *
+		 * @return {Promise}
+		 */
+		unlockAchievement: function (achievementId, source) {
+			if (!this.isUserLoggedIn()) {
+				return Promise.resolve({ success: false, reason: 'not_logged_in' });
+			}
+
+			return request('/achievement/unlock', {
+				method: 'POST',
+				body: JSON.stringify({
+					achievement_id: achievementId,
+					source: source || 'game'
+				})
+			}).catch(function () {
+				return { success: false };
+			});
+		},
+
+		/**
 		 * Internal: bind the API to a specific game element.
 		 * Called by pointnet-games-embed.js automatically.
 		 *

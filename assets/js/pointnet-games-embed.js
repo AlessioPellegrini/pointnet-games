@@ -212,6 +212,17 @@
 				);
 			}
 
+			if (message.type === 'pointnet-games:unlock-achievement') {
+				var achId = message.data && message.data.achievement_id;
+				if (achId && window.pointnetGamesAPI && window.pointnetGamesAPI.unlockAchievement) {
+					window.pointnetGamesAPI.unlockAchievement(achId, message.data && message.data.source).then(function (res) {
+						if (res && res.unlocked && res.achievement) {
+							showCelebrationToast(element, { new_achievements: [res.achievement] });
+						}
+					});
+				}
+			}
+
 			if (message.type === 'pointnet-games:fullscreen-request') {
 				// Expand the embed container to cover the viewport.
 				element.classList.add('pointnet-games-fullscreen-active');
