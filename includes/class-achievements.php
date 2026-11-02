@@ -124,10 +124,17 @@ class PointNet_Games_Achievements {
 			),
 
 			// --- Logic & Strategy Academy (Educational Badges) ---
+			'controller_master' => array(
+				'id'          => 'controller_master',
+				'title'       => __( 'Padrone dei Comandi', 'pointnet-games' ),
+				'description' => __( 'Completa il modulo introduttivo sui controlli e le meccaniche di gioco.', 'pointnet-games' ),
+				'icon'        => '🕹️',
+				'rarity'      => 'common',
+			),
 			'logic_cadet' => array(
 				'id'          => 'logic_cadet',
 				'title'       => __( 'Cadetto della Logica', 'pointnet-games' ),
-				'description' => __( 'Supera la prima lezione dell\'Accademia dimostrando la padronanza della saturazione.', 'pointnet-games' ),
+				'description' => __( 'Supera la lezione dell\'Accademia dimostrando la padronanza della regola di saturazione.', 'pointnet-games' ),
 				'icon'        => '🎓',
 				'rarity'      => 'common',
 			),

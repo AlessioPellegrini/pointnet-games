@@ -24,6 +24,8 @@ class PointNet_Games_Shortcodes {
 		add_shortcode( 'pointnet_games_leaderboard', array( $this, 'shortcode_leaderboard' ) );
 		add_shortcode( 'pointnet_games_list', array( $this, 'shortcode_games_list' ) );
 		add_shortcode( 'pointnet_user_records', array( $this, 'shortcode_user_records' ) );
+		add_shortcode( 'pointnet_badges', array( $this, 'shortcode_badges' ) );
+		add_shortcode( 'pointnet_achievements', array( $this, 'shortcode_badges' ) );
 	}
 
 	/**
@@ -683,6 +685,86 @@ class PointNet_Games_Shortcodes {
 		$html .= '</div>'; // .pointnet-games-user-cards-grid
 
 		$html .= '</section>'; // .pointnet-games-user-records
+
+		return $html;
+	}
+
+	/**
+	 * [pointnet_badges user_id="" filter="all|unlocked|locked" columns="auto"]
+	 *
+	 * Standalone shortcode to render the player achievements and badges showcase.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string
+	 */
+	public function shortcode_badges( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'user_id' => 0,
+				'filter'  => 'all',
+				'title'   => '',
+			),
+			$atts,
+			'pointnet_badges'
+		);
+
+		$user_id = absint( $atts['user_id'] );
+		if ( ! $user_id ) {
+			$user_id = get_current_user_id();
+		}
+
+		$all_definitions = PointNet_Games_Achievements::get_definitions();
+		$unlocked_map    = $user_id ? PointNet_Games_Achievements::get_user_achievements( $user_id ) : array();
+
+		$filter = sanitize_key( $atts['filter'] );
+		if ( ! in_array( $filter, array( 'all', 'unlocked', 'locked' ), true ) ) {
+			$filter = 'all';
+		}
+
+		$title_text = ! empty( $atts['title'] ) ? esc_html( $atts['title'] ) : esc_html__( 'Achievements & Badges', 'pointnet-games' );
+
+		$unlocked_count = count( $unlocked_map );
+		$total_count    = count( $all_definitions );
+
+		$html  = '<div class="pointnet-games-achievements-tray pointnet-games-badges-standalone">';
+		$html .= '<div class="pointnet-games-achievements-title">🏅 ' . $title_text . ' <span class="png-badge-counter-pill">' . esc_html( $unlocked_count . ' / ' . $total_count ) . '</span></div>';
+		$html .= '<div class="pointnet-games-achievements-grid">';
+
+		foreach ( $all_definitions as $badge_id => $badge ) {
+			$is_unlocked = isset( $unlocked_map[ $badge_id ] );
+
+			if ( 'unlocked' === $filter && ! $is_unlocked ) {
+				continue;
+			}
+			if ( 'locked' === $filter && $is_unlocked ) {
+				continue;
+			}
+
+			$badge_class   = $is_unlocked ? 'png-badge-unlocked png-badge-' . esc_attr( $badge['rarity'] ) : 'png-badge-locked';
+			$unlocked_meta = $is_unlocked ? $unlocked_map[ $badge_id ] : null;
+
+			if ( $is_unlocked ) {
+				$formatted_date = date_i18n( get_option( 'date_format' ), strtotime( $unlocked_meta['unlocked_at'] ?? 'now' ) );
+				/* translators: %s: formatted unlock date */
+				$unlocked_tip = sprintf( esc_html__( 'Unlocked on %s', 'pointnet-games' ), esc_html( $formatted_date ) );
+			} else {
+				$unlocked_tip = esc_html__( 'Locked', 'pointnet-games' );
+			}
+
+			$html .= '<div class="pointnet-games-badge-card ' . esc_attr( $badge_class ) . '" title="' . esc_attr( $badge['title'] . ' — ' . $badge['description'] . ' (' . $unlocked_tip . ')' ) . '">';
+			$html .= '<div class="pointnet-games-badge-icon">' . ( $is_unlocked ? esc_html( $badge['icon'] ) : '🔒' ) . '</div>';
+			$html .= '<div class="pointnet-games-badge-body">';
+			$html .= '<div class="pointnet-games-badge-name">' . esc_html( $badge['title'] ) . '</div>';
+			$html .= '<div class="pointnet-games-badge-desc">' . esc_html( $badge['description'] ) . '</div>';
+			if ( $is_unlocked && ! empty( $formatted_date ) ) {
+				$html .= '<div class="pointnet-games-badge-date">' . esc_html( $formatted_date ) . '</div>';
+			}
+			$html .= '</div>';
+			$html .= '</div>';
+		}
+
+		$html .= '</div>'; // .pointnet-games-achievements-grid
+		$html .= '</div>'; // .pointnet-games-achievements-tray
 
 		return $html;
 	}
