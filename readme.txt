@@ -252,7 +252,7 @@ Yes! By default, player nicknames are displayed as static plain text for privacy
 * GitHub Release Auto-Sync: automatically detects newly published game releases and tags on GitHub (e.g. `minesweeper-arcade-v1.3.5`) and notifies administrators with 1-click update buttons.
 * First-Time Onboarding: friendly welcome banner on dashboard when no games are installed with 1-click installation for Minesweeper.
 * Data Protection Best Practices: added configurable "Disinstallazione & Pulizia Dati" settings to protect highscores and downloaded games during accidental plugin uninstalls.
-* Community Support: integrated Ko-fi supporter box and official `Donate link` header.
+* Community Support: integrated PayPal donation support and official `Donate link` header.
 
 = 1.3.12 =
 * Compatibility: aligned "Tested up to" to 7.1 to strictly follow WordPress.org major.minor validation standards (resolving invalid_tested_upto_minor).
